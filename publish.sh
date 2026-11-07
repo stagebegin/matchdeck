@@ -15,12 +15,17 @@ if [ -z "$TOKEN" ]; then echo "缺少 token：寫入 web/.gh_token 或設 GH_TOK
 # 1) 更新賽程／狀態／比分總表（48h 未開賽、20h 已完場）
 if [ "${SKIP_FIX:-0}" != "1" ]; then
   node ../fb/fixtures.mjs --out fixtures.json >/dev/null
+  # 1a) 補「已完場但缺最終比分」：scache.json 一旦補到就永久保留
+  node ../fb/scores.mjs >/dev/null 2>&1 || true
+  node ../fb/fixtures.mjs --out fixtures.json >/dev/null
   AGE=$(( $(date +%s) - $(stat -c %Y fixtures.json) ))
   if [ "${AGE}" -gt 180 ]; then echo "fixtures.json 過舊（${AGE}s），中止發佈"; exit 4; fi
 fi
 
 # 2) 重新生成頁面
 ./build.sh
+# 2a) API 驅動版頁面：JS 動態讀 oddsapi 反代，取代靜態大 HTML（詳見 api-index.html 頭註釋）
+if [ -f api-index.html ]; then cp api-index.html index.html; fi
 REMOTE_URL="https://x-access-token:${TOKEN}@github.com/stagebegin/matchdeck.git"
 
 git add -A

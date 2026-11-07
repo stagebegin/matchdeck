@@ -37,6 +37,14 @@ fn arr_len(v: &Value, path: &[&str]) -> usize {
     get(v, path).and_then(|x| x.as_arr()).map(|a| a.len()).unwrap_or(0)
 }
 
+// 顯示開關：首發狀態與信心星不帶量化資訊，暫時隱藏；代碼保留，日後可一行開返。
+const SHOW_CONF: bool = false;
+const SHOW_LINEUP: bool = false;
+const SHOW_QUAL: bool = false;   // 射門質素：回測無增益（0.5897 vs 0.5893），用戶決定收埋；一行開返
+const SHOW_TAGLINE: bool = false; // 頁頂 tagline「香港賽馬會賽程 × FotMob…」：用戶要求收埋（m03164）
+const SHOW_STATS: bool = false;   // 頁頂統計五格（未開賽／比賽中／已完場／已出預測／聯賽）：用戶要求收埋（m03164）
+const AH_NOTE: bool = false;      // 亞盤表註腳（走水＝和、分佈族差異說明）：用戶要求收埋（m03241）
+
 fn pct(x: f64) -> String {
     format!("{:.1}%", x * 100.0)
 }
@@ -90,6 +98,24 @@ fn fmt_line(x: f64) -> String {
     }
 }
 
+fn qual_block(p: &Value) -> String {
+    if !SHOW_QUAL { return String::new(); }
+    let q = match get(p, &["diag", "quality"]) { Some(v) => v, None => return String::new() };
+    let side = |k: &str| get(q, &[k]);
+    let (h, a) = match (side("home"), side("away")) { (Some(h), Some(a)) => (h, a), _ => return String::new() };
+    let f1 = |v: &Value, k: &str, d: usize| format!("{:.*}", d, num(v, &[k], f64::NAN));
+    let n = num(h, &["n"], 0.0);
+    format!(
+        "<div class=\"ahd ql\"><div class=\"ahd-head\"><b>射門質素</b><span>近 {n:.0} 場 · xG＝量×質</span></div><table class=\"ahd-t\"><tr><th>項目</th><th>主</th><th>客</th></tr><tr><td class=\"ln\">xG 攻/守</td><td>{}</td><td>—</td></tr><tr><td class=\"ln\">射門 攻/守</td><td>{}</td><td>—</td></tr><tr><td class=\"ln\">xG/射門 攻/守</td><td>{}</td><td>—</td></tr><tr><td class=\"ln\">禁區內射門</td><td>{}</td><td>{}</td></tr><tr><td class=\"ln\">禁區觸球</td><td>{}</td><td>{}</td></tr><tr><td class=\"ln\">大機會</td><td>{}</td><td>{}</td></tr></table><div class=\"ahd-note\">只作解釋，不參與 λ：回測（5 大×3 季×4 摺，n=3,642）拆解版 Brier 0.5897 對純 xG 0.5893，無增益，故保留 xG 直接擬合。</div></div>",
+        format!("{} / {}", f1(h, "xgF", 2), f1(h, "xgA", 2)),
+        format!("{} / {}", f1(h, "shF", 1), f1(h, "shA", 1)),
+        format!("{} / {}", f1(h, "qF", 3), f1(h, "qA", 3)),
+        f1(h, "sibF", 1), f1(a, "sibF", 1),
+        f1(h, "tobF", 1), f1(a, "tobF", 1),
+        f1(h, "bcF", 2), f1(a, "bcF", 2),
+    )
+}
+
 fn ahd_block(p: &Value) -> String {
     let mark = num(p, &["ahd", "mark"], 0.0);
     let rows = match get(p, &["ahd", "rows"]).and_then(|x| x.as_arr()) {
@@ -129,10 +155,16 @@ fn ahd_block(p: &Value) -> String {
             cv = num(r, &["cover"], 0.0) * 100.0,
         ));
     }
+    let note_html = if AH_NOTE {
+        String::from("<div class=\"ahd-note\">全部由讓球方（上盤）視角；cover＝全贏＋½×（半贏＋走水）。走水＝相對於該盤口的「和」——0 線走水就係 1X2 的和局，−1 線走水就係「剛好贏一球」。整數盤才有走水，四分一盤只有半贏／半輸，「—」＝結構上不可能。<br>本表（泊松＋DC）與上方「讓球 −1／+1」（負二項 ν=1.4，skill 指定）同盤口會有 1–4pp 差異，屬分佈族差異：回測顯示負二項對「讓球主客和」較準（Brier 0.8941 對 0.9266），泊松對亞盤 cover 較準（偏差 2.30pp 對 3.34pp），故此兩處刻意唔統一。</div>")
+    } else {
+        String::new()
+    };
     format!(
-        "<div class=\"ahd\"><div class=\"ahd-head\"><b>亞盤 AHD</b><span>{dir}</span></div><table class=\"ahd-t\"><tr><th>盤口</th><th>讓球方</th><th>全贏</th><th>半贏</th><th>走水</th><th>半輸</th><th>全輸</th><th>cover</th></tr>{body}</table><div class=\"ahd-note\">全部由讓球方（上盤）視角；cover＝全贏＋½×（半贏＋走水）。整數盤才有走水，四分一盤只有半贏／半輸，「—」＝結構上不可能。</div></div>",
+        "<div class=\"ahd\"><div class=\"ahd-head\"><b>亞盤 AHD</b><span>{dir}</span></div><table class=\"ahd-t\"><tr><th>盤口</th><th>讓球方</th><th>全贏</th><th>半贏</th><th>走水</th><th>半輸</th><th>全輸</th><th>cover</th></tr>{body}</table>{note_html}</div>",
         dir = dir,
-        body = body
+        body = body,
+        note_html = note_html
     )
 }
 
@@ -154,6 +186,8 @@ fn card(f: &Value) -> String {
     let plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name));
     let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
         format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
+    } else if status == "ft" {
+        String::from("<div class=\"score miss\" title=\"未取到最終比分（該聯賽未在數據源登記）\"><b>—</b></div>")
     } else {
         String::from("<div class=\"vs\">vs</div>")
     };
@@ -260,6 +294,7 @@ fn card(f: &Value) -> String {
     };
     let lineup_cls = if lineup.starts_with('✅') { "ok" } else if lineup.starts_with('◐') { "mid" } else { "low" };
     let ahd_html = ahd_block(&p);
+    let qual_html = qual_block(&p);
 
     format!(
         r#"<article class="card" data-comp="{comp}" data-text="{plain}" data-status="{status}">
@@ -297,10 +332,10 @@ fn card(f: &Value) -> String {
     <div class="hc-row"><span class="hc-key">讓球 +1</span><span>{p1h_p}</span><span>{p1d_p}</span><span>{p1a_p}</span></div>
   </div>
   {ahd_html}
+  {qual_html}
   <div class="tops">{tops}</div>
   <div class="foot">
-    <span class="conf" data-cs="{cs:.0}">{conf}</span>
-    <span class="tag {lineup_cls}">首發 {lineup}</span>
+    {conf_html}{lineup_html}
     {inj_chip}
   </div>
 </article>"#,
@@ -336,11 +371,11 @@ fn card(f: &Value) -> String {
         p1d_p = pct(p1d),
         p1a_p = pct(p1a),
         tops = tops.join(""),
-        conf = esc(&conf),
-        cs = cs,
-        lineup = esc(&lineup),
+        conf_html = if SHOW_CONF { format!("<span class=\"conf\" data-cs=\"{:.0}\">{}</span>", cs, esc(&conf)) } else { String::new() },
+        lineup_html = if SHOW_LINEUP { format!("<span class=\"tag {}\">首發 {}</span>", lineup_cls, esc(&lineup)) } else { String::new() },
         inj_chip = inj_chip,
         ahd_html = ahd_html,
+        qual_html = qual_html,
     )
 }
 
@@ -356,6 +391,8 @@ const CSS: &str = r#"
 .ahd-t{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
 .ahd-t th{font-weight:500;color:#7d9fa2;text-align:right;padding:1px 3px}
 .ahd-t td{text-align:right;padding:1px 3px;color:#3f6f74}
+.ahd.ql{margin-top:4px}
+.score.miss b{color:#9aa8ab;font-weight:600}
 .ahd-t td.fav{color:var(--cyan);font-weight:600}
 .ahd-t td.ln{text-align:left;color:#2b616a;font-weight:600}
 .ahd-t td.dim{color:#c3d6d8}
@@ -515,7 +552,16 @@ footer b{color:var(--ink-2);font-weight:600}
 .tab.on b{color:#fff;background:rgba(255,255,255,.22)}
 .tabbody.off{display:none}
 .dayhead{display:flex;align-items:baseline;gap:10px;margin:20px 0 12px;padding-bottom:8px;
-  border-bottom:1px dashed rgba(21,48,47,.14)}
+  border-bottom:1px dashed rgba(21,48,47,.14);scroll-margin-top:120px}
+.daybar{position:sticky;top:56px;z-index:15;display:flex;gap:6px;flex-wrap:wrap;
+  margin:14px 0 0;padding:6px 0;background:var(--bg)}
+.daynav{border:1px solid var(--line);background:rgba(255,255,255,.75);color:var(--ink-2);
+  font:inherit;font-size:12px;border-radius:999px;padding:3px 10px;cursor:pointer}
+.daynav em{font-style:normal;color:var(--muted);margin-left:4px;font-size:11px}
+.daynav:hover{border-color:var(--cyan-2);color:var(--cyan-2)}
+.daynav.on{background:var(--cyan);color:#fff;border-color:var(--cyan)}
+.daynav.on em{color:rgba(255,255,255,.8)}
+.daypage.off{display:none}
 .dayhead b{font-size:15px;letter-spacing:.3px}
 .dayhead span{font-size:12px;color:var(--muted)}
 .score{display:flex;align-items:center;gap:5px;font-size:22px;font-weight:800;color:var(--ink);line-height:1}
@@ -549,18 +595,47 @@ const JS: &str = r#"
   }
   function apply(){
     const t=(q.value||'').trim().toLowerCase();
+    const searching = (!!t) || comp!=='all';
     for(const c of cards){
       const okComp = comp==='all' || c.dataset.comp===comp;
       const okText = !t || (c.dataset.text||'').toLowerCase().includes(t);
       c.style.display = okComp&&okText?'':'none';
     }
     tidy();
+    // 已完場分頁：搜尋時展開全部日子（跨日搵），清空搜尋就返返去現時日子
+    if(dpages.length){
+      const db=document.querySelector('.daybar');
+      if(db) db.style.display = searching?'none':'';
+      if(searching){
+        dpages.forEach(p=>p.classList.remove('off'));
+        dnav.forEach(x=>x.classList.remove('on'));
+      } else {
+        showDay(curDay || (dnav[0] && dnav[0].dataset.day));
+      }
+    }
   }
   function showTab(id){
     tabs.forEach(x=>x.classList.toggle('on', x.dataset.tab===id));
     bodies.forEach(x=>x.classList.toggle('off', x.dataset.body!==id));
   }
   tabs.forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+  // 已完場：日子分頁（一日一頁；搜尋時全部展開）
+  const dnav=[...document.querySelectorAll('.daynav')];
+  const dpages=[...document.querySelectorAll('.daypage')];
+  let curDay=dnav.length?dnav[0].dataset.day:null;
+  function showDay(id){
+    curDay=id;
+    dnav.forEach(x=>x.classList.toggle('on', x.dataset.day===id));
+    dpages.forEach(p=>p.classList.toggle('off', p.dataset.day!==id));
+  }
+  dnav.forEach(b=>b.addEventListener('click',()=>{
+    if(q) q.value='';
+    comp='all';
+    chips.forEach(x=>x.classList.remove('on'));
+    if(chips[0]) chips[0].classList.add('on');
+    showDay(b.dataset.day);
+    apply();
+  }));
   chips.forEach(ch=>ch.addEventListener('click',()=>{
     chips.forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); comp=ch.dataset.filter; apply();
@@ -581,31 +656,50 @@ fn tab_body(rows: &[Value], status: &str, empty_msg: &str) -> String {
     if list.is_empty() {
         return format!("<div class=\"panel empty\">{}</div>", esc(empty_msg));
     }
-    let mut out = String::new();
-    let mut i = 0;
-    while i < list.len() {
-        let kick = text(list[i], &["kick"]);
+    // 依開球日分組（list 已按 kick 排序）
+    let mut days: Vec<(String, String, Vec<&Value>)> = Vec::new(); // (md, 顯示, 卡)
+    for r in list {
+        let kick = text(r, &["kick"]);
         let (md, _) = kick_parts(&kick);
         let wd = weekday(&md).to_string();
         let key = format!("{} 週{}", md, wd);
-        let mut j = i;
-        while j < list.len() && {
-            let (m2, _) = kick_parts(&text(list[j], &["kick"]));
-            m2 == md
-        } {
-            j += 1;
+        match days.last_mut() {
+            Some((m, _, g)) if *m == md => g.push(r),
+            _ => days.push((md, key, vec![r])),
         }
-        let group = &list[i..j];
+    }
+    let mut out = String::new();
+    // 已完場多於一日 → 頂部 sticky 日子導航（用戶要求：分日子查賽事）
+    if status == "ft" && days.len() > 1 {
+        out.push_str("<div class=\"daybar\">");
+        for (md, key, g) in &days {
+            out.push_str(&format!(
+                "<button class=\"daynav\" data-day=\"day-{}\">{}<em>{}</em></button>",
+                md.replace('/', "-"),
+                esc(key),
+                g.len()
+            ));
+        }
+        out.push_str("</div>");
+    }
+    for (md, key, group) in &days {
+        // 已完場：一日一頁（用戶要求分頁，唔係一整頁滾）；其餘分頁照舊平鋪
+        if status == "ft" && days.len() > 1 {
+            out.push_str(&format!("<div class=\"daypage\" data-day=\"day-{}\">", md.replace('/', "-")));
+        }
         out.push_str(&format!(
-            "<div class=\"dayhead\"><b>{}</b><span>{} 場</span></div><div class=\"grid\">",
-            esc(&key),
+            "<div class=\"dayhead\" id=\"day-{}\"><b>{}</b><span>{} 場</span></div><div class=\"grid\">",
+            md.replace('/', "-"),
+            esc(key),
             group.len()
         ));
         for r in group {
             out.push_str(&card(r));
         }
         out.push_str("</div>");
-        i = j;
+        if status == "ft" && days.len() > 1 {
+            out.push_str("</div>");
+        }
     }
     out
 }
@@ -647,8 +741,8 @@ fn main() {
     let gen_at = text(&fx, &["generated"]);
 
     if !keep_all {
-        // 已完場只保留 20 小時內
-        let cut = now_secs() - 20 * 3600;
+        // 已完場保留 72 小時（用戶要求：昨天／前天都要睇到）
+        let cut = now_secs() - 72 * 3600;
         rows.retain(|r| {
             if text(r, &["status"]) != "ft" {
                 return true;
@@ -733,9 +827,9 @@ fn main() {
         ("Step 1 定量基線", "時序 Elo（K=20、主場 +60）＋時間衰減攻防擬合（半衰期 180 天、先驗 K=2）", "done"),
         ("Step 1b 賽果數據", "FotMob 賽果 2023–2026，跨年制聯賽自動處理 2023/2024 編碼", "done"),
         ("Step 1c 傷停／首發", "FotMob squad.injury ＋ matchDetails.lineup（T-60 取預測、T-25 取官方）", "done"),
-        ("Step 2 多智能體共識", "四角色微調尚未接上，fin 目前等於基線＋傷停調整", "part"),
+        ("Step 2 多智能體共識", "統計／戰術／情境／風險四代理，權重 0.15/0.05/0.20/0.60；控球取向已接入，但 3,975 場回測顯示增益 ≈ 0，故壓至 0.05；出 λ 對數調整＋和局偏移（±3pp）", "done"),
         ("Step 3 盃賽 Monte Carlo", "聯賽場景不需要；盃賽待補", "todo"),
-        ("Step 4 置信度", "依樣本量／首發狀態／兩路一致性給星", "done"),
+        ("Step 4 置信度", "已停用：星級依樣本量與首發狀態，屬非量化欄位，前後台計算保留但唔顯示", "todo"),
         ("Step 5 校準", "逐聯賽 walk-forward logistic（8 摺、out-of-sample）＋ pooled 混合，cal 為參考層不覆蓋 fin", "done"),
         ("Step 6 讓球", "負二項 ν=1.4，1X2 仍用泊松", "done"),
     ]
@@ -790,10 +884,35 @@ fn main() {
     };
     let body_pre = tab_body(&rows, "pre", "48 小時內暫無未開賽場次。");
     let body_live = tab_body(&rows, "live", "目前沒有進行中的賽事。");
-    let body_ft = tab_body(&rows, "ft", "最近 20 小時沒有完場紀錄。");
+    let body_ft = tab_body(&rows, "ft", "最近 72 小時沒有完場紀錄。");
 
     let now = time_now();
     let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
+
+    // 頁頂 tagline 與統計五格：用戶要求收埋；代碼保留，一行開返
+    let tagline_html = if SHOW_TAGLINE {
+        String::from(r#"<p class="tagline">香港賽馬會賽程 <b>×</b> FotMob 賽果與傷停 <b>×</b> Elo＋泊松／負二項</p>"#)
+    } else {
+        String::new()
+    };
+    let stats_html = if SHOW_STATS {
+        format!(
+            r#"<div class="stats">
+      <div class="stat"><b>{n_pre}</b><i>未開賽</i></div>
+      <div class="stat"><b>{n_live}</b><i>比賽中</i></div>
+      <div class="stat"><b>{n_ft}</b><i>已完場</i></div>
+      <div class="stat"><b>{n_pred}</b><i>已出預測</i></div>
+      <div class="stat"><b>{n_comps}</b><i>聯賽</i></div>
+    </div>"#,
+            n_pre = n_pre,
+            n_live = n_live,
+            n_ft = n_ft,
+            n_pred = n_pred,
+            n_comps = n_comps,
+        )
+    } else {
+        String::new()
+    };
 
     let html = format!(
         r#"<!doctype html>
@@ -810,19 +929,12 @@ fn main() {
   <header class="hero">
     <div class="mist"></div>
     <h1>賽前預測台<span class="dot"></span></h1>
-    <p class="tagline">香港賽馬會賽程 <b>×</b> FotMob 賽果與傷停 <b>×</b> Elo＋泊松／負二項</p>
-    <div class="stats">
-      <div class="stat"><b>{n_pre}</b><i>未開賽</i></div>
-      <div class="stat"><b>{n_live}</b><i>比賽中</i></div>
-      <div class="stat"><b>{n_ft}</b><i>已完場</i></div>
-      <div class="stat"><b>{n_pred}</b><i>已出預測</i></div>
-      <div class="stat"><b>{n_comps}</b><i>聯賽</i></div>
-    </div>
+    {tagline_html}{stats_html}
   </header>
 
   <div class="toolbar">
     <input id="q" class="search" placeholder="搜尋球隊或聯賽…" autocomplete="off">
-    <div class="chips">{chips}</div>
+    <div class="chips" style="display:none">{chips}</div>   <!-- 聯賽過濾列：用戶要求收埋；要恢復刪 style 即可 -->
   </div>
 
   <nav class="tabs" role="tablist">
@@ -859,7 +971,7 @@ fn main() {
 
   <footer>
     <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
-    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 20 小時。<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 72 小時（分日子顯示）。<br>
     <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
     <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
   </footer>
@@ -876,8 +988,9 @@ fn main() {
         n_pre = n_pre,
         n_live = n_live,
         n_ft = n_ft,
-        n_pred = n_pred,
-        n_comps = n_comps,
+        // n_pred / n_comps 已移入 stats_html 的 format!（統計五格收埋時不再需要）
+        tagline_html = tagline_html,
+        stats_html = stats_html,
         cov = cov,
         rows_tbl = rows_tbl,
         gen_note = esc(&gen_note),
