@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>賽前預測台 · 霧青</title>
+<meta name="description" content="香港賽馬會賽程 × FotMob 數據 × Elo／泊松模型的賽前預測看板">
+<style>
+:root{
+  --mist-0:#f5fbfb; --mist-1:#e8f3f3; --mist-2:#d9ecec; --mist-3:#c8e3e4;
+  --ink:#15302f; --ink-2:#3d5a5a; --muted:#6f8c8d;
+  --cyan:#4c9ba1; --cyan-2:#7cb8bc; --cyan-3:#a6cfd1;
+  --home:#3f8f95; --draw:#9db6b8; --away:#2b616a;
+  --card:rgba(255,255,255,.72); --line:rgba(21,48,47,.09);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Hiragino Sans HK","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, #ffffff 0%, rgba(255,255,255,0) 60%),
+    radial-gradient(900px 480px at 92% 4%, var(--mist-2) 0%, rgba(217,236,236,0) 62%),
+    linear-gradient(180deg,var(--mist-0) 0%,var(--mist-1) 38%,var(--mist-2) 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 72px}
+
+/* hero */
+.hero{position:relative;padding:64px 0 30px;overflow:hidden}
+.hero .mist{position:absolute;inset:-40% -10% auto -10%;height:340px;
+  background:radial-gradient(closest-side,rgba(124,184,188,.34),transparent 70%),
+             radial-gradient(closest-side at 70% 30%,rgba(166,207,209,.45),transparent 72%);
+  filter:blur(6px);pointer-events:none}
+h1{margin:0;font-size:clamp(30px,4.2vw,46px);letter-spacing:.02em;font-weight:700;position:relative}
+h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-left:.18em;
+  background:var(--cyan);box-shadow:0 0 0 6px rgba(76,155,161,.14);vertical-align:.08em}
+.tagline{margin:12px 0 0;color:var(--ink-2);font-size:15px;letter-spacing:.03em}
+.tagline b{color:var(--cyan);font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;position:relative}
+.stat{background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--line);
+  border-radius:14px;padding:12px 16px;min-width:128px}
+.stat b{display:block;font-size:22px;letter-spacing:.02em}
+.stat i{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.06em}
+
+/* toolbar */
+.toolbar{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:14px 0;margin:8px 0 18px;
+  background:linear-gradient(180deg,rgba(236,246,246,.96),rgba(236,246,246,.80));
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.search{flex:1 1 220px;min-width:180px;padding:9px 14px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.86);color:var(--ink);font-size:14px;outline:none}
+.search:focus{border-color:var(--cyan-2);box-shadow:0 0 0 3px rgba(124,184,188,.18)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.fchip{cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.7);color:var(--ink-2);
+  padding:6px 11px;border-radius:999px;font-size:12.5px;letter-spacing:.04em;transition:.18s}
+.fchip:hover{border-color:var(--cyan-2)}
+.fchip.on{background:var(--cyan);color:#fff;border-color:var(--cyan)}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(342px,1fr));gap:18px}
+
+/* card */
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 18px 15px;backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 10px 30px -18px rgba(21,48,47,.35);
+  overflow:hidden}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(240px 120px at 100% 0%,rgba(166,207,209,.28),transparent 70%)}
+.card-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);position:relative}
+.badge{background:var(--cyan);color:#fff;border-radius:7px;padding:2px 7px;font-size:11.5px;letter-spacing:.08em;font-weight:600}
+.comp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38%}
+.kick{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.pass{border:1px solid var(--cyan-3);color:var(--cyan);border-radius:6px;padding:1px 6px;font-size:11px}
+
+.teams{display:flex;align-items:center;gap:10px;margin:16px 0 14px;position:relative}
+.team{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.team.away{align-items:flex-end;text-align:right}
+.team .name{font-size:17.5px;font-weight:650;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .elo{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.vs{color:var(--muted);font-size:12px;letter-spacing:.1em}
+
+.bar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:var(--mist-2);position:relative}
+.bar .seg{display:block;height:100%}
+.bar .h{background:var(--home)} .bar .d{background:var(--draw)} .bar .a{background:var(--away)}
+
+.nums{display:grid;grid-template-columns:repeat(3,1fr);margin-top:10px;text-align:center}
+.nums .n b{display:block;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.nums .n i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:1px}
+.nums .h b{color:var(--home)} .nums .d b{color:#7f9a9c} .nums .a b{color:var(--away)}
+
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.meta span{position:relative}
+
+.hc{margin-top:12px;border-top:1px dashed var(--line);padding-top:9px;font-size:12.5px;
+  font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.hc-row{display:grid;grid-template-columns:78px 1fr 1fr 1fr;gap:4px;padding:2px 0}
+.hc-row span{text-align:right}
+.hc-key{text-align:left !important;color:var(--muted)}
+
+.tops{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
+  background:rgba(255,255,255,.6);border-radius:8px;padding:3px 8px;font-size:12px}
+.chip b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.chip i{font-style:normal;color:var(--muted);font-size:11px}
+
+.foot{display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:11px;
+  border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+.conf{color:#c58b52;letter-spacing:.12em}
+.tag{border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.tag.ok{color:#3f8f77;border-color:rgba(63,143,119,.3)}
+.tag.mid{color:#a58a3f;border-color:rgba(165,138,63,.3)}
+.tag.low{color:var(--muted)}
+.foot .conf+.tag{margin-left:0}
+
+/* sections */
+section.block{margin-top:46px}
+h2{font-size:19px;letter-spacing:.05em;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:16px;height:2px;background:var(--cyan);display:inline-block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;backdrop-filter:blur(12px)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px dashed var(--line)}
+th{color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.06em}
+tr:last-child td{border-bottom:none}
+.st{font-size:11.5px;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.st.done{color:#3f8f77;border:1px solid rgba(63,143,119,.3)}
+.st.part{color:#a58a3f;border:1px solid rgba(165,138,63,.3)}
+.st.todo{color:var(--muted);border:1px solid var(--line)}
+.cov{display:flex;flex-wrap:wrap;gap:7px}
+.cov span{border:1px solid var(--line);background:rgba(255,255,255,.6);border-radius:8px;
+  padding:4px 9px;font-size:12px;color:var(--ink-2)}
+.cov span b{color:var(--cyan);font-weight:600}
+footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:12px;line-height:1.9}
+footer b{color:var(--ink-2);font-weight:600}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .comp-name{display:none}
+  .hero{padding-top:44px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="mist"></div>
+    <h1>賽前預測台<span class="dot"></span></h1>
+    <p class="tagline">香港賽馬會賽程 <b>×</b> FotMob 賽果與傷停 <b>×</b> Elo＋泊松／負二項</p>
+    <div class="stats">
+      <div class="stat"><b>11</b><i>已出預測</i></div>
+      <div class="stat"><b>7</b><i>今期聯賽</i></div>
+      <div class="stat"><b>6</b><i>已驗證聯賽接駁</i></div>
+      <div class="stat"><b id="shown">11</b><i>目前顯示</i></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <input id="q" class="search" placeholder="搜尋球隊或聯賽…" autocomplete="off">
+    <div class="chips"><button class="fchip on" data-filter="all">全部</button><button class="fchip" data-filter="AD1">AD1</button><button class="fchip" data-filter="ED1">ED1</button><button class="fchip" data-filter="EPL">EPL</button><button class="fchip" data-filter="GD2">GD2</button><button class="fchip" data-filter="SFL">SFL</button><button class="fchip" data-filter="TL1">TL1</button><button class="fchip" data-filter="UPR">UPR</button></div>
+  </div>
+
+  <div class="grid"><article class="card" data-comp="AD1" data-text="AD1 墨爾本城 西悉尼流浪者 澳洲職業聯賽">
+  <div class="card-top">
+    <span class="badge">AD1</span>
+    <span class="comp-name">澳洲職業聯賽</span>
+    <span class="kick">11-07 週六 16:40</span>
+    <span class="pass">T-60</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">墨爾本城</span><span class="elo">Elo 1553</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">西悉尼流浪者</span><span class="elo">Elo 1462</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 48.1% 和 25.2% 客 26.7%">
+    <span class="seg h" style="width:48.1%" title="主 48.1"></span>
+    <span class="seg d" style="width:25.2%" title="和 25.2"></span>
+    <span class="seg a" style="width:26.7%" title="客 26.7"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>48.1%</b><i>主勝</i></div>
+    <div class="n d"><b>25.2%</b><i>和</i></div>
+    <div class="n a"><b>26.7%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.75 / 1.26</span>
+    <span>大 2.5 58.0%</span>
+    <span>大 3.5 35.6%</span>
+    <span>BTTS 60.1%</span>
+    <span>樣本 527</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>28.1%</span><span>20.1%</span><span>51.8%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>70.7%</span><span>15.1%</span><span>14.2%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>11.7%</i></span><span class="chip"><b>2-1</b><i>9.5%</i></span><span class="chip"><b>1-0</b><i>7.7%</i></span><span class="chip"><b>2-0</b><i>7.5%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="3">★★★☆☆</span>
+    <span class="tag ok">首發 ✅ 官方</span>
+    <span class="tag">傷停 —</span>
+  </div>
+</article><article class="card" data-comp="AD1" data-text="AD1 珀斯光輝 紐卡素噴射機 澳洲職業聯賽">
+  <div class="card-top">
+    <span class="badge">AD1</span>
+    <span class="comp-name">澳洲職業聯賽</span>
+    <span class="kick">11-07 週六 18:45</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">珀斯光輝</span><span class="elo">Elo 1420</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">紐卡素噴射機</span><span class="elo">Elo 1525</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 37.4% 和 23.2% 客 39.3%">
+    <span class="seg h" style="width:37.4%" title="主 37.4"></span>
+    <span class="seg d" style="width:23.2%" title="和 23.2"></span>
+    <span class="seg a" style="width:39.3%" title="客 39.3"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>37.4%</b><i>主勝</i></div>
+    <div class="n d"><b>23.2%</b><i>和</i></div>
+    <div class="n a"><b>39.3%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.79 / 1.84</span>
+    <span>大 2.5 70.2%</span>
+    <span>大 3.5 49.0%</span>
+    <span>BTTS 70.7%</span>
+    <span>樣本 527</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>22.3%</span><span>16.7%</span><span>61.0%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>59.3%</span><span>17.1%</span><span>23.6%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>9.4%</i></span><span class="chip"><b>1-2</b><i>8.0%</i></span><span class="chip"><b>2-1</b><i>7.8%</i></span><span class="chip"><b>2-2</b><i>7.2%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="3">★★★☆☆</span>
+    <span class="tag mid">首發 ◐ 預測</span>
+    <span class="tag">傷停 —</span>
+  </div>
+</article><article class="card" data-comp="GD2" data-text="GD2 紐倫堡 達斯泰特 德國乙組聯賽">
+  <div class="card-top">
+    <span class="badge">GD2</span>
+    <span class="comp-name">德國乙組聯賽</span>
+    <span class="kick">11-07 週六 20:00</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">紐倫堡</span><span class="elo">Elo 1554</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">達斯泰特</span><span class="elo">Elo 1481</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 66.4% 和 18.2% 客 15.5%">
+    <span class="seg h" style="width:66.3%" title="主 66.3"></span>
+    <span class="seg d" style="width:18.1%" title="和 18.1"></span>
+    <span class="seg a" style="width:15.6%" title="客 15.6"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>66.4%</b><i>主勝</i></div>
+    <div class="n d"><b>18.2%</b><i>和</i></div>
+    <div class="n a"><b>15.5%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 2.60 / 1.22</span>
+    <span>大 2.5 74.3%</span>
+    <span>大 3.5 54.2%</span>
+    <span>BTTS 66.7%</span>
+    <span>樣本 1010</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>45.2%</span><span>19.0%</span><span>35.8%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>80.8%</span><span>10.2%</span><span>9.0%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>2-1</b><i>8.9%</i></span><span class="chip"><b>3-1</b><i>7.8%</i></span><span class="chip"><b>1-1</b><i>7.4%</i></span><span class="chip"><b>2-0</b><i>7.2%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 4 / 5</span>
+  </div>
+</article><article class="card" data-comp="TL1" data-text="TL1 泰港 春武里 泰國甲組聯賽">
+  <div class="card-top">
+    <span class="badge">TL1</span>
+    <span class="comp-name">泰國甲組聯賽</span>
+    <span class="kick">11-07 週六 20:00</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">泰港</span><span class="elo">Elo 1656</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">春武里</span><span class="elo">Elo 1481</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 68.6% 和 18.9% 客 12.5%">
+    <span class="seg h" style="width:68.6%" title="主 68.6"></span>
+    <span class="seg d" style="width:18.9%" title="和 18.9"></span>
+    <span class="seg a" style="width:12.5%" title="客 12.5"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>68.6%</b><i>主勝</i></div>
+    <div class="n d"><b>18.9%</b><i>和</i></div>
+    <div class="n a"><b>12.5%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 2.36 / 0.93</span>
+    <span>大 2.5 63.8%</span>
+    <span>大 3.5 41.7%</span>
+    <span>BTTS 55.4%</span>
+    <span>樣本 775</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>45.3%</span><span>20.8%</span><span>33.8%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>84.1%</span><span>9.4%</span><span>6.5%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>2-0</b><i>10.4%</i></span><span class="chip"><b>2-1</b><i>9.6%</i></span><span class="chip"><b>1-1</b><i>8.8%</i></span><span class="chip"><b>3-0</b><i>8.2%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="3">★★★☆☆</span>
+    <span class="tag mid">首發 ◐ 預測</span>
+    <span class="tag">傷停 —</span>
+  </div>
+</article><article class="card" data-comp="GD2" data-text="GD2 基爾 比勒費爾德 德國乙組聯賽">
+  <div class="card-top">
+    <span class="badge">GD2</span>
+    <span class="comp-name">德國乙組聯賽</span>
+    <span class="kick">11-07 週六 20:00</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">基爾</span><span class="elo">Elo 1484</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">比勒費爾德</span><span class="elo">Elo 1486</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 42.6% 和 25.7% 客 31.7%">
+    <span class="seg h" style="width:43.7%" title="主 43.7"></span>
+    <span class="seg d" style="width:25.5%" title="和 25.5"></span>
+    <span class="seg a" style="width:30.8%" title="客 30.8"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>42.6%</b><i>主勝</i></div>
+    <div class="n d"><b>25.7%</b><i>和</i></div>
+    <div class="n a"><b>31.7%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.65 / 1.40</span>
+    <span>大 2.5 59.1%</span>
+    <span>大 3.5 36.7%</span>
+    <span>BTTS 61.8%</span>
+    <span>樣本 1010</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>25.2%</span><span>19.2%</span><span>55.6%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>67.0%</span><span>16.2%</span><span>16.8%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>11.7%</i></span><span class="chip"><b>2-1</b><i>9.1%</i></span><span class="chip"><b>1-2</b><i>7.5%</i></span><span class="chip"><b>1-0</b><i>7.0%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 4 / 1</span>
+  </div>
+</article><article class="card" data-comp="GD2" data-text="GD2 奧斯納貝克 凱沙羅頓 德國乙組聯賽">
+  <div class="card-top">
+    <span class="badge">GD2</span>
+    <span class="comp-name">德國乙組聯賽</span>
+    <span class="kick">11-07 週六 20:00</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">奧斯納貝克</span><span class="elo">Elo 1429</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">凱沙羅頓</span><span class="elo">Elo 1541</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 39.3% 和 27.1% 客 33.7%">
+    <span class="seg h" style="width:39.0%" title="主 39.0"></span>
+    <span class="seg d" style="width:27.0%" title="和 27.0"></span>
+    <span class="seg a" style="width:34.0%" title="客 34.0"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>39.3%</b><i>主勝</i></div>
+    <div class="n d"><b>27.1%</b><i>和</i></div>
+    <div class="n a"><b>33.7%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.47 / 1.34</span>
+    <span>大 2.5 53.6%</span>
+    <span>大 3.5 31.3%</span>
+    <span>BTTS 58.1%</span>
+    <span>樣本 1010</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>21.3%</span><span>18.8%</span><span>59.9%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>64.2%</span><span>17.6%</span><span>18.2%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>12.8%</i></span><span class="chip"><b>2-1</b><i>8.7%</i></span><span class="chip"><b>1-2</b><i>8.0%</i></span><span class="chip"><b>1-0</b><i>7.8%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 0 / 1</span>
+  </div>
+</article><article class="card" data-comp="ED1" data-text="ED1 布里斯托城 諾域治 英格蘭冠軍聯賽">
+  <div class="card-top">
+    <span class="badge">ED1</span>
+    <span class="comp-name">英格蘭冠軍聯賽</span>
+    <span class="kick">11-07 週六 20:30</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">布里斯托城</span><span class="elo">Elo 1485</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">諾域治</span><span class="elo">Elo 1506</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 36.3% 和 25.2% 客 38.4%">
+    <span class="seg h" style="width:36.1%" title="主 36.1"></span>
+    <span class="seg d" style="width:25.0%" title="和 25.0"></span>
+    <span class="seg a" style="width:38.9%" title="客 38.9"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>36.3%</b><i>主勝</i></div>
+    <div class="n d"><b>25.2%</b><i>和</i></div>
+    <div class="n a"><b>38.4%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.56 / 1.61</span>
+    <span>大 2.5 62.3%</span>
+    <span>大 3.5 40.1%</span>
+    <span>BTTS 64.7%</span>
+    <span>樣本 1841</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>20.5%</span><span>17.3%</span><span>62.2%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>59.8%</span><span>17.9%</span><span>22.4%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>11.2%</i></span><span class="chip"><b>1-2</b><i>8.5%</i></span><span class="chip"><b>2-1</b><i>8.2%</i></span><span class="chip"><b>2-2</b><i>6.7%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 2 / 3</span>
+  </div>
+</article><article class="card" data-comp="ED1" data-text="ED1 樸茨茅夫 史篤城 英格蘭冠軍聯賽">
+  <div class="card-top">
+    <span class="badge">ED1</span>
+    <span class="comp-name">英格蘭冠軍聯賽</span>
+    <span class="kick">11-07 週六 20:30</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">樸茨茅夫</span><span class="elo">Elo 1511</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">史篤城</span><span class="elo">Elo 1487</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 40.8% 和 28.3% 客 30.9%">
+    <span class="seg h" style="width:42.9%" title="主 42.9"></span>
+    <span class="seg d" style="width:27.7%" title="和 27.7"></span>
+    <span class="seg a" style="width:29.4%" title="客 29.4"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>40.8%</b><i>主勝</i></div>
+    <div class="n d"><b>28.3%</b><i>和</i></div>
+    <div class="n a"><b>30.9%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.40 / 1.19</span>
+    <span>大 2.5 49.7%</span>
+    <span>大 3.5 27.8%</span>
+    <span>BTTS 54.6%</span>
+    <span>樣本 1841</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>23.4%</span><span>20.1%</span><span>56.5%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>68.4%</span><span>16.6%</span><span>15.0%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>13.2%</i></span><span class="chip"><b>1-0</b><i>9.3%</i></span><span class="chip"><b>2-1</b><i>9.0%</i></span><span class="chip"><b>0-0</b><i>7.9%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 9 / 4</span>
+  </div>
+</article><article class="card" data-comp="EPL" data-text="EPL 列斯聯 熱刺 英格蘭超級聯賽">
+  <div class="card-top">
+    <span class="badge">EPL</span>
+    <span class="comp-name">英格蘭超級聯賽</span>
+    <span class="kick">11-07 週六 20:30</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">列斯聯</span><span class="elo">Elo 1528</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">熱刺</span><span class="elo">Elo 1469</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 46.3% 和 28.1% 客 25.6%">
+    <span class="seg h" style="width:46.9%" title="主 46.9"></span>
+    <span class="seg d" style="width:27.4%" title="和 27.4"></span>
+    <span class="seg a" style="width:25.7%" title="客 25.7"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>46.3%</b><i>主勝</i></div>
+    <div class="n d"><b>28.1%</b><i>和</i></div>
+    <div class="n a"><b>25.6%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.47 / 1.04</span>
+    <span>大 2.5 48.6%</span>
+    <span>大 3.5 26.8%</span>
+    <span>BTTS 52.8%</span>
+    <span>樣本 1232</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>25.8%</span><span>21.0%</span><span>53.1%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>71.8%</span><span>15.5%</span><span>12.8%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>13.1%</i></span><span class="chip"><b>1-0</b><i>10.3%</i></span><span class="chip"><b>2-1</b><i>9.3%</i></span><span class="chip"><b>2-0</b><i>8.6%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 5 / 5</span>
+  </div>
+</article><article class="card" data-comp="UPR" data-text="UPR 艾迪哈夫拉 卡爾巴FC 阿聯酋職業聯賽">
+  <div class="card-top">
+    <span class="badge">UPR</span>
+    <span class="comp-name">阿聯酋職業聯賽</span>
+    <span class="kick">11-07 週六 20:55</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">艾迪哈夫拉</span><span class="elo">Elo 1432</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">卡爾巴FC</span><span class="elo">Elo 1446</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 34.6% 和 25.7% 客 39.7%">
+    <span class="seg h" style="width:34.6%" title="主 34.6"></span>
+    <span class="seg d" style="width:25.7%" title="和 25.7"></span>
+    <span class="seg a" style="width:39.7%" title="客 39.7"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>34.6%</b><i>主勝</i></div>
+    <div class="n d"><b>25.7%</b><i>和</i></div>
+    <div class="n a"><b>39.7%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 1.47 / 1.59</span>
+    <span>大 2.5 59.0%</span>
+    <span>大 3.5 36.6%</span>
+    <span>BTTS 62.2%</span>
+    <span>樣本 588</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>19.2%</span><span>17.2%</span><span>63.6%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>59.1%</span><span>18.4%</span><span>22.5%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>1-1</b><i>11.8%</i></span><span class="chip"><b>1-2</b><i>8.7%</i></span><span class="chip"><b>2-1</b><i>8.1%</i></span><span class="chip"><b>0-1</b><i>6.6%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 —</span>
+  </div>
+</article><article class="card" data-comp="SFL" data-text="SFL 馬拉加 桑坦德 西班牙甲組聯賽">
+  <div class="card-top">
+    <span class="badge">SFL</span>
+    <span class="comp-name">西班牙甲組聯賽</span>
+    <span class="kick">11-07 週六 21:00</span>
+    <span class="pass">手動</span>
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">馬拉加</span><span class="elo">Elo 1458</span></div>
+    <div class="vs">vs</div>
+    <div class="team away"><span class="name">桑坦德</span><span class="elo">Elo 1483</span></div>
+  </div>
+  <div class="bar" role="img" aria-label="主 45.1% 和 21.6% 客 33.3%">
+    <span class="seg h" style="width:46.0%" title="主 46.0"></span>
+    <span class="seg d" style="width:21.4%" title="和 21.4"></span>
+    <span class="seg a" style="width:32.6%" title="客 32.6"></span>
+  </div>
+  <div class="nums">
+    <div class="n h"><b>45.1%</b><i>主勝</i></div>
+    <div class="n d"><b>21.6%</b><i>和</i></div>
+    <div class="n a"><b>33.3%</b><i>客勝</i></div>
+  </div>
+  <div class="meta">
+    <span>λ 2.17 / 1.86</span>
+    <span>大 2.5 77.2%</span>
+    <span>大 3.5 58.0%</span>
+    <span>BTTS 75.7%</span>
+    <span>樣本 1251</span>
+  </div>
+  <div class="hc">
+    <div class="hc-row"><span class="hc-key">讓球 −1</span><span>29.4%</span><span>17.2%</span><span>53.5%</span></div>
+    <div class="hc-row"><span class="hc-key">讓球 +1</span><span>65.2%</span><span>14.9%</span><span>20.0%</span></div>
+  </div>
+  <div class="tops"><span class="chip"><b>2-1</b><i>7.8%</i></span><span class="chip"><b>1-1</b><i>7.6%</i></span><span class="chip"><b>2-2</b><i>7.2%</i></span><span class="chip"><b>1-2</b><i>6.5%</i></span></div>
+  <div class="foot">
+    <span class="conf" data-cs="2">★★☆☆☆</span>
+    <span class="tag low">首發 ◌ 未公開</span>
+    <span class="tag">傷停 4 / 2</span>
+  </div>
+</article></div>
+  
+
+  <section class="block">
+    <h2>流程合規狀態</h2>
+    <div class="panel"><table>
+      <thead><tr><th>步驟</th><th>現況</th><th>狀態</th></tr></thead>
+      <tbody><tr><td>Step 1 定量基線</td><td>時序 Elo（K=20、主場 +60）＋時間衰減攻防擬合（半衰期 180 天、先驗 K=2）</td><td><span class="st done">已完成</span></td></tr><tr><td>Step 1b 賽果數據</td><td>FotMob 賽果 2023–2026，跨年制聯賽自動處理 2023/2024 編碼</td><td><span class="st done">已完成</span></td></tr><tr><td>Step 1c 傷停／首發</td><td>FotMob squad.injury ＋ matchDetails.lineup（T-60 取預測、T-25 取官方）</td><td><span class="st done">已完成</span></td></tr><tr><td>Step 2 多智能體共識</td><td>四角色微調尚未接上，fin 目前等於基線＋傷停調整</td><td><span class="st part">部分</span></td></tr><tr><td>Step 3 盃賽 Monte Carlo</td><td>聯賽場景不需要；盃賽待補</td><td><span class="st todo">未做</span></td></tr><tr><td>Step 4 置信度</td><td>依樣本量／首發狀態／兩路一致性給星</td><td><span class="st done">已完成</span></td></tr><tr><td>Step 5 校準</td><td>需逐聯賽 walk-forward logistic，尚未生成 cal 欄</td><td><span class="st todo">未做</span></td></tr><tr><td>Step 6 讓球</td><td>負二項 ν=1.4，1X2 仍用泊松</td><td><span class="st done">已完成</span></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="block">
+    <h2>聯賽接駁</h2>
+    <div class="panel"><div class="cov"><span title="FotMob league 113">AD1 <b>113</b>· · 2 場預測</span><span title="FotMob league 9495">AD1W <b>9495</b>· A-League Women</span><span title="FotMob league 8938">AD2 <b>8938</b>· Australian Championship</span><span title="FotMob league 112">APL <b>112</b>· Argentine Division 1</span><span title="FotMob league 38">AT1 <b>38</b>· Austrian Bundesliga</span><span title="FotMob league 8814">BD2 <b>8814</b>· Brazilian Division 2</span><span title="FotMob league 9067">BDC <b>9067</b>· Brazilian Cup</span><span title="FotMob league 40">BFL <b>40</b>· Belgian Division 1</span><span title="FotMob league 273">CD1 <b>273</b>· Chilean Division 1</span><span title="FotMob league 111">DF2 <b>111</b>· Dutch Division 2</span><span title="FotMob league 57">DFL <b>57</b>· Dutch Division 1</span><span title="FotMob league 46">DK1 <b>46</b>· Danish Superliga</span><span title="FotMob league 48">ED1 <b>48</b>· · 2 場預測</span><span title="FotMob league 132">EFA <b>132</b>· FA Cup</span><span title="FotMob league 47">EPL <b>47</b>✓ · 1 場預測</span><span title="FotMob league 110">FF2 <b>110</b>· French Division 2</span><span title="FotMob league 53">FFL <b>53</b>✓ French Division 1</span><span title="FotMob league 146">GD2 <b>146</b>· · 3 場預測</span><span title="FotMob league 54">GSL <b>54</b>✓ German Division 1</span><span title="FotMob league 55">ISA <b>55</b>✓ Italian Division 1</span><span title="FotMob league 223">JD1 <b>223</b>✓ Japanese Division 1</span><span title="FotMob league 8974">JD2 <b>8974</b>· Japanese Division 2</span><span title="FotMob league 9080">KD1 <b>9080</b>· Korean Division 1</span><span title="FotMob league 9116">KD2 <b>9116</b>· Korean Division 2</span><span title="FotMob league 8976">MD1 <b>8976</b>· Mexican Division 1</span><span title="FotMob league 130">MLS <b>130</b>· US Major League</span><span title="FotMob league 230">MXL <b>230</b>· Mexican Premier</span><span title="FotMob league 59">NTL <b>59</b>· Norwegian Division 1</span><span title="FotMob league 61">PFL <b>61</b>· Portuguese Premier</span><span title="FotMob league 535">QSL <b>535</b>· Qatar Stars League</span><span title="FotMob league 63">RPL <b>63</b>· Russian Premier</span><span title="FotMob league 67">SAL <b>67</b>· Swedish Division 1</span><span title="FotMob league 140">SF2 <b>140</b>· Spanish Division 2</span><span title="FotMob league 87">SFL <b>87</b>✓ · 1 場預測</span><span title="FotMob league 64">SPL <b>64</b>· Scottish Premier</span><span title="FotMob league 69">SU1 <b>69</b>· Swiss Super League</span><span title="FotMob league 8984">TL1 <b>8984</b>· · 1 場預測</span><span title="FotMob league 538">UPR <b>538</b>· · 1 場預測</span><span title="FotMob league 8972">USL <b>8972</b>· USL Championship</span></div></div>
+  </section>
+
+  <footer>
+    <b>生成時間</b>　2026-11-07 16:51 UTC+8　·　靜態頁面由 Rust 生成，資料更新後重跑即換。<br>
+    <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
+    <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容。
+  </footer>
+</div>
+<script>
+(function(){
+  const cards=[...document.querySelectorAll('.card')];
+  const chips=[...document.querySelectorAll('.fchip')];
+  const q=document.getElementById('q');
+  let comp='all';
+  function apply(){
+    const t=(q.value||'').trim().toLowerCase();
+    for(const c of cards){
+      const okComp = comp==='all' || c.dataset.comp===comp;
+      const okText = !t || (c.dataset.text||'').toLowerCase().includes(t);
+      c.style.display = okComp&&okText?'':'none';
+    }
+    const n=cards.filter(c=>c.style.display!=='none').length;
+    document.getElementById('shown').textContent=n;
+  }
+  chips.forEach(ch=>ch.addEventListener('click',()=>{
+    chips.forEach(x=>x.classList.remove('on'));
+    ch.classList.add('on'); comp=ch.dataset.filter; apply();
+  }));
+  if(q) q.addEventListener('input',apply);
+  apply();
+})();
+</script>
+</body>
+</html>

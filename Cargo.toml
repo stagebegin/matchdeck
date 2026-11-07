@@ -1,0 +1,15 @@
+[package]
+name = "matchdeck"
+version = "0.1.0"
+edition = "2021"
+description = "Static pre-match prediction deck (Rust, zero dependencies) — HKJC fixtures × FotMob data"
+license = "MIT"
+
+[dependencies]
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"
