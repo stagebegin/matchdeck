@@ -81,49 +81,93 @@ fn weekday(md: &str) -> &'static str {
 
 // ---------- 卡片 ----------
 
-fn card(p: &Value) -> String {
-    let comp = text(p, &["comp"]);
-    let comp_name = text(p, &["compName"]);
-    let home = text(p, &["home"]);
-    let away = text(p, &["away"]);
-    let kick = text(p, &["kickoff"]);
+fn card(f: &Value) -> String {
+    let comp = text(f, &["comp"]);
+    let comp_name = text(f, &["compName"]);
+    let home = text(f, &["home"]);
+    let away = text(f, &["away"]);
+    let kick = text(f, &["kick"]);
     let (md, hm) = kick_parts(&kick);
-    let pass = text(p, &["pass"]);
-    let pass_zh = match pass.as_str() {
-        "t60" => "T-60",
-        "t25" => "T-25",
-        _ => "手動",
+    let wd = weekday(&md);
+    let status = text(f, &["status"]);
+    let minute = text(f, &["minute"]);
+    let sh = num(f, &["sh"], -1.0);
+    let sa = num(f, &["sa"], -1.0);
+
+    let p = f.get("pred").cloned().unwrap_or(Value::Null);
+    let has_pred = p.get("base").and_then(|b| b.get("h")).is_some();
+    let plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name));
+    let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
+        format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
+    } else {
+        String::from("<div class=\"vs\">vs</div>")
+    };
+    let pulse = if status == "live" {
+        format!("<span class=\"pill live\"><em></em>{}</span>", esc(&if minute.is_empty() { "比賽中".into() } else { minute.clone() }))
+    } else if status == "ft" {
+        String::from("<span class=\"pill ft\">完場</span>")
+    } else {
+        String::from("<span class=\"pass\">未開賽</span>")
     };
 
-    let bh = num(p, &["base", "h"], 0.0) * 100.0;
-    let bd = num(p, &["base", "d"], 0.0) * 100.0;
-    let ba = num(p, &["base", "a"], 0.0) * 100.0;
-    let fh = num(p, &["fin", "h"], 0.0);
-    let fd = num(p, &["fin", "d"], 0.0);
-    let fa = num(p, &["fin", "a"], 0.0);
+    if !has_pred {
+        return format!(
+            r#"<article class="card ghost" data-comp="{comp}" data-text="{plain}">
+  <div class="card-top">
+    <span class="badge">{comp}</span>
+    <span class="comp-name">{comp_name}</span>
+    <span class="kick">{md} 週{wd} {hm}</span>
+    {pulse}
+  </div>
+  <div class="teams">
+    <div class="team home"><span class="name">{home}</span></div>
+    {score_html}
+    <div class="team away"><span class="name">{away}</span></div>
+  </div>
+  <div class="ghost-note">預測待生成（開賽前 60 分鐘會自動計算）</div>
+</article>"#,
+            comp = esc(&comp),
+            comp_name = esc(&comp_name),
+            home = esc(&home),
+            away = esc(&away),
+            plain = plain,
+            md = md,
+            wd = wd,
+            hm = hm,
+            pulse = pulse,
+            score_html = score_html,
+        );
+    }
 
-    let lh = num(p, &["base", "lh"], 0.0);
-    let la = num(p, &["base", "la"], 0.0);
-    let lh2 = num(p, &["diag", "lambda_adj", "lh"], lh);
-    let la2 = num(p, &["diag", "lambda_adj", "la"], la);
+    let bh = num(&p, &["base", "h"], 0.0) * 100.0;
+    let bd = num(&p, &["base", "d"], 0.0) * 100.0;
+    let ba = num(&p, &["base", "a"], 0.0) * 100.0;
+    let fh = num(&p, &["fin", "h"], 0.0);
+    let fd = num(&p, &["fin", "d"], 0.0);
+    let fa = num(&p, &["fin", "a"], 0.0);
 
-    let elo_h = num(p, &["diag", "elo", "home"], 1500.0);
-    let elo_a = num(p, &["diag", "elo", "away"], 1500.0);
-    let o25 = num(p, &["diag", "o25"], 0.0);
-    let o35 = num(p, &["diag", "o35"], 0.0);
-    let btts = num(p, &["diag", "btts"], 0.0);
-    let n = num(p, &["diag", "n"], 0.0);
-    let conf = text(p, &["fin", "conf"]);
-    let cs = num(p, &["fin", "cs"], 3.0);
-    let lineup = text(p, &["diag", "lineupState"]);
-    let inj_h = arr_len(p, &["diag", "injuries", "home"]);
-    let inj_a = arr_len(p, &["diag", "injuries", "away"]);
+    let lh = num(&p, &["diag", "lambda_adj", "lh"], 0.0);
+    let la = num(&p, &["diag", "lambda_adj", "la"], 0.0);
 
-    let hc = |line: &str, k: &str| num(p, &["diag", "handicap", line, k], 0.0);
+    let elo_h = num(&p, &["diag", "elo", "home"], 1500.0);
+    let elo_a = num(&p, &["diag", "elo", "away"], 1500.0);
+    let n = num(&p, &["diag", "n"], 0.0);
+    let o25 = num(&p, &["diag", "o25"], 0.0);
+    let o35 = num(&p, &["diag", "o35"], 0.0);
+    let btts = num(&p, &["diag", "btts"], 0.0);
+    let conf = text(&p, &["fin", "conf"]);
+    let cs = num(&p, &["fin", "cs"], 3.0);
+    let lineup = text(&p, &["diag", "lineupState"]);
+    let inj_h = arr_len(&p, &["diag", "injuries", "home"]);
+    let inj_a = arr_len(&p, &["diag", "injuries", "away"]);
+    let pass = text(&p, &["pass"]);
+    let _pass_zh = match pass.as_str() { "t60" => "T-60", "t25" => "T-25", _ => "預覽" };
+
+    let hc = |line: &str, k: &str| num(&p, &["diag", "handicap", line, k], 0.0);
     let (m1h, m1d, m1a) = (hc("-1", "h"), hc("-1", "d"), hc("-1", "a"));
     let (p1h, p1d, p1a) = (hc("1", "h"), hc("1", "d"), hc("1", "a"));
 
-    let tops: Vec<String> = get(p, &["diag", "tops"])
+    let tops: Vec<String> = get(&p, &["diag", "tops"])
         .and_then(|x| x.as_arr())
         .map(|a| {
             a.iter()
@@ -142,20 +186,36 @@ fn card(p: &Value) -> String {
     } else {
         "<span class=\"tag\">傷停 —</span>".to_string()
     };
+    let cal_html = {
+        let ch = num(&p, &["cal", "h"], -1.0);
+        if ch < 0.0 {
+            String::new()
+        } else {
+            let cd = num(&p, &["cal", "d"], 0.0);
+            let ca = num(&p, &["cal", "a"], 0.0);
+            let cn = num(&p, &["cal", "n"], 0.0);
+            let cacc = num(&p, &["cal", "own", "acc"], 0.0);
+            let cb = num(&p, &["cal", "own", "brier"], 0.0);
+            let bb = num(&p, &["cal", "base", "brier"], 0.0);
+            format!(
+                "<div class=\"calrow\" title=\"Step 5 walk-forward logistic 校準；skill 第 227 行：cal 為參考層，不覆蓋最終值\">校準 <b>{:.1}%</b> <b>{:.1}%</b> <b>{:.1}%</b><i>n={:.0} · 命中 {:.1}% · Brier {:.3}（基線 {:.3}）</i></div>",
+                ch * 100.0, cd * 100.0, ca * 100.0, cn, cacc * 100.0, cb, bb
+            )
+        }
+    };
     let lineup_cls = if lineup.starts_with('✅') { "ok" } else if lineup.starts_with('◐') { "mid" } else { "low" };
 
-    let wd = weekday(&md);
     format!(
-        r#"<article class="card" data-comp="{comp}" data-text="{plain}">
+        r#"<article class="card" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
     <span class="badge">{comp}</span>
     <span class="comp-name">{comp_name}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
-    <span class="pass">{pass_zh}</span>
+    {pulse}
   </div>
   <div class="teams">
     <div class="team home"><span class="name">{home}</span><span class="elo">Elo {elo_h:.0}</span></div>
-    <div class="vs">vs</div>
+    {score_html}
     <div class="team away"><span class="name">{away}</span><span class="elo">Elo {elo_a:.0}</span></div>
   </div>
   <div class="bar" role="img" aria-label="主 {fh_p} 和 {fd_p} 客 {fa_p}">
@@ -168,8 +228,9 @@ fn card(p: &Value) -> String {
     <div class="n d"><b>{fd_p}</b><i>和</i></div>
     <div class="n a"><b>{fa_p}</b><i>客勝</i></div>
   </div>
+  {cal_html}
   <div class="meta">
-    <span>λ {lh2:.2} / {la2:.2}</span>
+    <span>λ {lh:.2} / {la:.2}</span>
     <span>大 2.5 {o25_p}</span>
     <span>大 3.5 {o35_p}</span>
     <span>BTTS {btts_p}</span>
@@ -190,11 +251,13 @@ fn card(p: &Value) -> String {
         comp_name = esc(&comp_name),
         home = esc(&home),
         away = esc(&away),
-        plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name)),
+        plain = plain,
+        status = esc(&status),
         md = md,
         wd = wd,
         hm = hm,
-        pass_zh = pass_zh,
+        pulse = pulse,
+        score_html = score_html,
         elo_h = elo_h,
         elo_a = elo_a,
         bh_p = format!("{:.1}", bh),
@@ -203,12 +266,12 @@ fn card(p: &Value) -> String {
         fh_p = pct(fh),
         fd_p = pct(fd),
         fa_p = pct(fa),
-        lh2 = lh2,
-        la2 = la2,
+        lh = lh,
+        la = la,
+        n = n,
         o25_p = pct(o25),
         o35_p = pct(o35),
         btts_p = pct(btts),
-        n = n,
         m1h_p = pct(m1h),
         m1d_p = pct(m1d),
         m1a_p = pct(m1a),
@@ -226,6 +289,12 @@ fn card(p: &Value) -> String {
 // ---------- 頁面 ----------
 
 const CSS: &str = r#"
+.calrow{margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:rgba(76,155,161,.10);border:1px dashed rgba(76,155,161,.38);font-size:12px;color:#2b616a;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.calrow b{font-variant-numeric:tabular-nums;color:#2b616a}
+.calrow i{margin-left:auto;font-style:normal;color:#5c8b8f;font-size:11px}
+.cal-table td,.cal-table th{font-variant-numeric:tabular-nums;font-size:12.5px}
+.cal-table .up{color:#2e7d5b;font-weight:600}.cal-table .down{color:#b0553f;font-weight:600}
+
 :root{
   --mist-0:#f5fbfb; --mist-1:#e8f3f3; --mist-2:#d9ecec; --mist-3:#c8e3e4;
   --ink:#15302f; --ink-2:#3d5a5a; --muted:#6f8c8d;
@@ -363,14 +432,50 @@ footer b{color:var(--ink-2);font-weight:600}
   .comp-name{display:none}
   .hero{padding-top:44px}
 }
+
+/* ── 分頁 / 日期分組 / 比分 ── */
+.tabs{display:flex;gap:8px;margin:20px 0 6px;flex-wrap:wrap}
+.tab{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.6);color:var(--ink-2);
+  border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:7px;
+  transition:background .18s,border-color .18s,color .18s}
+.tab b{font-size:12px;font-weight:700;color:var(--muted);background:rgba(21,48,47,.06);border-radius:999px;padding:1px 7px}
+.tab:hover{border-color:var(--cyan-3)}
+.tab.on{background:var(--cyan);border-color:var(--cyan);color:#fff}
+.tab.on b{color:#fff;background:rgba(255,255,255,.22)}
+.tabbody.off{display:none}
+.dayhead{display:flex;align-items:baseline;gap:10px;margin:20px 0 12px;padding-bottom:8px;
+  border-bottom:1px dashed rgba(21,48,47,.14)}
+.dayhead b{font-size:15px;letter-spacing:.3px}
+.dayhead span{font-size:12px;color:var(--muted)}
+.score{display:flex;align-items:center;gap:5px;font-size:22px;font-weight:800;color:var(--ink);line-height:1}
+.score i{font-style:normal;opacity:.35;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;letter-spacing:.2px}
+.pill.live{background:#e6f6ee;color:#1e7a50;border:1px solid #bfe6d2}
+.pill.live em{width:6px;height:6px;border-radius:50%;background:#22a06b;display:inline-block;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.pill.ft{background:rgba(21,48,47,.05);color:var(--ink-2);border:1px solid var(--line)}
+.card.ghost{background:rgba(255,255,255,.45);border-style:dashed}
+.card.ghost .ghost-note{margin-top:12px;font-size:12px;color:var(--muted)}
+.card.ghost .team .name{font-weight:600}
 "#;
 
 const JS: &str = r#"
 (function(){
   const cards=[...document.querySelectorAll('.card')];
   const chips=[...document.querySelectorAll('.fchip')];
+  const tabs=[...document.querySelectorAll('.tab')];
+  const bodies=[...document.querySelectorAll('.tabbody')];
   const q=document.getElementById('q');
   let comp='all';
+  function tidy(){
+    for(const head of document.querySelectorAll('.dayhead')){
+      const grid=head.nextElementSibling;
+      if(!grid) continue;
+      const any=[...grid.querySelectorAll('.card')].some(c=>c.style.display!=='none');
+      head.style.display=any?'':'none';
+      grid.style.display=any?'':'none';
+    }
+  }
   function apply(){
     const t=(q.value||'').trim().toLowerCase();
     for(const c of cards){
@@ -378,9 +483,13 @@ const JS: &str = r#"
       const okText = !t || (c.dataset.text||'').toLowerCase().includes(t);
       c.style.display = okComp&&okText?'':'none';
     }
-    const n=cards.filter(c=>c.style.display!=='none').length;
-    document.getElementById('shown').textContent=n;
+    tidy();
   }
+  function showTab(id){
+    tabs.forEach(x=>x.classList.toggle('on', x.dataset.tab===id));
+    bodies.forEach(x=>x.classList.toggle('off', x.dataset.body!==id));
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
   chips.forEach(ch=>ch.addEventListener('click',()=>{
     chips.forEach(x=>x.classList.remove('on'));
     ch.classList.add('on'); comp=ch.dataset.filter; apply();
@@ -390,55 +499,113 @@ const JS: &str = r#"
 })();
 "#;
 
+fn tab_body(rows: &[Value], status: &str, empty_msg: &str) -> String {
+    let mut list: Vec<&Value> = rows
+        .iter()
+        .filter(|r| text(r, &["status"]) == status)
+        .collect();
+    if status == "ft" {
+        list.reverse();
+    }
+    if list.is_empty() {
+        return format!("<div class=\"panel empty\">{}</div>", esc(empty_msg));
+    }
+    let mut out = String::new();
+    let mut i = 0;
+    while i < list.len() {
+        let kick = text(list[i], &["kick"]);
+        let (md, _) = kick_parts(&kick);
+        let wd = weekday(&md).to_string();
+        let key = format!("{} 週{}", md, wd);
+        let mut j = i;
+        while j < list.len() && {
+            let (m2, _) = kick_parts(&text(list[j], &["kick"]));
+            m2 == md
+        } {
+            j += 1;
+        }
+        let group = &list[i..j];
+        out.push_str(&format!(
+            "<div class=\"dayhead\"><b>{}</b><span>{} 場</span></div><div class=\"grid\">",
+            esc(&key),
+            group.len()
+        ));
+        for r in group {
+            out.push_str(&card(r));
+        }
+        out.push_str("</div>");
+        i = j;
+    }
+    out
+}
+
 fn main() {
     let mut args = std::env::args().skip(1);
-    let mut preds_dir = PathBuf::from("../../fb/preds");
+    let mut fixtures = PathBuf::from("../../web/fixtures.json");
     let mut registry = PathBuf::from("../../fb/registry.json");
     let mut out = PathBuf::from("dist/index.html");
+    let mut keep_all = false;
     while let Some(a) = args.next() {
         match a.as_str() {
-            "--preds" => preds_dir = PathBuf::from(args.next().unwrap_or_default()),
+            "--fixtures" => fixtures = PathBuf::from(args.next().unwrap_or_default()),
             "--registry" => registry = PathBuf::from(args.next().unwrap_or_default()),
             "--out" => out = PathBuf::from(args.next().unwrap_or_default()),
+            "--all" => keep_all = true,
             "-h" | "--help" => {
-                println!("matchdeck --preds <dir> --registry <json> --out <html>");
+                println!("matchdeck --fixtures <json> --registry <json> --out <html> [--all]");
                 return;
             }
             _ => {}
         }
     }
 
-    // 讀預測
-    let mut preds: Vec<Value> = Vec::new();
-    if let Ok(rd) = fs::read_dir(&preds_dir) {
-        for e in rd.flatten() {
-            let p = e.path();
-            if p.extension().and_then(|x| x.to_str()) != Some("json") {
-                continue;
-            }
-            if let Ok(txt) = fs::read_to_string(&p) {
-                if let Ok(v) = json::parse(&txt) {
-                    if v.get("home").is_some() && v.get("fin").is_some() {
-                        preds.push(v);
-                    }
-                }
-            }
+    // 讀賽程總表
+    let fx: Value = match fs::read_to_string(&fixtures).ok().and_then(|t| json::parse(&t).ok()) {
+        Some(v) => v,
+        None => {
+            eprintln!("讀不到 {}", fixtures.display());
+            Value::Null
         }
-    }
-    preds.sort_by(|a, b| text(a, &["kickoff"]).cmp(&text(b, &["kickoff"])));
-    let keep_all = std::env::args().any(|a| a == "--all");
+    };
+    let mut rows: Vec<Value> = fx
+        .get("rows")
+        .and_then(|x| x.as_arr())
+        .map(|a| a.to_vec())
+        .unwrap_or_default();
+    rows.sort_by(|a, b| text(a, &["kick"]).cmp(&text(b, &["kick"])));
+    let gen_at = text(&fx, &["generated"]);
+
     if !keep_all {
-        let cut = now_secs() - 90 * 60;
-        preds.retain(|p| epoch_secs(&text(p, &["kickoff"])).map(|k| k > cut).unwrap_or(true));
+        // 已完場只保留 20 小時內
+        let cut = now_secs() - 20 * 3600;
+        rows.retain(|r| {
+            if text(r, &["status"]) != "ft" {
+                return true;
+            }
+            epoch_secs(&text(r, &["kick"])).map(|k| k > cut).unwrap_or(true)
+        });
     }
 
-    // 讀 registry
+    let n_pre = rows.iter().filter(|r| text(r, &["status"]) == "pre").count();
+    let n_live = rows.iter().filter(|r| text(r, &["status"]) == "live").count();
+    let n_ft = rows.iter().filter(|r| text(r, &["status"]) == "ft").count();
+    let n_pred = rows
+        .iter()
+        .filter(|r| r.get("pred").map(|p| p.get("base").is_some()).unwrap_or(false))
+        .count();
+    let n_comps = rows
+        .iter()
+        .map(|r| text(r, &["comp"]))
+        .collect::<std::collections::BTreeSet<_>>()
+        .len();
+
+    // registry：聯賽接駁表
     let reg: Value = fs::read_to_string(&registry)
         .ok()
         .and_then(|t| json::parse(&t).ok())
         .unwrap_or(Value::Null);
     let mut comps: Vec<(String, u64, bool, String)> = Vec::new();
-    if let Some(Value::Obj(m)) = reg.get("__root__").cloned().or(Some(reg.clone())) {
+    if let Value::Obj(m) = reg.clone() {
         for (k, v) in m {
             if k.starts_with('_') {
                 continue;
@@ -447,32 +614,34 @@ fn main() {
             if fm == 0 {
                 continue;
             }
-            let ver = get(&v, &["verified"]).and_then(|x| x.as_bool()).unwrap_or(false);
+            let ver = v.get("verified").and_then(|x| x.as_bool()).unwrap_or(false);
             comps.push((k, fm, ver, text(&v, &["name"])));
         }
     }
     comps.sort_by(|a, b| a.0.cmp(&b.0));
 
-    // 每聯賽預測數
-    let count = |code: &str| preds.iter().filter(|p| text(p, &["comp"]) == code).count();
-
-    let now = time_now();
-    let cards: String = preds.iter().map(card).collect();
-    let n_preds = preds.len();
-    let n_comps = preds.iter().map(|p| text(p, &["comp"])).collect::<std::collections::BTreeSet<_>>().len();
-    let n_verified = comps.iter().filter(|c| c.2).count();
-
-    // 篩選 chips：只列有預測的聯賽
-    let mut active: Vec<String> = preds.iter().map(|p| text(p, &["comp"])).collect::<std::collections::BTreeSet<_>>().into_iter().collect();
+    // 篩選 chips：只列今日有賽程的聯賽
+    let mut active: Vec<String> = rows.iter().map(|r| text(r, &["comp"])).collect();
     active.sort();
-    let chips = std::iter::once(String::from("<button class=\"fchip on\" data-filter=\"all\">全部</button>"))
-        .chain(active.iter().map(|c| format!("<button class=\"fchip\" data-filter=\"{}\">{}</button>", esc(c), esc(c))))
-        .collect::<String>();
+    active.dedup();
+    let chips = std::iter::once(String::from(
+        "<button class=\"fchip on\" data-filter=\"all\">全部</button>",
+    ))
+    .chain(active.iter().map(|c| {
+        let n = rows.iter().filter(|r| text(r, &["comp"]) == *c).count();
+        format!(
+            "<button class=\"fchip\" data-filter=\"{}\">{}<em>{}</em></button>",
+            esc(c),
+            esc(c),
+            n
+        )
+    }))
+    .collect::<String>();
 
     let cov: String = comps
         .iter()
         .map(|(c, fm, ver, name)| {
-            let n = count(c);
+            let n = rows.iter().filter(|r| text(r, &["comp"]) == *c).count();
             let v = if *ver { "✓" } else { "·" };
             format!(
                 "<span title=\"FotMob league {}\">{} <b>{}</b>{} {}</span>",
@@ -480,19 +649,23 @@ fn main() {
                 esc(c),
                 fm,
                 v,
-                if n > 0 { format!("· {} 場預測", n) } else { esc(name) }
+                if n > 0 {
+                    format!("· {} 場", n)
+                } else {
+                    esc(name)
+                }
             )
         })
         .collect();
 
-    let rows = [
+    let rows_tbl = [
         ("Step 1 定量基線", "時序 Elo（K=20、主場 +60）＋時間衰減攻防擬合（半衰期 180 天、先驗 K=2）", "done"),
         ("Step 1b 賽果數據", "FotMob 賽果 2023–2026，跨年制聯賽自動處理 2023/2024 編碼", "done"),
         ("Step 1c 傷停／首發", "FotMob squad.injury ＋ matchDetails.lineup（T-60 取預測、T-25 取官方）", "done"),
         ("Step 2 多智能體共識", "四角色微調尚未接上，fin 目前等於基線＋傷停調整", "part"),
         ("Step 3 盃賽 Monte Carlo", "聯賽場景不需要；盃賽待補", "todo"),
         ("Step 4 置信度", "依樣本量／首發狀態／兩路一致性給星", "done"),
-        ("Step 5 校準", "需逐聯賽 walk-forward logistic，尚未生成 cal 欄", "todo"),
+        ("Step 5 校準", "逐聯賽 walk-forward logistic（8 摺、out-of-sample）＋ pooled 混合，cal 為參考層不覆蓋 fin", "done"),
         ("Step 6 讓球", "負二項 ν=1.4，1X2 仍用泊松", "done"),
     ]
     .iter()
@@ -512,6 +685,45 @@ fn main() {
     })
     .collect::<String>();
 
+    let calib_rows = {
+        let mut out: Vec<(f64, String)> = Vec::new();
+        if let Some(cb) = fx.get("calib").and_then(|x| x.as_arr()) {
+            for r in cb.iter() {
+                if r.get("insufficient").and_then(|v| v.as_bool()).is_some() { continue; }
+                let name = text(r, &["name"]);
+                if name.is_empty() { continue; }
+                let n = num(r, &["n"], 0.0);
+                let ab = num(r, &["acc_base"], 0.0) * 100.0;
+                let ac = num(r, &["acc_cal"], 0.0) * 100.0;
+                let bb = num(r, &["brier_base"], 0.0);
+                let bc = num(r, &["brier_cal"], 0.0);
+                let d = bc - bb;
+                let cls = if d < -0.0005 { "up" } else if d > 0.0005 { "down" } else { "" };
+                out.push((n, format!(
+                    "<tr><td>{}</td><td>{:.0}</td><td>{:.1}% → <b>{:.1}%</b></td><td>{:.4} → <b>{:.4}</b></td><td class=\"{}\">{:+.4}</td></tr>",
+                    esc(&name), n, ab, ac, bb, bc, cls, d)));
+            }
+        }
+        out.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+        if let Some(pl) = fx.get("pooled") {
+            let n = num(pl, &["n_samples"], 0.0);
+            let ab = num(pl, &["metrics", "acc_base"], 0.0) * 100.0;
+            let ac = num(pl, &["metrics", "acc_cal"], 0.0) * 100.0;
+            let bb = num(pl, &["metrics", "brier_base"], 0.0);
+            let bc = num(pl, &["metrics", "brier_cal"], 0.0);
+            out.insert(0, (f64::MAX, format!(
+                "<tr style=\"background:rgba(76,155,161,.08)\"><td><b>pooled（全部聯賽）</b></td><td>{:.0}</td><td>{:.1}% → <b>{:.1}%</b></td><td>{:.4} → <b>{:.4}</b></td><td class=\"up\">{:+.4}</td></tr>",
+                n, ab, ac, bb, bc, bc - bb)));
+        }
+        out.into_iter().map(|(_, s)| s).collect::<Vec<_>>().join("")
+    };
+    let body_pre = tab_body(&rows, "pre", "48 小時內暫無未開賽場次。");
+    let body_live = tab_body(&rows, "live", "目前沒有進行中的賽事。");
+    let body_ft = tab_body(&rows, "ft", "最近 20 小時沒有完場紀錄。");
+
+    let now = time_now();
+    let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
+
     let html = format!(
         r#"<!doctype html>
 <html lang="zh-Hant">
@@ -529,10 +741,11 @@ fn main() {
     <h1>賽前預測台<span class="dot"></span></h1>
     <p class="tagline">香港賽馬會賽程 <b>×</b> FotMob 賽果與傷停 <b>×</b> Elo＋泊松／負二項</p>
     <div class="stats">
-      <div class="stat"><b>{n_preds}</b><i>已出預測</i></div>
-      <div class="stat"><b>{n_comps}</b><i>今期聯賽</i></div>
-      <div class="stat"><b>{n_verified}</b><i>已驗證聯賽接駁</i></div>
-      <div class="stat"><b id="shown">{n_preds}</b><i>目前顯示</i></div>
+      <div class="stat"><b>{n_pre}</b><i>未開賽</i></div>
+      <div class="stat"><b>{n_live}</b><i>比賽中</i></div>
+      <div class="stat"><b>{n_ft}</b><i>已完場</i></div>
+      <div class="stat"><b>{n_pred}</b><i>已出預測</i></div>
+      <div class="stat"><b>{n_comps}</b><i>聯賽</i></div>
     </div>
   </header>
 
@@ -541,15 +754,31 @@ fn main() {
     <div class="chips">{chips}</div>
   </div>
 
-  <div class="grid">{cards}</div>
-  {empty}
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-tab="pre">未開賽<b>{n_pre}</b></button>
+    <button class="tab" data-tab="live">比賽中<b>{n_live}</b></button>
+    <button class="tab" data-tab="ft">已完場<b>{n_ft}</b></button>
+  </nav>
+
+  <section class="tabbody" data-body="pre">{body_pre}</section>
+  <section class="tabbody off" data-body="live">{body_live}</section>
+  <section class="tabbody off" data-body="ft">{body_ft}</section>
 
   <section class="block">
     <h2>流程合規狀態</h2>
     <div class="panel"><table>
       <thead><tr><th>步驟</th><th>現況</th><th>狀態</th></tr></thead>
-      <tbody>{rows}</tbody>
+      <tbody>{rows_tbl}</tbody>
     </table></div>
+  </section>
+
+  <section class="block">
+    <h2>Step 5 校準回測</h2>
+    <div class="panel">
+      <p class="hint" style="margin:0 0 10px;font-size:12.5px;color:#5c8b8f">walk-forward logistic：每摺只用該摺之前的賽果訓練，特徵 [P_h, P_d, P_a, Elo差, lnλ主, lnλ客]。下表為各聯賽的樣本數與「基線 vs 校準」命中率、Brier。Brier 越低越好。</p>
+      <table class="cal-table"><thead><tr><th>聯賽</th><th>樣本</th><th>命中率</th><th>Brier</th><th>Brier 改善</th></tr></thead>
+      <tbody>{calib_rows}</tbody></table>
+    </div>
   </section>
 
   <section class="block">
@@ -558,9 +787,10 @@ fn main() {
   </section>
 
   <footer>
-    <b>生成時間</b>　{now}　·　靜態頁面由 Rust 生成，資料更新後重跑即換。<br>
+    <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 20 小時。<br>
     <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
-    <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容。
+    <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
   </footer>
 </div>
 <script>{js}</script>
@@ -568,18 +798,18 @@ fn main() {
 </html>"#,
         css = CSS,
         js = JS,
-        n_preds = n_preds,
-        n_comps = n_comps,
-        n_verified = n_verified,
         chips = chips,
-        cards = cards,
-        empty = if preds.is_empty() {
-            "<div class=\"panel empty\">尚無預測檔。跑 <code>node fb/sched.mjs --once</code> 或等排程觸發。</div>".to_string()
-        } else {
-            String::new()
-        },
-        rows = rows,
+        body_pre = body_pre,
+        body_live = body_live,
+        body_ft = body_ft,
+        n_pre = n_pre,
+        n_live = n_live,
+        n_ft = n_ft,
+        n_pred = n_pred,
+        n_comps = n_comps,
         cov = cov,
+        rows_tbl = rows_tbl,
+        gen_note = esc(&gen_note),
         now = now,
     );
 
@@ -587,29 +817,33 @@ fn main() {
         let _ = fs::create_dir_all(dir);
     }
     match fs::write(&out, &html) {
-        Ok(_) => println!("wrote {} ({} bytes, {} cards)", out.display(), html.len(), n_preds),
+        Ok(_) => println!("wrote {} ({} bytes)", out.display(), html.len()),
         Err(e) => eprintln!("write failed: {e}"),
     }
 
-    // 同時輸出一份 JSON 給前端／其他工具
     let data_path = out.parent().unwrap_or(Path::new(".")).join("data.json");
     let mut flat = String::from("[\n");
-    for (i, p) in preds.iter().enumerate() {
+    for (i, r) in rows.iter().enumerate() {
+        let p = r.get("pred").cloned().unwrap_or(Value::Null);
         let rec = Value::Obj(vec![
-            ("id".into(), Value::Str(text(p, &["m_id"]))),
-            ("comp".into(), Value::Str(text(p, &["comp"]))),
-            ("kickoff".into(), Value::Str(text(p, &["kickoff"]))),
-            ("home".into(), Value::Str(text(p, &["home"]))),
-            ("away".into(), Value::Str(text(p, &["away"]))),
+            ("id".into(), Value::Str(text(r, &["id"]))),
+            ("comp".into(), Value::Str(text(r, &["comp"]))),
+            ("kickoff".into(), Value::Str(text(r, &["kick"]))),
+            ("home".into(), Value::Str(text(r, &["home"]))),
+            ("away".into(), Value::Str(text(r, &["away"]))),
+            ("status".into(), Value::Str(text(r, &["status"]))),
+            ("minute".into(), Value::Str(text(r, &["minute"]))),
+            ("sh".into(), Value::Num(num(r, &["sh"], -1.0))),
+            ("sa".into(), Value::Num(num(r, &["sa"], -1.0))),
             ("base".into(), p.get("base").cloned().unwrap_or(Value::Null)),
             ("fin".into(), p.get("fin").cloned().unwrap_or(Value::Null)),
-            ("handicap".into(), get(p, &["diag", "handicap"]).cloned().unwrap_or(Value::Null)),
-            ("lambda".into(), get(p, &["diag", "lambda_adj"]).cloned().unwrap_or(Value::Null)),
-            ("lineup".into(), Value::Str(text(p, &["diag", "lineupState"]))),
+            ("handicap".into(), get(&p, &["diag", "handicap"]).cloned().unwrap_or(Value::Null)),
+            ("lambda".into(), get(&p, &["diag", "lambda_adj"]).cloned().unwrap_or(Value::Null)),
+            ("lineup".into(), Value::Str(text(&p, &["diag", "lineupState"]))),
         ]);
         flat.push_str("  ");
         flat.push_str(&rec.to_string());
-        if i + 1 < preds.len() {
+        if i + 1 < rows.len() {
             flat.push(',');
         }
         flat.push('\n');
