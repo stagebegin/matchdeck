@@ -81,6 +81,61 @@ fn weekday(md: &str) -> &'static str {
 
 // ---------- 卡片 ----------
 
+fn fmt_line(x: f64) -> String {
+    if (x - x.round()).abs() < 1e-9 {
+        format!("{:.0}", x)
+    } else {
+        let s = format!("{:.2}", x);
+        s.trim_end_matches('0').trim_end_matches('.').to_string()
+    }
+}
+
+fn ahd_block(p: &Value) -> String {
+    let mark = num(p, &["ahd", "mark"], 0.0);
+    let rows = match get(p, &["ahd", "rows"]).and_then(|x| x.as_arr()) {
+        Some(a) if !a.is_empty() => a,
+        _ => return String::new(),
+    };
+    let dir = if mark > 0.0 {
+        format!("客讓 {}（主 +{}）", fmt_line(mark), fmt_line(mark))
+    } else if mark < 0.0 {
+        format!("主讓 {}", fmt_line(-mark))
+    } else {
+        String::from("平手盤")
+    };
+    let mut body = String::new();
+    for r in rows {
+        let line = num(r, &["line"], 0.0);
+        if (line - mark).abs() > 0.5001 {
+            continue;
+        }
+        let is_q = ((line * 4.0).round() as i64).abs() % 2 == 1;
+        let cell = |k: &str| format!("<td>{:.1}</td>", num(r, &[k], 0.0) * 100.0);
+        let dash = String::from("<td class=\"dim\">—</td>");
+        let lab = if line > 0.0 { format!("+{}", fmt_line(line)) } else { fmt_line(line) };
+        let fav = get(r, &["fav"]).and_then(|x| x.as_str()).unwrap_or("h");
+        let favtxt = if fav == "a" { "客" } else { "主" };
+        let cls = if (line - mark).abs() < 1e-9 { " class=\"main\"" } else { "" };
+        body.push_str(&format!(
+            "<tr{class_}><td class=\"ln\">{lab}</td><td class=\"fav\">{favtxt}</td>{w}{hw}{pu}{hl}{lo}<td class=\"cv\">{cv:.1}</td></tr>",
+            class_ = cls,
+            lab = lab,
+            favtxt = favtxt,
+            w = cell("win"),
+            hw = if is_q { cell("halfwin") } else { dash.clone() },
+            pu = if is_q { dash.clone() } else { cell("push") },
+            hl = if is_q { cell("halflose") } else { dash.clone() },
+            lo = cell("lose"),
+            cv = num(r, &["cover"], 0.0) * 100.0,
+        ));
+    }
+    format!(
+        "<div class=\"ahd\"><div class=\"ahd-head\"><b>亞盤 AHD</b><span>{dir}</span></div><table class=\"ahd-t\"><tr><th>盤口</th><th>讓球方</th><th>全贏</th><th>半贏</th><th>走水</th><th>半輸</th><th>全輸</th><th>cover</th></tr>{body}</table><div class=\"ahd-note\">全部由讓球方（上盤）視角；cover＝全贏＋½×（半贏＋走水）。整數盤才有走水，四分一盤只有半贏／半輸，「—」＝結構上不可能。</div></div>",
+        dir = dir,
+        body = body
+    )
+}
+
 fn card(f: &Value) -> String {
     let comp = text(f, &["comp"]);
     let comp_name = text(f, &["compName"]);
@@ -204,6 +259,7 @@ fn card(f: &Value) -> String {
         }
     };
     let lineup_cls = if lineup.starts_with('✅') { "ok" } else if lineup.starts_with('◐') { "mid" } else { "low" };
+    let ahd_html = ahd_block(&p);
 
     format!(
         r#"<article class="card" data-comp="{comp}" data-text="{plain}" data-status="{status}">
@@ -240,6 +296,7 @@ fn card(f: &Value) -> String {
     <div class="hc-row"><span class="hc-key">讓球 −1</span><span>{m1h_p}</span><span>{m1d_p}</span><span>{m1a_p}</span></div>
     <div class="hc-row"><span class="hc-key">讓球 +1</span><span>{p1h_p}</span><span>{p1d_p}</span><span>{p1a_p}</span></div>
   </div>
+  {ahd_html}
   <div class="tops">{tops}</div>
   <div class="foot">
     <span class="conf" data-cs="{cs:.0}">{conf}</span>
@@ -283,6 +340,7 @@ fn card(f: &Value) -> String {
         cs = cs,
         lineup = esc(&lineup),
         inj_chip = inj_chip,
+        ahd_html = ahd_html,
     )
 }
 
@@ -292,6 +350,19 @@ const CSS: &str = r#"
 .calrow{margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:rgba(76,155,161,.10);border:1px dashed rgba(76,155,161,.38);font-size:12px;color:#2b616a;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .calrow b{font-variant-numeric:tabular-nums;color:#2b616a}
 .calrow i{margin-left:auto;font-style:normal;color:#5c8b8f;font-size:11px}
+.ahd{margin:6px 0 0;border-top:1px dashed rgba(76,155,161,.28);padding-top:6px}
+.ahd-head{display:flex;gap:8px;align-items:baseline;font-size:11px;color:#5c8b8f;margin-bottom:3px}
+.ahd-head b{color:#2b616a;font-weight:600}
+.ahd-t{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
+.ahd-t th{font-weight:500;color:#7d9fa2;text-align:right;padding:1px 3px}
+.ahd-t td{text-align:right;padding:1px 3px;color:#3f6f74}
+.ahd-t td.fav{color:var(--cyan);font-weight:600}
+.ahd-t td.ln{text-align:left;color:#2b616a;font-weight:600}
+.ahd-t td.dim{color:#c3d6d8}
+.ahd-t td.cv{color:#4c9ba1;font-weight:600}
+.ahd-t tr.main td{background:rgba(76,155,161,.10)}
+.ahd-t tr.main td.ln{color:#4c9ba1}
+.ahd-note{margin-top:3px;font-size:10px;color:#9dbfc1}
 .cal-table td,.cal-table th{font-variant-numeric:tabular-nums;font-size:12.5px}
 .cal-table .up{color:#2e7d5b;font-weight:600}.cal-table .down{color:#b0553f;font-weight:600}
 
