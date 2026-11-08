@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # publish.sh — 重新生成靜態頁 → commit → push（給 cron / sched.mjs 自動呼叫）
 # token 來源：環境變數 GH_TOKEN，或同目錄 .gh_token（chmod 600、已 gitignore）
+#
+# 數據源（方案 A，用戶 m05273「舊外觀+API」）：
+#   首選 fbapi /matches?full=1（node api-fetch.mjs → api-fixtures.json，同構 fixtures.json）；
+#   API 不可用時 fallback 返本地 fixtures.json（fixtures.mjs 流程照舊跑，作後備＋同步 db 用）。
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -12,7 +16,7 @@ TOKEN="${GH_TOKEN:-}"
 if [ -z "$TOKEN" ] && [ -f .gh_token ]; then TOKEN="$(tr -d ' \r\n' < .gh_token)"; fi
 if [ -z "$TOKEN" ]; then echo "缺少 token：寫入 web/.gh_token 或設 GH_TOKEN"; exit 3; fi
 
-# 1) 更新賽程／狀態／比分總表（48h 未開賽、20h 已完場）
+# 1) 更新賽程／狀態／比分總表（48h 未開賽、72h 已完場）
 if [ "${SKIP_FIX:-0}" != "1" ]; then
   node ../fb/fixtures.mjs --out fixtures.json >/dev/null
   # 1a) 補「已完場但缺最終比分」：scache.json 一旦補到就永久保留
@@ -20,12 +24,28 @@ if [ "${SKIP_FIX:-0}" != "1" ]; then
   node ../fb/fixtures.mjs --out fixtures.json >/dev/null
   AGE=$(( $(date +%s) - $(stat -c %Y fixtures.json) ))
   if [ "${AGE}" -gt 180 ]; then echo "fixtures.json 過舊（${AGE}s），中止發佈"; exit 4; fi
+  # 1b) 同步 SQLite（matches/preds/settle）→ fbapi 直接讀 db
+  node ../fb/db.mjs --import >/dev/null
+  node ../fb/db.mjs --settle >/dev/null
 fi
 
-# 2) 重新生成頁面
-./build.sh
-# 2a) API 驅動版頁面：JS 動態讀 oddsapi 反代，取代靜態大 HTML（詳見 api-index.html 頭註釋）
-if [ -f api-index.html ]; then cp api-index.html index.html; fi
+# 1b2) 守則閘：冇數據就唔可以出數（用戶 m07721「如果真係無數據就無數據，唔好作數據」）
+#      掃 preds/，任何預測用咗「唔喺該聯賽歷史」的隊就即刻中止發佈
+if [ "${SKIP_GUARD:-0}" != "1" ]; then
+  if ! node ../fb/noprior.mjs; then echo "守則閘：有預測缺數據來源，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 5; fi
+fi
+
+# 1c) 數據源：首選 API；失敗（server 唔喺等）用本地 fixtures.json
+SRC="fixtures.json"
+if node api-fetch.mjs >/dev/null 2>&1; then
+  SRC="api-fixtures.json"
+  echo "數據源：fbapi API"
+else
+  echo "數據源：本地 fixtures.json（API 不可用，fallback）"
+fi
+
+# 2) 重新生成頁面（舊靜態版，霧青玻璃樣）
+./build.sh "$SRC"
 REMOTE_URL="https://x-access-token:${TOKEN}@github.com/stagebegin/matchdeck.git"
 
 git add -A

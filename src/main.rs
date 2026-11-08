@@ -44,6 +44,8 @@ const SHOW_QUAL: bool = false;   // 射門質素：回測無增益（0.5897 vs 0
 const SHOW_TAGLINE: bool = false; // 頁頂 tagline「香港賽馬會賽程 × FotMob…」：用戶要求收埋（m03164）
 const SHOW_STATS: bool = false;   // 頁頂統計五格（未開賽／比賽中／已完場／已出預測／聯賽）：用戶要求收埋（m03164）
 const AH_NOTE: bool = false;      // 亞盤表註腳（走水＝和、分佈族差異說明）：用戶要求收埋（m03241）
+const SHOW_META: bool = false;    // 頁底三塊（流程合規／Step 5 校準回測／聯賽接駁）：用戶要求收埋（m05921）
+const SHOW_FOOT_META: bool = false; // 頁腳 資料時間／範圍／資料來源：用戶要求只留免責（m05921）
 
 fn pct(x: f64) -> String {
     format!("{:.1}%", x * 100.0)
@@ -182,8 +184,23 @@ fn card(f: &Value) -> String {
     let sa = num(f, &["sa"], -1.0);
 
     let p = f.get("pred").cloned().unwrap_or(Value::Null);
+    // 早鳥預測（用戶要求卡片唔好吉住）：標明開賽前 60 分鐘會更新
+    let is_early = text(&p, &["pass"]) == "early";
+    let early_html = if is_early { String::from("<div class=\"early\">早鳥預測（開賽前 60 分鐘會更新）</div>") } else { String::new() };
     let has_pred = p.get("base").and_then(|b| b.get("h")).is_some();
+    // FotMob 有冇收錄呢場：冇 → 唔應該扮「等緊生成」，要老實講源頭無數據
+    let has_fm = f.get("has_fm").and_then(|v| v.as_bool()).unwrap_or(true);
+    // 原因由 fixtures.mjs 算好（冇數據源／無歷史／真係等生成），呢度只負責顯示
+    let row_note = text(f, &["note"]);
+    let ghost_note: String = if !row_note.is_empty() {
+        row_note
+    } else if has_fm {
+        String::from("預測待生成（開賽前 60 分鐘會自動計算）")
+    } else {
+        String::from("FotMob 未收錄此場（無數據來源，暫時唔會出預測）")
+    };
     let plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name));
+    let id = text(f, &["id"]);
     let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
         format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
     } else if status == "ft" {
@@ -195,6 +212,8 @@ fn card(f: &Value) -> String {
         format!("<span class=\"pill live\"><em></em>{}</span>", esc(&if minute.is_empty() { "比賽中".into() } else { minute.clone() }))
     } else if status == "ft" {
         String::from("<span class=\"pill ft\">完場</span>")
+    } else if status == "post" {
+        format!("<span class=\"pill ft\">{}</span>", esc(&if minute.is_empty() { String::from("延賽") } else { minute.clone() }))
     } else {
         String::from("<span class=\"pass\">未開賽</span>")
     };
@@ -213,7 +232,7 @@ fn card(f: &Value) -> String {
     {score_html}
     <div class="team away"><span class="name">{away}</span></div>
   </div>
-  <div class="ghost-note">預測待生成（開賽前 60 分鐘會自動計算）</div>
+  <div class="ghost-note">{ghost_note}</div>
 </article>"#,
             comp = esc(&comp),
             comp_name = esc(&comp_name),
@@ -225,6 +244,7 @@ fn card(f: &Value) -> String {
             hm = hm,
             pulse = pulse,
             score_html = score_html,
+            ghost_note = esc(&ghost_note),
         );
     }
 
@@ -297,7 +317,7 @@ fn card(f: &Value) -> String {
     let qual_html = qual_block(&p);
 
     format!(
-        r#"<article class="card" data-comp="{comp}" data-text="{plain}" data-status="{status}">
+        r#"<article class="card" data-id="{id}" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
     <span class="badge">{comp}</span>
     <span class="comp-name">{comp_name}</span>
@@ -319,6 +339,8 @@ fn card(f: &Value) -> String {
     <div class="n d"><b>{fd_p}</b><i>和</i></div>
     <div class="n a"><b>{fa_p}</b><i>客勝</i></div>
   </div>
+  <div class="fair">公平賠率（1X2）　主 {odds_h}　和 {odds_d}　客 {odds_a}</div>
+  {early_html}
   {cal_html}
   <div class="meta">
     <span>λ {lh:.2} / {la:.2}</span>
@@ -358,6 +380,10 @@ fn card(f: &Value) -> String {
         fh_p = pct(fh),
         fd_p = pct(fd),
         fa_p = pct(fa),
+        odds_h = if fh > 0.0 { format!("{:.2}", 1.0 / fh) } else { "—".into() },
+        early_html = early_html,
+        odds_d = if fd > 0.0 { format!("{:.2}", 1.0 / fd) } else { "—".into() },
+        odds_a = if fa > 0.0 { format!("{:.2}", 1.0 / fa) } else { "—".into() },
         lh = lh,
         la = la,
         n = n,
@@ -487,6 +513,8 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .nums .n b{display:block;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:.01em}
 .nums .n i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:1px}
 .nums .h b{color:var(--home)} .nums .d b{color:#7f9a9c} .nums .a b{color:var(--away)}
+.early{margin-top:6px;font-size:11px;color:#f0b429;text-align:center;letter-spacing:.04em}
+.fair{margin-top:8px;padding:6px 10px;border:1px dashed var(--line);border-radius:8px;font-size:11.5px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
 .meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--ink-2);
   font-variant-numeric:tabular-nums}
@@ -642,13 +670,102 @@ const JS: &str = r#"
   }));
   if(q) q.addEventListener('input',apply);
   apply();
+  // ── 靜靜自動更新：每 60s 拉 data.json，只改有變嘅卡 ──────────────────
+  const snap={};
+  cards.forEach(c=>{
+    if(!c.dataset.id) return;
+    const pill=c.querySelector('.pill,.pass');
+    const sb=[...c.querySelectorAll('.score b')].map(x=>x.textContent);
+    snap[c.dataset.id]={status:c.dataset.status, minute:pill?pill.textContent.replace('比賽中',''):'' , sh:sb[0], sa:sb[1]};
+  });
+  const ftBody=document.querySelector('[data-body="ft"]');
+  function toast(txt){
+    let t=document.getElementById('utoast');
+    if(!t){t=document.createElement('div');t.id='utoast';document.body.appendChild(t);
+      const s=document.createElement('style');s.textContent='#utoast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:99;background:var(--card,#12232b);color:var(--ink,#d8e6e6);border:1px solid var(--line,#2a4149);border-radius:10px;padding:8px 14px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.35);opacity:0;transition:opacity .4s;pointer-events:none}#utoast.show{opacity:1}@keyframes uflash{0%{box-shadow:0 0 0 2px rgba(76,155,161,.9)}100%{box-shadow:0 0 0 2px transparent}}.card.uflash{animation:uflash 1.6s ease-out 1}';document.head.appendChild(s);}
+    t.textContent=txt;t.classList.add('show');
+    clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),4000);
+  }
+  function setCard(c,d){
+    const pill=c.querySelector('.pill,.pass');
+    if(pill&&d.minute!=null&&d.minute!==''&&pill.textContent!==d.minute){pill.textContent=d.minute;}
+    if(d.sh!=null&&d.sh>=0){
+      const sb=c.querySelectorAll('.score b');
+      if(sb.length===2&&(sb[0].textContent!==String(d.sh)||sb[1].textContent!==String(d.sa))){
+        sb[0].textContent=d.sh;sb[1].textContent=d.sa;
+        c.classList.remove('uflash');void c.offsetWidth;c.classList.add('uflash');
+      }
+    }
+  }
+  async function poll(){
+    try{
+      const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok) return;
+      const rows=await r.json();
+      let nScore=0,nMove=0;
+      for(const d of rows){
+        const c=document.querySelector('.card[data-id="'+d.id+'"]');
+        if(!c) continue;
+        const s=snap[d.id]||{status:c.dataset.status};
+        if(d.status===s.status){ setCard(c,d); if(d.status==='live') snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; continue; }
+        // 狀態變咗：pre→live→ft/post（或延賽 pre→post）
+        if(d.status==='live'&&s.status==='pre'){
+          c.dataset.status='live';
+          const pl=c.querySelector('.pass'); if(pl){pl.className='pill live';pl.innerHTML='<em></em>比賽中';}
+          setCard(c,d); snap[d.id]={status:'live',minute:d.minute,sh:d.sh,sa:d.sa}; nScore++;
+        } else if(d.status==='ft'||d.status==='post'){
+          c.dataset.status=d.status;
+          const pl=c.querySelector('.pill,.pass');
+          if(pl){pl.className='pill ft';pl.textContent=d.status==='post'?(d.minute||'延賽'):'完場';}
+          c.querySelector('.score')?.remove();
+          if(d.sh!=null&&d.sh>=0&&!c.querySelector('.score')){
+            c.querySelector('.teams')?.insertAdjacentHTML('beforeend','<div class="score"><b>'+d.sh+'</b><i>–</i><b>'+d.sa+'</b></div>');
+          }
+          // 搬去已完場分頁：優先入對應日子，否則加喺尾
+          if(ftBody){
+            const md=(d.kickoff||'').slice(5,10).replace('-','/');
+            let pg=ftBody.querySelector('.daypage[data-day="day-'+md.replace('/','-')+'"]');
+            if(!pg){pg=ftBody.querySelector('.daypage:last-child')||ftBody;}
+            pg.appendChild(c);
+            dpages.forEach(p=>p.classList.toggle('off',!searchingNow()&&p.dataset.day!==(curDay||p.dataset.day)));
+          }
+          snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; nMove++;
+        } else { snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; }
+      }
+      // tab 計數重算
+      const cnt={pre:0,live:0,ft:0};
+      document.querySelectorAll('.card').forEach(c=>{const st=c.dataset.status;cnt[st==='post'?'ft':st]++;});
+      tabs.forEach(t=>{const b=t.querySelector('b');if(b&&cnt[t.dataset.tab]!=null)b.textContent=cnt[t.dataset.tab];});
+      tidy();
+      if(nScore) toast('更新咗 '+nScore+' 場比分');
+      if(nMove) toast(nMove+' 場已完場，搬咗去「已完場」分頁');
+    }catch(e){/* 靜默：下一輪再試 */}
+  }
+  function searchingNow(){const qq=document.getElementById('q');return !!((qq&&qq.value&&qq.value.trim())||comp!=='all');}
+  setInterval(poll,60000);
 })();
 "#;
+
+// 已完場／異常終局而冇預測 → 唔應該再顯示（冇得補跑；ghost note 會變假承諾）
+fn has_pred_none(r: &Value) -> bool {
+    let s = text(r, &["status"]);
+    if s != "ft" && s != "post" {
+        return false;
+    }
+    let p = r.get("pred").cloned().unwrap_or(Value::Null);
+    p.get("base").and_then(|b| b.get("h")).is_none()
+}
 
 fn tab_body(rows: &[Value], status: &str, empty_msg: &str) -> String {
     let mut list: Vec<&Value> = rows
         .iter()
-        .filter(|r| text(r, &["status"]) == status)
+        .filter(|r| {
+            let s = text(r, &["status"]);
+            // post（延賽／腰斬／中斷／取消／待定）歸「已完場」分頁（用戶 m05969）
+            let ok = if status == "ft" { s == "ft" || s == "post" } else { s == status };
+            // 已完場／異常終局而冇預測 → 收埋（冇得補跑，ghost note 會變假承諾）
+            ok && !has_pred_none(r)
+        })
         .collect();
     if status == "ft" {
         list.reverse();
@@ -744,7 +861,8 @@ fn main() {
         // 已完場保留 72 小時（用戶要求：昨天／前天都要睇到）
         let cut = now_secs() - 72 * 3600;
         rows.retain(|r| {
-            if text(r, &["status"]) != "ft" {
+            let s = text(r, &["status"]);
+            if s != "ft" && s != "post" {
                 return true;
             }
             epoch_secs(&text(r, &["kick"])).map(|k| k > cut).unwrap_or(true)
@@ -753,7 +871,7 @@ fn main() {
 
     let n_pre = rows.iter().filter(|r| text(r, &["status"]) == "pre").count();
     let n_live = rows.iter().filter(|r| text(r, &["status"]) == "live").count();
-    let n_ft = rows.iter().filter(|r| text(r, &["status"]) == "ft").count();
+    let n_ft = rows.iter().filter(|r| { let s = text(r, &["status"]); (s == "ft" || s == "post") && !has_pred_none(r) }).count();
     let n_pred = rows
         .iter()
         .filter(|r| r.get("pred").map(|p| p.get("base").is_some()).unwrap_or(false))
@@ -889,6 +1007,52 @@ fn main() {
     let now = time_now();
     let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
 
+    // 頁底三塊與頁腳細項：用戶要求收埋（m05921）；代碼保留，一行開返
+    let meta_html = if SHOW_META {
+        format!(
+            r#"<section class="block">
+    <h2>流程合規狀態</h2>
+    <div class="panel"><table>
+      <thead><tr><th>步驟</th><th>現況</th><th>狀態</th></tr></thead>
+      <tbody>{rows_tbl}</tbody>
+    </table></div>
+  </section>
+
+  <section class="block">
+    <h2>Step 5 校準回測</h2>
+    <div class="panel">
+      <p class="hint" style="margin:0 0 10px;font-size:12.5px;color:#5c8b8f">walk-forward logistic：每摺只用該摺之前的賽果訓練，特徵 [P_h, P_d, P_a, Elo差, lnλ主, lnλ客]。下表為各聯賽的樣本數與「基線 vs 校準」命中率、Brier。Brier 越低越好。</p>
+      <table class="cal-table"><thead><tr><th>聯賽</th><th>樣本</th><th>命中率</th><th>Brier</th><th>Brier 改善</th></tr></thead>
+      <tbody>{calib_rows}</tbody></table>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>聯賽接駁</h2>
+    <div class="panel"><div class="cov">{cov}</div></div>
+  </section>"#,
+            rows_tbl = rows_tbl,
+            calib_rows = calib_rows,
+            cov = cov,
+        )
+    } else {
+        String::new()
+    };
+    let footer_html = if SHOW_FOOT_META {
+        format!(
+            r#"<footer>
+    <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 72 小時（分日子顯示）。<br>
+    <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
+    <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
+  </footer>"#,
+            gen_note = esc(&gen_note),
+            now = now,
+        )
+    } else {
+        String::from("<footer><b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。</footer>")
+    };
+
     // 頁頂 tagline 與統計五格：用戶要求收埋；代碼保留，一行開返
     let tagline_html = if SHOW_TAGLINE {
         String::from(r#"<p class="tagline">香港賽馬會賽程 <b>×</b> FotMob 賽果與傷停 <b>×</b> Elo＋泊松／負二項</p>"#)
@@ -947,34 +1111,8 @@ fn main() {
   <section class="tabbody off" data-body="live">{body_live}</section>
   <section class="tabbody off" data-body="ft">{body_ft}</section>
 
-  <section class="block">
-    <h2>流程合規狀態</h2>
-    <div class="panel"><table>
-      <thead><tr><th>步驟</th><th>現況</th><th>狀態</th></tr></thead>
-      <tbody>{rows_tbl}</tbody>
-    </table></div>
-  </section>
-
-  <section class="block">
-    <h2>Step 5 校準回測</h2>
-    <div class="panel">
-      <p class="hint" style="margin:0 0 10px;font-size:12.5px;color:#5c8b8f">walk-forward logistic：每摺只用該摺之前的賽果訓練，特徵 [P_h, P_d, P_a, Elo差, lnλ主, lnλ客]。下表為各聯賽的樣本數與「基線 vs 校準」命中率、Brier。Brier 越低越好。</p>
-      <table class="cal-table"><thead><tr><th>聯賽</th><th>樣本</th><th>命中率</th><th>Brier</th><th>Brier 改善</th></tr></thead>
-      <tbody>{calib_rows}</tbody></table>
-    </div>
-  </section>
-
-  <section class="block">
-    <h2>聯賽接駁</h2>
-    <div class="panel"><div class="cov">{cov}</div></div>
-  </section>
-
-  <footer>
-    <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
-    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 72 小時（分日子顯示）。<br>
-    <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
-    <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
-  </footer>
+  {meta_html}
+  {footer_html}
 </div>
 <script>{js}</script>
 </body>
@@ -991,10 +1129,8 @@ fn main() {
         // n_pred / n_comps 已移入 stats_html 的 format!（統計五格收埋時不再需要）
         tagline_html = tagline_html,
         stats_html = stats_html,
-        cov = cov,
-        rows_tbl = rows_tbl,
-        gen_note = esc(&gen_note),
-        now = now,
+        meta_html = meta_html,
+        footer_html = footer_html,
     );
 
     if let Some(dir) = out.parent() {
