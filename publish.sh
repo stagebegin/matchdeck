@@ -33,6 +33,7 @@ fi
 #      掃 preds/，任何預測用咗「唔喺該聯賽歷史」的隊就即刻中止發佈
 if [ "${SKIP_GUARD:-0}" != "1" ]; then
   if ! node ../fb/noprior.mjs; then echo "守則閘：有預測缺數據來源，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 5; fi
+  if ! node ../fb/ahtest.mjs; then echo "亞盤閘：AHD 不變式失敗，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 6; fi
 fi
 
 # 1c) 數據源：首選 API；失敗（server 唔喺等）用本地 fixtures.json
