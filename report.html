@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>足球賽事預測分析報告 · 37 場</title>
+<!--
+  足球赛事预测分析报告 · 标准交付模板（依据 SKILL.md L186-242 复刻）
+  结构（自上而下固定顺序）：
+    1. Hero 头部：大标题 + 副标题（场次数 · 四步流水线模型 · 开球日期区间）+ 报告生成时间
+    2. 方法论说明：四步流水线卡片 + 黄色免责声明条
+    3. 赛事列表表格：编号(锚点) / 主队 / 客队 / 赛事 / 北京时间 / 让球 / 最终 1X2 / 最可能结果 / 置信度 / 首发状态
+       工具栏：置信度筛选、让球筛选、校准差异筛选、排序（编号/置信度/胜率）、实时「共 N 场」
+    4. 全局概览：三张 ECharts（1X2 堆叠横向柱 / λ 对比 / 置信度星级环形）
+    5. 比赛详情卡片：id=card-<m_id>，左栏基线 1X2 条 + λ + Top3 比分 + 比分区间（由 sl 推导）
+       右栏多智能体因子（定量因子带 src/url）+ 共识调整后 1X2；结论框；底部数据说明
+    6. Footer 免责声明
+  用法：保留 CSS/JS 骨架，只替换 const DATA = [ ... ] 之间的内容（json.dumps(data)）。
+-->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+  --bg:#0e1417; --card:#151d21; --card2:#1b252a; --line:#26333a;
+  --txt:#e6edf0; --dim:#93a7b0; --green:#4fbf87; --yellow:#e5b454; --blue:#5aa8e0;
+  --accent:#4c9ba1;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+  font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:24px 18px 60px}
+
+/* 1. Hero */
+.hero{padding:34px 26px 26px;border-radius:16px;margin-bottom:18px;
+  background:linear-gradient(150deg,#16323a 0%,#12242a 55%,#101a1f 100%);
+  border:1px solid var(--line);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;
+  background:radial-gradient(circle,rgba(76,155,161,.22),transparent 68%)}
+.hero h1{margin:0 0 8px;font-size:27px;letter-spacing:.04em;font-weight:650}
+.hero .sub{color:var(--dim);font-size:13.5px}
+.hero .gen{color:#6f858d;font-size:12px;margin-top:10px}
+
+/* 2. 方法论 */
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:14px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.mcard b{display:block;font-size:13.5px;margin-bottom:6px;color:#cfe3e8}
+.mcard span{color:var(--dim);font-size:12.5px;line-height:1.65}
+.warn{margin:0 0 22px;padding:12px 16px;border-radius:10px;font-size:12.8px;
+  background:rgba(229,180,84,.1);border:1px solid rgba(229,180,84,.35);color:#f0cf8d}
+
+/* 3. 表格 */
+.sect-title{font-size:15px;font-weight:600;margin:26px 0 12px;padding-left:10px;border-left:3px solid var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.toolbar .grp{display:flex;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toolbar button{background:transparent;border:0;color:var(--dim);padding:6px 11px;font-size:12.5px;cursor:pointer}
+.toolbar button.on{background:rgba(76,155,161,.22);color:#bfe6ea}
+.toolbar button:hover{color:#fff}
+.count{margin-left:auto;color:var(--dim);font-size:12.5px}
+.tblbox{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:940px;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:var(--card2);color:#a9c0c7;font-weight:600;font-size:12.5px;cursor:default}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:#fff}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(76,155,161,.07)}
+td.num{font-variant-numeric:tabular-nums}
+a.no{color:var(--accent);text-decoration:none;font-weight:600}
+a.no:hover{text-decoration:underline}
+.pill{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11.5px;border:1px solid var(--line);color:var(--dim)}
+.pill.h{color:var(--green);border-color:rgba(79,191,135,.4)}
+.pill.d{color:var(--yellow);border-color:rgba(229,180,84,.4)}
+.pill.a{color:var(--blue);border-color:rgba(90,168,224,.4)}
+.stars{color:#c58b52;letter-spacing:.1em}
+
+/* 4. 圖表 */
+.charts{display:grid;grid-template-columns:1.5fr 1.5fr 1fr;gap:12px}
+@media(max-width:900px){.charts{grid-template-columns:1fr}}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 8px 4px}
+.chart h4{margin:0 0 4px 8px;font-size:13px;color:#a9c0c7;font-weight:600}
+.chart .box{width:100%;height:300px}
+
+/* 5. 卡片 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px;scroll-margin-top:14px}
+.card:target{border-color:var(--accent);box-shadow:0 0 0 1px rgba(76,155,161,.35)}
+.chead{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;margin-bottom:12px;
+  padding-bottom:10px;border-bottom:1px solid var(--line)}
+.chead .no{color:var(--accent);font-weight:700}
+.chead .vs{font-size:15.5px;font-weight:600}
+.chead .meta{color:var(--dim);font-size:12.3px}
+.chead .tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.body{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:820px){.body{grid-template-columns:1fr}}
+.col h5{margin:0 0 8px;font-size:12.5px;color:#a9c0c7;font-weight:600;letter-spacing:.02em}
+.bar{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:11px;line-height:22px;color:#08110f;font-weight:600;text-align:center}
+.bar i{display:block;font-style:normal;overflow:hidden}
+.bar .h{background:var(--green)} .bar .d{background:var(--yellow)} .bar .a{background:var(--blue)}
+.lam{margin-top:8px;color:var(--dim);font-size:12.5px;font-variant-numeric:tabular-nums}
+.sl{margin-top:8px;font-size:12.5px;color:var(--dim)}
+.sl b{color:#cfe3e8;font-weight:600}
+ul.fac{margin:0;padding-left:16px;font-size:12.6px;color:#c3d3d9}
+ul.fac li{margin-bottom:6px}
+ul.fac .p{display:inline-block;min-width:34px;color:var(--accent);font-size:11.5px}
+ul.fac .src{color:#6f858d;font-size:11.5px}
+ul.fac a{color:var(--accent);text-decoration:none}
+.concl{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--card2);border:1px solid var(--line)}
+.concl .line{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px;margin-bottom:8px}
+.concl .ml{font-weight:600;color:#cfe3e8}
+.concl ul{margin:6px 0 0;padding-left:17px;color:var(--dim);font-size:12.4px}
+.cnote{margin-top:12px;padding-top:9px;border-top:1px dashed var(--line);color:#6f858d;font-size:11.8px;line-height:1.65}
+
+/* 6. Footer */
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:#6f858d;font-size:12px;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <h1>足球賽事預測分析報告</h1>
+    <div class="sub" id="heroSub">37 場賽事 · 四步流水線模型 · 開球時間見下表</div>
+    <div class="gen">報告生成時間：2026-11-10 22:48（北京時間）</div>
+  </div>
+
+  <div class="method">
+    <div class="mcard"><b>① 量化基線</b><span>Elo 時序評分 + 攻防強度擬合 + 泊松/Dixon-Coles 比分矩陣 → 1X2、λ、Top 比分、大小球、BTTS</span></div>
+    <div class="mcard"><b>② 多智能體共識</b><span>統計／戰術／情境／風險四代理各自提出調整，加權合成 λ 與和局偏移，輸出仍為合法機率分佈</span></div>
+    <div class="mcard"><b>③ 盃賽強度綜合</b><span>盃賽／賽會制另做球隊強度合成與路徑模擬（Monte Carlo），輸出晉級與奪冠機率</span></div>
+    <div class="mcard"><b>④ 校準與置信度</b><span>泊松輸出再經 Logistic walk-forward 二次驗證（cal 列，參考層不覆蓋主結論），並依數據完整度給出信心星級</span></div>
+  </div>
+  <div class="warn">⚠ 本報告為數據分析與模型研究用途。足球屬高變異賽事，模型無法保證結果；1X2 三路市場的現實命中率通常為 50–56%。<b>不構成任何投注建議</b>。</div>
+
+  <div class="sect-title">賽事列表</div>
+  <div class="toolbar">
+    <div class="grp" id="fConf">
+      <button data-v="all" class="on">全部</button>
+      <button data-v="hi">高 ★★★★☆+</button>
+      <button data-v="mid">中 ★★★☆☆</button>
+      <button data-v="lo">低 ★★☆☆☆-</button>
+    </div>
+    <div class="grp" id="fHcp">
+      <button data-v="all" class="on">全部</button>
+      <button data-v="yes">讓球</button>
+      <button data-v="no">不讓球</button>
+    </div>
+    <div class="grp" id="fCal">
+      <button data-v="all" class="on">全部</button>
+      <button data-v="diff">校準差異大</button>
+    </div>
+    <div class="grp" id="fSort">
+      <button data-v="id" class="on">編號</button>
+      <button data-v="cs">置信度</button>
+      <button data-v="p">勝率</button>
+    </div>
+    <span class="count" id="count">共 0 場</span>
+  </div>
+  <div class="tblbox">
+    <table>
+      <thead>
+        <tr>
+          <th class="sortable" id="thNo">#</th>
+          <th>主隊</th><th>客隊</th><th>賽事</th><th>北京時間</th><th>讓球</th>
+          <th>最終 1X2（主·平·客）</th><th>最可能結果</th>
+          <th class="sortable" id="thCs">置信度</th>
+          <th>首發狀態</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="sect-title">全局概覽</div>
+  <div class="charts">
+    <div class="chart"><h4>A · 1X2 機率總覽</h4><div class="box" id="chA"></div></div>
+    <div class="chart"><h4>B · 期望入球 λ 對比</h4><div class="box" id="chB"></div></div>
+    <div class="chart"><h4>C · 置信度星級分佈</h4><div class="box" id="chC"></div></div>
+  </div>
+
+  <div class="sect-title">逐場詳情</div>
+  <div id="cards"></div>
+
+  <footer>
+    <div><b>不確定性說明</b>：本報告所有機率皆由統計模型輸出，非事實陳述；樣本量、數據完整度、聯賽難度差異會令誤差擴大。校準層（cal）為歷史回測的參考驗證，不保證未來表現。</div>
+    <div style="margin-top:8px">僅供數據分析與研究參考，不構成任何投注建議或投資指導。</div>
+  </footer>
+</div>
+
+<script>
+const DATA = [{"m_id":"1","home":"赫根女足","away":"車路士女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-11 01:45","handicap":"主 -1.25","base":{"h":0.0866,"d":0.2083,"a":0.7051,"lh":0.551,"la":1.97,"sl":[{"s":"0-2","p":0.156},{"s":"0-1","p":0.1514},{"s":"0-3","p":0.1025}]},"factors":[{"p":"統計","txt":"Elo 1479 vs 1610（差 -131）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 0.57/def 1.01，客 att 1.11/def 0.47｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師✓、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.20 / 客 2.00 → λ 主 0.970× 客 1.030×；戰術師（w 0.05）：控球取向差 24pp（主 36% / 客 60%）→ 只調總入球 0.979×；情境師（w 0.2）：休息日 主 12 / 客 13 → λ 主 0.995× 客 1.005×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.993／客 ×1.004","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.0854,"d":0.2069,"a":0.7077},"fin":{"h":0.0854,"d":0.2069,"a":0.7077,"ml_text":"客勝 車路士女足（70.8%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 3/4 代理取得可用數據（風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1479 vs 1610"},{"m_id":"2","home":"皇家馬德里女足","away":"巴黎FC女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-11 01:45","handicap":"主 -1","base":{"h":0.5696,"d":0.1979,"a":0.2326,"lh":2.5,"la":1.594,"sl":[{"s":"2-1","p":0.0831},{"s":"1-1","p":0.0718},{"s":"3-1","p":0.0692}]},"factors":[{"p":"統計","txt":"Elo 1513 vs 1474（差 39）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 1.18/def 0.90，客 att 1.00/def 1.03｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.60 / 客 0.40 → λ 主 1.004× 客 0.996×；戰術師（w 0.05）：控球取向接近（主 38% / 客 41%，差 2pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 13 / 客 12 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.998","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.5708,"d":0.1976,"a":0.2316},"fin":{"h":0.5708,"d":0.1976,"a":0.2316,"ml_text":"主勝 皇家馬德里女足（57.1%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1513 vs 1474"},{"m_id":"3","home":"克魯","away":"韋根","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -2","base":{"h":0.7413,"d":0.1354,"a":0.1233,"lh":3.435,"la":1.481,"sl":[{"s":"3-1","p":0.0734},{"s":"2-1","p":0.0641},{"s":"4-1","p":0.063}]},"factors":[{"p":"統計","txt":"Elo 1525 vs 1500（差 25）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.24/def 0.81，客 att 0.97/def 1.02｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.20 / 客 1.40 → λ 主 1.014× 客 0.986×；戰術師（w 0.05）：控球取向接近（主 43% / 客 49%，差 6pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 49 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.998／客 ×1.002","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.74,"d":0.1359,"a":0.1241},"fin":{"h":0.74,"d":0.1359,"a":0.1241,"ml_text":"主勝 克魯（74.0%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1525 vs 1500"},{"m_id":"4","home":"諾咸頓","away":"基寧咸","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -1.5","base":{"h":0.6731,"d":0.1554,"a":0.1715,"lh":3.23,"la":1.702,"sl":[{"s":"3-1","p":0.069},{"s":"2-1","p":0.0641},{"s":"3-2","p":0.0587}]},"factors":[{"p":"統計","txt":"Elo 1509 vs 1461（差 48）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 0.87/def 0.86，客 att 1.05/def 1.36｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師—、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.20 / 客 1.20 → λ 主 1.000× 客 1.000×；戰術師（w 0.05）：控球取向接近（主 44% / 客 38%，差 6pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 28 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.004／客 ×0.996","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.6763,"d":0.1545,"a":0.1692},"fin":{"h":0.6763,"d":0.1545,"a":0.1692,"ml_text":"主勝 諾咸頓（67.6%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（統計師、戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1509 vs 1461"},{"m_id":"5","home":"班列特","away":"奧連特","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -1.5","base":{"h":0.6948,"d":0.1799,"a":0.1253,"lh":2.507,"la":1.003,"sl":[{"s":"2-1","p":0.0942},{"s":"2-0","p":0.0939},{"s":"1-1","p":0.0812}]},"factors":[{"p":"統計","txt":"Elo 1510 vs 1488（差 22）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.11/def 0.74，客 att 0.72/def 0.83｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.60 / 客 1.40 → λ 主 1.004× 客 0.996×；戰術師（w 0.05）：控球取向接近（主 52% / 客 56%，差 4pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 56 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.6926,"d":0.1809,"a":0.1266},"fin":{"h":0.6926,"d":0.1809,"a":0.1266,"ml_text":"主勝 班列特（69.3%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1510 vs 1488"},{"m_id":"6","home":"布里斯托流浪","away":"雷丁","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -1","base":{"h":0.5651,"d":0.1916,"a":0.2432,"lh":2.625,"la":1.735,"sl":[{"s":"2-1","p":0.0764},{"s":"3-1","p":0.0668},{"s":"2-2","p":0.0663}]},"factors":[{"p":"統計","txt":"Elo 1476 vs 1524（差 -48）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.04/def 1.24，客 att 0.74/def 0.93｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.00 / 客 1.40 → λ 主 0.993× 客 1.007×；戰術師（w 0.05）：控球取向接近（主 49% / 客 57%，差 8pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 28 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.003／客 ×0.997","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.5675,"d":0.1911,"a":0.2413},"fin":{"h":0.5675,"d":0.1911,"a":0.2413,"ml_text":"主勝 布里斯托流浪（56.8%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1476 vs 1524"},{"m_id":"7","home":"伯頓","away":"諾士郡","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":null,"base":{"h":0.4061,"d":0.2473,"a":0.3466,"lh":1.703,"la":1.562,"sl":[{"s":"1-1","p":0.1097},{"s":"2-1","p":0.0865},{"s":"1-2","p":0.0794}]},"factors":[{"p":"統計","txt":"Elo 1493 vs 1485（差 8）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 0.65/def 0.77，客 att 1.08/def 0.97｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.00 / 客 1.80 → λ 主 0.986× 客 1.014×；戰術師（w 0.05）：控球取向接近（主 51% / 客 55%，差 4pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 28 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.998","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.4074,"d":0.2473,"a":0.3454},"fin":{"h":0.4074,"d":0.2473,"a":0.3454,"ml_text":"主勝 伯頓（40.7%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1493 vs 1485"},{"m_id":"8","home":"李斯特城","away":"華素爾","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -2","base":{"h":0.8814,"d":0.068,"a":0.0507,"lh":4.886,"la":1.466,"sl":[{"s":"4-1","p":0.0614},{"s":"5-1","p":0.06},{"s":"3-1","p":0.0503}]},"factors":[{"p":"統計","txt":"Elo 1500 vs 1491（差 9）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.33/def 0.86，客 att 0.90/def 1.36｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師—、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場資料不足，無調整；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 35 / 客 28 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.004／客 ×0.996","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.8833,"d":0.0671,"a":0.0497},"fin":{"h":0.8833,"d":0.0671,"a":0.0497,"ml_text":"主勝 李斯特城（88.3%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（統計師、戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1500 vs 1491"},{"m_id":"9","home":"曼斯菲","away":"車士打菲特","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":null,"base":{"h":0.3646,"d":0.2023,"a":0.433,"lh":2.16,"la":2.347,"sl":[{"s":"2-2","p":0.0709},{"s":"1-2","p":0.0656},{"s":"1-1","p":0.0604}]},"factors":[{"p":"統計","txt":"Elo 1440 vs 1518（差 -77）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 0.66/def 1.15，客 att 1.08/def 1.21｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.20 / 客 1.60 → λ 主 0.975× 客 1.025×；戰術師（w 0.05）：控球取向接近（主 53% / 客 47%，差 5pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 49 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.992／客 ×1.008","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.3584,"d":0.202,"a":0.4395},"fin":{"h":0.3584,"d":0.202,"a":0.4395,"ml_text":"客勝 車士打菲特（44.0%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1440 vs 1518"},{"m_id":"10","home":"牛津聯","away":"車頓咸","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -2","base":{"h":0.7108,"d":0.1413,"a":0.1479,"lh":3.472,"la":1.686,"sl":[{"s":"3-1","p":0.0677},{"s":"4-1","p":0.0588},{"s":"2-1","p":0.0585}]},"factors":[{"p":"統計","txt":"Elo 1513 vs 1485（差 28）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.18/def 1.04，客 att 0.86/def 1.08｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.40 / 客 0.60 → λ 主 1.014× 客 0.986×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 35 / 客 28 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.006／客 ×0.994","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.7155,"d":0.1397,"a":0.1448},"fin":{"h":0.7155,"d":0.1397,"a":0.1448,"ml_text":"主勝 牛津聯（71.5%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1513 vs 1485"},{"m_id":"11","home":"普利茅夫","away":"史雲頓","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -2","base":{"h":0.8186,"d":0.1073,"a":0.0741,"lh":3.673,"la":1.18,"sl":[{"s":"3-1","p":0.0762},{"s":"4-1","p":0.0699},{"s":"3-0","p":0.0645}]},"factors":[{"p":"統計","txt":"Elo 1529 vs 1478（差 51）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.36/def 0.86，客 att 0.73/def 0.99｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 1.20 → λ 主 1.014× 客 0.986×；戰術師（w 0.05）：控球取向接近（主 50% / 客 46%，差 4pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 49 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.998／客 ×1.002","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.8176,"d":0.1078,"a":0.0746},"fin":{"h":0.8176,"d":0.1078,"a":0.0746,"ml_text":"主勝 普利茅夫（81.8%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1529 vs 1478"},{"m_id":"12","home":"史托港","away":"燦美爾","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:00","handicap":"主 -2","base":{"h":0.7635,"d":0.1348,"a":0.1017,"lh":3.243,"la":1.212,"sl":[{"s":"3-1","p":0.0801},{"s":"2-1","p":0.0741},{"s":"3-0","p":0.0661}]},"factors":[{"p":"統計","txt":"Elo 1532 vs 1498（差 33）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.29/def 0.80，客 att 0.81/def 0.93｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.40 / 客 2.00 → λ 主 1.007× 客 0.993×；戰術師（w 0.05）：控球取向接近（主 61% / 客 57%，差 5pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 49 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.7616,"d":0.1356,"a":0.1028},"fin":{"h":0.7616,"d":0.1356,"a":0.1028,"ml_text":"主勝 史托港（76.2%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1532 vs 1498"},{"m_id":"13","home":"波士頓河","away":"蒙特維多城托基","comp":"烏拉圭盃","kickoff":"11-11 03:27","handicap":"主 -0.75","base":{"h":0.1361,"d":0.2898,"a":0.5741,"lh":0.554,"la":1.416,"sl":[{"s":"0-1","p":0.1887},{"s":"0-0","p":0.1482},{"s":"0-2","p":0.1398}]},"factors":[{"p":"統計","txt":"Elo 1546 vs 1567（差 -22）｜時序 Elo（K=20、主場 +60、走過 109 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/10342/overview"},{"p":"統計","txt":"攻防：主 att 0.96/def 0.56，客 att 1.75/def 0.66｜時間衰減加權（半衰期 180 天）；H=0.604、base=1.437 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/10342/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.60 / 客 2.40 → λ 主 0.986× 客 1.014×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 6 / 客 5 → λ 主 1.006× 客 0.994×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.1359,"d":0.2896,"a":0.5746},"fin":{"h":0.1359,"d":0.2896,"a":0.5746,"ml_text":"客勝 蒙特維多城托基（57.5%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 109 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1546 vs 1567"},{"m_id":"14","home":"巴拉福特","away":"約克城","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:30","handicap":"主 -2","base":{"h":0.8772,"d":0.0765,"a":0.0463,"lh":4.226,"la":1.109,"sl":[{"s":"4-1","p":0.0713},{"s":"3-1","p":0.0675},{"s":"4-0","p":0.0643}]},"factors":[{"p":"統計","txt":"Elo 1572 vs 1487（差 85）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.27/def 0.75，客 att 0.79/def 1.23｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"傷停：主 2 人（攻 1／防 0／門 0）、客 0 人（攻 0／防 0／門 0）｜有界調整（非 skill 規定，我自訂）：攻缺 −2.0%/人、防缺 +2.0%/人、門將 −1.5%/人，限 ±8%；本場 λ 乘數 主 0.984／客 1.004","src":"FotMob 隊伍名單 injury 欄","url":"https://www.fotmob.com"},{"p":"風險","txt":"共識層：統計師—、戰術師—、情境師✓、風險師✓｜統計師（w 0.15）：近 5 場資料不足，無調整；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 35 / 客 49 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 0.980×/1.000×｜合成 λ 主 ×0.984／客 ×1.004","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.8716,"d":0.0796,"a":0.0488},"fin":{"h":0.8716,"d":0.0796,"a":0.0488,"ml_text":"主勝 巴拉福特（87.2%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（統計師、戰術師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1572 vs 1487"},{"m_id":"15","home":"布羅姆利","away":"米爾頓凱恩斯","comp":"英格蘭聯賽錦標","kickoff":"11-11 03:30","handicap":"主 -1.25","base":{"h":0.1792,"d":0.1658,"a":0.655,"lh":1.618,"la":3.015,"sl":[{"s":"1-3","p":0.0719},{"s":"1-2","p":0.0715},{"s":"2-3","p":0.0582}]},"factors":[{"p":"統計","txt":"Elo 1441 vs 1481（差 -40）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 0.55/def 1.18，客 att 1.35/def 1.09｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.20 / 客 1.20 → λ 主 0.982× 客 1.018×；戰術師（w 0.05）：控球取向接近（主 46% / 客 47%，差 1pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 35 / 客 35 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.1777,"d":0.1651,"a":0.6571},"fin":{"h":0.1777,"d":0.1651,"a":0.6571,"ml_text":"客勝 米爾頓凱恩斯（65.7%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1441 vs 1481"},{"m_id":"16","home":"國際米蘭女足","away":"曼城女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-11 04:00","handicap":"主 -0.75","base":{"h":0.1877,"d":0.2137,"a":0.5986,"lh":1.174,"la":2.196,"sl":[{"s":"1-2","p":0.0974},{"s":"1-1","p":0.0958},{"s":"0-2","p":0.0829}]},"factors":[{"p":"統計","txt":"Elo 1504 vs 1536（差 -31）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 0.74/def 1.26，客 att 0.99/def 0.78｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.33 / 客 1.20 → λ 主 1.002× 客 0.998×；戰術師（w 0.05）：控球取向接近（主 53% / 客 53%，差 1pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 13 / 客 12 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.001／客 ×0.999","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.1884,"d":0.214,"a":0.5976},"fin":{"h":0.1884,"d":0.214,"a":0.5976,"ml_text":"客勝 曼城女足（59.8%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1504 vs 1536"},{"m_id":"17","home":"巴黎聖日耳門女足","away":"拜仁慕尼黑女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-11 04:00","handicap":"主 -0.25","base":{"h":0.3263,"d":0.2179,"a":0.4558,"lh":1.806,"la":2.141,"sl":[{"s":"1-1","p":0.0806},{"s":"1-2","p":0.0799},{"s":"2-2","p":0.0722}]},"factors":[{"p":"統計","txt":"Elo 1488 vs 1558（差 -70）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 1.04/def 0.82，客 att 1.47/def 0.85｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.40 / 客 1.20 → λ 主 1.004× 客 0.996×；戰術師（w 0.05）：控球取向接近（主 53% / 客 47%，差 6pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 12 / 客 13 → λ 主 0.995× 客 1.005×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.3259,"d":0.2179,"a":0.4562},"fin":{"h":0.3259,"d":0.2179,"a":0.4562,"ml_text":"客勝 拜仁慕尼黑女足（45.6%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1488 vs 1558"},{"m_id":"18","home":"羅馬女足","away":"塞維特女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-11 04:00","handicap":"主 -0.5","base":{"h":0.4626,"d":0.1809,"a":0.3564,"lh":2.836,"la":2.52,"sl":[{"s":"2-2","p":0.0603},{"s":"3-2","p":0.057},{"s":"2-3","p":0.0506}]},"factors":[{"p":"統計","txt":"Elo 1453 vs 1492（差 -39）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 0.68/def 1.26，客 att 1.13/def 2.03｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.80 / 客 1.00 → λ 主 0.996× 客 1.004×；戰術師（w 0.05）：控球取向接近（主 43% / 客 36%，差 7pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 13 / 客 13 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.4621,"d":0.1809,"a":0.3569},"fin":{"h":0.4621,"d":0.1809,"a":0.3569,"ml_text":"主勝 羅馬女足（46.2%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1453 vs 1492"},{"m_id":"19","home":"蒙特維多利物浦","away":"拿斯派達斯青年","comp":"烏拉圭盃","kickoff":"11-11 07:57","handicap":null,"base":{"h":0.2467,"d":0.3615,"a":0.3918,"lh":0.701,"la":0.959,"sl":[{"s":"0-0","p":0.2003},{"s":"0-1","p":0.1721},{"s":"1-1","p":0.1381}]},"factors":[{"p":"統計","txt":"Elo 1525 vs 1507（差 18）｜時序 Elo（K=20、主場 +60、走過 109 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/10342/overview"},{"p":"統計","txt":"攻防：主 att 1.14/def 0.71，客 att 0.93/def 0.71｜時間衰減加權（半衰期 180 天）；H=0.604、base=1.437 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/10342/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.80 / 客 1.40 → λ 主 1.007× 客 0.993×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 5 / 客 13 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.2455,"d":0.3613,"a":0.3932},"fin":{"h":0.2455,"d":0.3613,"a":0.3932,"ml_text":"客勝 拿斯派達斯青年（39.3%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 109 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1525 vs 1507"},{"m_id":"20","home":"普馬斯女足","away":"堤格雷斯女足","comp":"女子墨西哥超級聯賽","kickoff":"11-11 09:00","handicap":"主 -1.75","base":{"h":0.0894,"d":0.1245,"a":0.7862,"lh":1.178,"la":3.378,"sl":[{"s":"1-3","p":0.0795},{"s":"1-2","p":0.0706},{"s":"0-3","p":0.0675}]},"factors":[{"p":"統計","txt":"Elo 1515 vs 1745（差 -230）｜時序 Elo（K=20、主場 +60、走過 1132 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9906/overview"},{"p":"統計","txt":"攻防：主 att 1.08/def 1.05，客 att 1.86/def 0.52｜時間衰減加權（半衰期 180 天）；H=1.209、base=1.721 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9906/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.40 / 客 2.60 → λ 主 0.979× 客 1.021×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 4 / 客 5 → λ 主 0.995× 客 1.005×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.996／客 ×1.004","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.088,"d":0.1233,"a":0.7887},"fin":{"h":0.088,"d":0.1233,"a":0.7887,"ml_text":"客勝 堤格雷斯女足（78.9%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1515 vs 1745"},{"m_id":"21","home":"祖亞雷斯女足","away":"瓜達拉哈拉女足","comp":"女子墨西哥超級聯賽","kickoff":"11-11 11:00","handicap":null,"base":{"h":0.3572,"d":0.2758,"a":0.367,"lh":1.356,"la":1.377,"sl":[{"s":"1-1","p":0.1311},{"s":"1-2","p":0.0836},{"s":"2-1","p":0.0823}]},"factors":[{"p":"統計","txt":"Elo 1604 vs 1660（差 -56）｜時序 Elo（K=20、主場 +60、走過 1132 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9906/overview"},{"p":"統計","txt":"攻防：主 att 1.00/def 0.64，客 att 1.25/def 0.65｜時間衰減加權（半衰期 180 天）；H=1.209、base=1.721 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9906/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.80 / 客 2.40 → λ 主 0.989× 客 1.011×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 4 / 客 4 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.998／客 ×1.002","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.3562,"d":0.2758,"a":0.3681},"fin":{"h":0.3562,"d":0.2758,"a":0.3681,"ml_text":"客勝 瓜達拉哈拉女足（36.8%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1604 vs 1660"},{"m_id":"22","home":"橫濱水手","away":"鹿島鹿角","comp":"日本聯賽盃","kickoff":"11-11 18:00","handicap":null,"base":{"h":0.4112,"d":0.2456,"a":0.3432,"lh":1.73,"la":1.568,"sl":[{"s":"1-1","p":0.1083},{"s":"2-1","p":0.0867},{"s":"1-2","p":0.0786}]},"factors":[{"p":"統計","txt":"Elo 1546 vs 1518（差 28）｜時序 Elo（K=20、主場 +60、走過 264 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"統計","txt":"攻防：主 att 1.65/def 1.09，客 att 0.96/def 0.97｜時間衰減加權（半衰期 180 天）；H=0.714、base=1.510 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.80 / 客 1.40 → λ 主 1.007× 客 0.993×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 581 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""},{"p":"統計","txt":"天氣 12℃、風 1km/h｜FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":{"h":0.4091,"d":0.2457,"a":0.3452},"fin":{"h":0.4091,"d":0.2457,"a":0.3452,"ml_text":"主勝 橫濱水手（40.9%）","conf":"★★☆☆☆","cs":2,"risks":["該聯賽歷史樣本僅 264 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◐ 預測","elo":"1546 vs 1518"},{"m_id":"23","home":"川崎前鋒","away":"柏雷素爾","comp":"日本聯賽盃","kickoff":"11-11 18:00","handicap":null,"base":{"h":0.4098,"d":0.2496,"a":0.3406,"lh":1.686,"la":1.524,"sl":[{"s":"1-1","p":0.112},{"s":"2-1","p":0.0874},{"s":"1-2","p":0.079}]},"factors":[{"p":"統計","txt":"Elo 1541 vs 1558（差 -17）｜時序 Elo（K=20、主場 +60、走過 264 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"統計","txt":"攻防：主 att 1.41/def 0.60，客 att 1.68/def 1.11｜時間衰減加權（半衰期 180 天）；H=0.714、base=1.510 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.40 / 客 1.80 → λ 主 1.011× 客 0.989×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 39 → λ 主 0.980× 客 1.020×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.998／客 ×1.002","src":"agents.mjs（Step 2 規則式四代理）","url":""},{"p":"統計","txt":"天氣 12℃、風 2km/h｜FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":{"h":0.4081,"d":0.2497,"a":0.3422},"fin":{"h":0.4081,"d":0.2497,"a":0.3422,"ml_text":"主勝 川崎前鋒（40.8%）","conf":"★★☆☆☆","cs":2,"risks":["該聯賽歷史樣本僅 264 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◐ 預測","elo":"1541 vs 1558"},{"m_id":"24","home":"神戶勝利船","away":"町田澤維亞","comp":"日本聯賽盃","kickoff":"11-11 18:00","handicap":"主 -0.25","base":{"h":0.2152,"d":0.3312,"a":0.4537,"lh":0.707,"la":1.153,"sl":[{"s":"0-1","p":0.1694},{"s":"0-0","p":0.1658},{"s":"1-1","p":0.137}]},"factors":[{"p":"統計","txt":"Elo 1497 vs 1537（差 -41）｜時序 Elo（K=20、主場 +60、走過 264 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"統計","txt":"攻防：主 att 0.87/def 0.95，客 att 0.80/def 0.75｜時間衰減加權（半衰期 180 天）；H=0.714、base=1.510 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.40 / 客 1.60 → λ 主 0.996× 客 1.004×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 430 / 客 39 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.003／客 ×0.997","src":"agents.mjs（Step 2 規則式四代理）","url":""},{"p":"統計","txt":"天氣 16℃、風 2km/h｜FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":{"h":0.2165,"d":0.3317,"a":0.4518},"fin":{"h":0.2165,"d":0.3317,"a":0.4518,"ml_text":"客勝 町田澤維亞（45.2%）","conf":"★★☆☆☆","cs":2,"risks":["該聯賽歷史樣本僅 264 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◐ 預測","elo":"1497 vs 1537"},{"m_id":"25","home":"浦和紅鑽","away":"大阪櫻花","comp":"日本聯賽盃","kickoff":"11-11 18:30","handicap":"主 -0.25","base":{"h":0.294,"d":0.2168,"a":0.4892,"lh":1.69,"la":2.193,"sl":[{"s":"1-2","p":0.0837},{"s":"1-1","p":0.0824},{"s":"2-2","p":0.0707}]},"factors":[{"p":"統計","txt":"Elo 1548 vs 1560（差 -12）｜時序 Elo（K=20、主場 +60、走過 264 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"統計","txt":"攻防：主 att 1.47/def 0.86，客 att 1.69/def 1.06｜時間衰減加權（半衰期 180 天）；H=0.714、base=1.510 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/224/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 2.40 → λ 主 0.993× 客 1.007×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 14 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""},{"p":"統計","txt":"天氣 11℃、風 1km/h｜FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":{"h":0.2933,"d":0.2167,"a":0.49},"fin":{"h":0.2933,"d":0.2167,"a":0.49,"ml_text":"客勝 大阪櫻花（49.0%）","conf":"★★☆☆☆","cs":2,"risks":["該聯賽歷史樣本僅 264 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◐ 預測","elo":"1548 vs 1560"},{"m_id":"26","home":"索斯諾維茨女足","away":"白蘭恩女足","comp":"女子歐霸盃","kickoff":"11-12 00:00","handicap":null,"base":{"h":0.3319,"d":0.23,"a":0.438,"lh":1.689,"la":1.953,"sl":[{"s":"1-1","p":0.0934},{"s":"1-2","p":0.0844},{"s":"2-1","p":0.073}]},"factors":[{"p":"統計","txt":"Elo 1511 vs 1519（差 -7）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.22/def 0.87，客 att 1.34/def 0.56｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師—、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 2.00 → λ 主 1.000× 客 1.000×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 14 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.000／客 ×1.000","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.3319,"d":0.23,"a":0.438},"fin":{"h":0.3319,"d":0.23,"a":0.438,"ml_text":"客勝 白蘭恩女足（43.8%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 0/4 代理取得可用數據（統計師、戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1511 vs 1519"},{"m_id":"27","home":"邦比女足","away":"洛辛堡女足","comp":"女子歐霸盃","kickoff":"11-12 01:00","handicap":"主 -2","base":{"h":0.7552,"d":0.1388,"a":0.106,"lh":3.186,"la":1.216,"sl":[{"s":"3-1","p":0.0803},{"s":"2-1","p":0.0757},{"s":"3-0","p":0.0661}]},"factors":[{"p":"統計","txt":"Elo 1530 vs 1500（差 30）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.62/def 0.72，客 att 1.01/def 0.80｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.20 / 客 1.40 → λ 主 1.014× 客 0.986×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 13 / 客 13 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.998","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.7566,"d":0.1382,"a":0.1052},"fin":{"h":0.7566,"d":0.1382,"a":0.1052,"ml_text":"主勝 邦比女足（75.7%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1530 vs 1500"},{"m_id":"28","home":"費倫巴治女足","away":"皇家蘇斯達女足","comp":"女子歐霸盃","kickoff":"11-12 01:00","handicap":null,"base":{"h":0.3261,"d":0.2583,"a":0.4155,"lh":1.409,"la":1.613,"sl":[{"s":"1-1","p":0.1195},{"s":"1-2","p":0.0893},{"s":"2-1","p":0.078}]},"factors":[{"p":"統計","txt":"Elo 1511 vs 1518（差 -8）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.18/def 0.89，客 att 1.08/def 0.48｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 2.33 → λ 主 0.994× 客 1.006×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 14 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.3256,"d":0.2583,"a":0.4161},"fin":{"h":0.3256,"d":0.2583,"a":0.4161,"ml_text":"客勝 皇家蘇斯達女足（41.6%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1511 vs 1518"},{"m_id":"29","home":"法蘭克福女足","away":"燕豪芬女足","comp":"女子歐霸盃","kickoff":"11-12 01:30","handicap":"主 -2","base":{"h":0.8048,"d":0.133,"a":0.0622,"lh":2.843,"la":0.718,"sl":[{"s":"2-0","p":0.1148},{"s":"3-0","p":0.1088},{"s":"2-1","p":0.0825}]},"factors":[{"p":"統計","txt":"Elo 1584 vs 1491（差 92）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.47/def 0.54，客 att 0.79/def 0.79｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師✓、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.40 / 客 0.80 → λ 主 1.029× 客 0.971×；戰術師（w 0.05）：控球取向差 18pp（主 61% / 客 43%）→ 只調總入球 0.986×；情境師（w 0.2）：休息日 主 14 / 客 14 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.004／客 ×0.995","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.8068,"d":0.1319,"a":0.0613},"fin":{"h":0.8068,"d":0.1319,"a":0.0613,"ml_text":"主勝 法蘭克福女足（80.7%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1584 vs 1491"},{"m_id":"30","home":"奧特海維利女足","away":"克厄女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-12 01:45","handicap":"主 -0.75","base":{"h":0.1706,"d":0.1944,"a":0.635,"lh":1.226,"la":2.442,"sl":[{"s":"1-2","p":0.0933},{"s":"1-1","p":0.0825},{"s":"0-2","p":0.0761}]},"factors":[{"p":"統計","txt":"Elo 1458 vs 1496（差 -37）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 0.48/def 1.43，客 att 0.97/def 1.25｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.20 / 客 1.00 → λ 主 0.986× 客 1.014×；戰術師（w 0.05）：控球取向接近（主 41% / 客 36%，差 5pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 14 / 客 13 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.1701,"d":0.1942,"a":0.6357},"fin":{"h":0.1701,"d":0.1942,"a":0.6357,"ml_text":"客勝 克厄女足（63.6%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1458 vs 1496"},{"m_id":"31","home":"杜連斯女足","away":"布拉格斯巴達女足","comp":"女子歐霸盃","kickoff":"11-12 02:00","handicap":"主 -1.5","base":{"h":0.6545,"d":0.163,"a":0.1825,"lh":3.092,"la":1.687,"sl":[{"s":"3-1","p":0.0699},{"s":"2-1","p":0.0678},{"s":"3-2","p":0.0589}]},"factors":[{"p":"統計","txt":"Elo 1539 vs 1520（差 19）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.68/def 0.79，客 att 1.27/def 0.74｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.60 / 客 1.40 → λ 主 1.021× 客 0.979×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 13 / 客 13 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.003／客 ×0.997","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.6571,"d":0.1623,"a":0.1806},"fin":{"h":0.6571,"d":0.1623,"a":0.1806,"ml_text":"主勝 杜連斯女足（65.7%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1539 vs 1520"},{"m_id":"32","home":"馬模女足","away":"阿積士女足","comp":"女子歐霸盃","kickoff":"11-12 02:00","handicap":"主 -1.5","base":{"h":0.6717,"d":0.1832,"a":0.1451,"lh":2.539,"la":1.137,"sl":[{"s":"2-1","p":0.0928},{"s":"2-0","p":0.0816},{"s":"1-1","p":0.0789}]},"factors":[{"p":"統計","txt":"Elo 1531 vs 1497（差 34）｜時序 Elo（K=20、主場 +60、走過 147 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"統計","txt":"攻防：主 att 1.29/def 0.57，客 att 1.18/def 0.80｜時間衰減加權（半衰期 180 天）；H=1.472、base=1.677 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/11129/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 3.00 / 客 0.60 → λ 主 1.030× 客 0.970×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 14 / 客 14 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.004／客 ×0.995","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.6747,"d":0.1821,"a":0.1432},"fin":{"h":0.6747,"d":0.1821,"a":0.1432,"ml_text":"主勝 馬模女足（67.5%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 147 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 1/4 代理取得可用數據（戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1531 vs 1497"},{"m_id":"33","home":"班士利","away":"奧咸","comp":"英格蘭聯賽錦標","kickoff":"11-12 03:00","handicap":null,"base":{"h":0.4267,"d":0.1785,"a":0.3948,"lh":2.82,"la":2.723,"sl":[{"s":"2-2","p":0.0577},{"s":"3-2","p":0.0543},{"s":"2-3","p":0.0524}]},"factors":[{"p":"統計","txt":"Elo 1435 vs 1489（差 -54）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 0.93/def 1.45，客 att 1.00/def 1.11｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師✓、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.60 / 客 1.20 → λ 主 0.989× 客 1.011×；戰術師（w 0.05）：控球取向差 14pp（主 59% / 客 45%）→ 只調總入球 0.993×；情境師（w 0.2）：休息日 主 36 / 客 29 → λ 主 1.020× 客 0.980×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.997","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.4289,"d":0.1785,"a":0.3926},"fin":{"h":0.4289,"d":0.1785,"a":0.3926,"ml_text":"主勝 班士利（42.9%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 3/4 代理取得可用數據（風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1435 vs 1489"},{"m_id":"34","home":"錫周三","away":"阿克寧頓","comp":"英格蘭聯賽錦標","kickoff":"11-12 03:00","handicap":"主 -2","base":{"h":0.754,"d":0.143,"a":0.103,"lh":3.059,"la":1.129,"sl":[{"s":"3-1","p":0.0818},{"s":"2-1","p":0.0802},{"s":"3-0","p":0.0724}]},"factors":[{"p":"統計","txt":"Elo 1520 vs 1488（差 31）｜時序 Elo（K=20、主場 +60、走過 453 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"統計","txt":"攻防：主 att 1.00/def 0.68，客 att 0.88/def 1.12｜時間衰減加權（半衰期 180 天）；H=1.437、base=1.886 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/142/overview"},{"p":"風險","txt":"共識層：統計師—、戰術師—、情境師—、風險師—｜統計師（w 0.15）：近 5 場資料不足，無調整；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 36 / 客 36 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.000／客 ×1.000","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.754,"d":0.143,"a":0.103},"fin":{"h":0.754,"d":0.143,"a":0.103,"ml_text":"主勝 錫周三（75.4%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 0/4 代理取得可用數據（統計師、戰術師、情境師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1520 vs 1488"},{"m_id":"35","home":"賓菲加女足","away":"奧地利維也納女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-12 04:00","handicap":"主 -0.5","base":{"h":0.4709,"d":0.2556,"a":0.2735,"lh":1.708,"la":1.258,"sl":[{"s":"1-1","p":0.1195},{"s":"2-1","p":0.0945},{"s":"1-0","p":0.0791}]},"factors":[{"p":"統計","txt":"Elo 1456 vs 1481（差 -25）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 0.71/def 0.98，客 att 0.73/def 1.17｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 0.80 / 客 0.33 → λ 主 1.008× 客 0.992×；戰術師（w 0.05）：控球取向接近（主 38% / 客 39%，差 1pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 14 / 客 13 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.998","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.4724,"d":0.2554,"a":0.2722},"fin":{"h":0.4724,"d":0.2554,"a":0.2722,"ml_text":"主勝 賓菲加女足（47.2%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1456 vs 1481"},{"m_id":"36","home":"祖雲達斯女足","away":"里昂女足","comp":"女子歐洲聯賽冠軍盃","kickoff":"11-12 04:00","handicap":"主 -1.25","base":{"h":0.1616,"d":0.1749,"a":0.6634,"lh":1.353,"la":2.752,"sl":[{"s":"1-2","p":0.0845},{"s":"1-3","p":0.0775},{"s":"1-1","p":0.0663}]},"factors":[{"p":"統計","txt":"Elo 1495 vs 1640（差 -145）｜時序 Elo（K=20、主場 +60、走過 224 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"統計","txt":"攻防：主 att 1.27/def 0.90，客 att 1.73/def 0.52｜時間衰減加權（半衰期 180 天）；H=1.158、base=1.771 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/9375/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 1.40 / 客 2.00 → λ 主 0.989× 客 1.011×；戰術師（w 0.05）：控球取向接近（主 53% / 客 59%，差 6pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 13 / 客 14 → λ 主 0.995× 客 1.005×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.997／客 ×1.003","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.1604,"d":0.1743,"a":0.6653},"fin":{"h":0.1604,"d":0.1743,"a":0.6653,"ml_text":"客勝 里昂女足（66.5%）","conf":"★☆☆☆☆","cs":1,"risks":["該聯賽歷史樣本僅 224 場，攻防與 λ 估計誤差較大","未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","此聯賽無同分布校準器，只提供基線（無 cal 列）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":null,"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1495 vs 1640"},{"m_id":"37","home":"西部APIA FC","away":"阿德萊德城","comp":"澳洲冠軍聯賽盃","kickoff":"11-12 16:30","handicap":"主 -1.5","base":{"h":0.708,"d":0.1658,"a":0.1262,"lh":2.755,"la":1.135,"sl":[{"s":"2-1","p":0.0881},{"s":"3-1","p":0.0809},{"s":"2-0","p":0.0776}]},"factors":[{"p":"統計","txt":"Elo 1667 vs 1517（差 150）｜時序 Elo（K=20、主場 +60、走過 1335 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/8938/overview"},{"p":"統計","txt":"攻防：主 att 1.51/def 0.62，客 att 1.10/def 1.00｜時間衰減加權（半衰期 180 天）；H=1.086、base=1.674 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/8938/overview"},{"p":"風險","txt":"共識層：統計師✓、戰術師—、情境師✓、風險師—｜統計師（w 0.15）：近 5 場場均得分 主 2.20 / 客 0.40 → λ 主 1.030× 客 0.970×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 5 / 客 4 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.005／客 ×0.994","src":"agents.mjs（Step 2 規則式四代理）","url":""}],"reb":{"h":0.7116,"d":0.1644,"a":0.124},"fin":{"h":0.7116,"d":0.1644,"a":0.124,"ml_text":"主勝 西部APIA FC（71.2%）","conf":"★★☆☆☆","cs":2,"risks":["未取得官方首發，陣容以近期主力推測（假設主力齊整）","共識層僅 2/4 代理取得可用數據（戰術師、風險師 未生效）","模型自評信心偏低，任何一路結果皆有可能"]},"cal":{"h":0.6584,"d":0.1679,"a":0.1736,"note":""},"note":"hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。","lineup":"◌ 未公開","elo":"1667 vs 1517"}];
+
+// ---------- 工具 ----------
+const pct = (x) => (x * 100).toFixed(1) + '%';
+const star = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ---------- 3. 表格 ----------
+const state = { conf: 'all', hcp: 'all', cal: 'all', sort: 'id', dir: 1 };
+const maxP = (d) => Math.max(d.fin.h, d.fin.d, d.fin.a);
+
+function passes(d) {
+  const cs = d.fin.cs || 0;
+  if (state.conf === 'hi' && cs < 4) return false;
+  if (state.conf === 'mid' && cs !== 3) return false;
+  if (state.conf === 'lo' && cs > 2) return false;
+  if (state.hcp === 'yes' && !d.handicap) return false;
+  if (state.hcp === 'no' && d.handicap) return false;
+  if (state.cal === 'diff') {
+    if (!d.cal) return false;
+    const dh = Math.abs(d.cal.h - d.fin.h), dd = Math.abs(d.cal.d - d.fin.d), da = Math.abs(d.cal.a - d.fin.a);
+    const flip = ['h', 'd', 'a'].filter((k) => Math.max(d.cal.h, d.cal.d, d.cal.a) === d.cal[k])[0] !==
+                 ['h', 'd', 'a'].filter((k) => Math.max(d.fin.h, d.fin.d, d.fin.a) === d.fin[k])[0];
+    if (Math.max(dh, dd, da) < 0.25 && !flip) return false;
+  }
+  return true;
+}
+function sorted(rows) {
+  const arr = rows.slice();
+  const key = state.sort;
+  arr.sort((a, b) => {
+    if (key === 'cs') return (a.fin.cs - b.fin.cs) * state.dir;
+    if (key === 'p') return (maxP(a) - maxP(b)) * state.dir;
+    return (Number(String(a.m_id).replace(/\D/g, '')) - Number(String(b.m_id).replace(/\D/g, ''))) * state.dir;
+  });
+  return arr;
+}
+function mlPill(d) {
+  const k = ['h', 'd', 'a'].reduce((x, y) => (d.fin[y] > d.fin[x] ? y : x), 'h');
+  const label = k === 'h' ? '主勝' : k === 'd' ? '和局' : '客勝';
+  return '<span class="pill ' + k + '">' + label + ' ' + pct(d.fin[k]) + '</span>';
+}
+function lineupTag(d) {
+  const s = (d.lineup || '').toLowerCase();
+  if (s.indexOf('official') >= 0) return '✅ 官方首發';
+  if (s.indexOf('infer') >= 0 || s.indexOf('predict') >= 0) return '◐ 網絡推斷';
+  return '◌ 未公開';
+}
+function renderTable() {
+  const rows = sorted(DATA.filter(passes));
+  document.getElementById('count').textContent = '共 ' + rows.length + ' 場';
+  document.getElementById('tbody').innerHTML = rows.map((d) => `
+    <tr>
+      <td><a class="no" href="#card-${esc(d.m_id)}">${esc(d.m_id)}</a></td>
+      <td>${esc(d.home)}</td><td>${esc(d.away)}</td>
+      <td>${esc(d.comp)}</td><td class="num">${esc(d.kickoff)}</td>
+      <td>${d.handicap ? '<span class="pill">' + esc(d.handicap) + '</span>' : '—'}</td>
+      <td class="num">${pct(d.fin.h)} · ${pct(d.fin.d)} · ${pct(d.fin.a)}</td>
+      <td>${mlPill(d)}</td>
+      <td><span class="stars">${star(d.fin.cs)}</span></td>
+      <td>${lineupTag(d)}</td>
+    </tr>`).join('');
+}
+
+// ---------- 5. 卡片 ----------
+function bar(o) {
+  return '<div class="bar"><i class="h" style="width:' + (o.h * 100).toFixed(2) + '%">' + (o.h > 0.09 ? pct(o.h) : '') + '</i>' +
+         '<i class="d" style="width:' + (o.d * 100).toFixed(2) + '%">' + (o.d > 0.09 ? pct(o.d) : '') + '</i>' +
+         '<i class="a" style="width:' + (o.a * 100).toFixed(2) + '%">' + (o.a > 0.09 ? pct(o.a) : '') + '</i></div>';
+}
+// 比分區間：由 base.sl 自動推導（主/客入球範圍 + Top3 合計機率）
+function slRange(sl) {
+  if (!sl || !sl.length) return '';
+  const hs = sl.map((x) => Number(x.s.split('-')[0])), as = sl.map((x) => Number(x.s.split('-')[1]));
+  const sum = sl.reduce((a, x) => a + x.p, 0);
+  return '比分區間：主 ' + Math.min.apply(null, hs) + '–' + Math.max.apply(null, hs) +
+         ' 球 / 客 ' + Math.min.apply(null, as) + '–' + Math.max.apply(null, as) + ' 球；Top ' + sl.length + ' 合計 ' + pct(sum);
+}
+function factorLi(f) {
+  if (typeof f === 'string') return '<li>' + esc(f) + '<div class="src">來源：模型判斷</div></li>';
+  const src = f.src ? (f.url ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(f.src) + '</a>' : esc(f.src))
+                    : '模型判斷';
+  return '<li><span class="p">' + esc(f.p) + '</span>' + esc(f.txt) + '<div class="src">來源：' + src + '</div></li>';
+}
+function renderCards() {
+  document.getElementById('cards').innerHTML = DATA.map((d) => `
+  <section class="card" id="card-${esc(d.m_id)}">
+    <div class="chead">
+      <span class="no">#${esc(d.m_id)}</span>
+      <span class="vs">${esc(d.home)} vs ${esc(d.away)}</span>
+      <span class="meta">${esc(d.comp)} · 北京時間 ${esc(d.kickoff)}</span>
+      <span class="tags">
+        ${d.handicap ? '<span class="pill">讓球 ' + esc(d.handicap) + '</span>' : ''}
+        <span class="pill">${star(d.fin.cs)}</span>
+      </span>
+    </div>
+    <div class="body">
+      <div class="col">
+        <h5>量化基線（泊松 + Dixon-Coles）</h5>
+        ${bar(d.base)}
+        <div class="lam">λ 主 = ${Number(d.base.lh).toFixed(2)}　λ 客 = ${Number(d.base.la).toFixed(2)}　Elo ${esc(d.elo || '—')}</div>
+        <div class="sl">Top 比分：${(d.base.sl || []).map((x) => '<b>' + esc(x.s) + '</b> ' + pct(x.p)).join('　')}</div>
+        <div class="sl">${esc(slRange(d.base.sl))}</div>
+      </div>
+      <div class="col">
+        <h5>多智能體關鍵因子</h5>
+        <ul class="fac">${(d.factors || []).map(factorLi).join('')}</ul>
+        <h5 style="margin-top:12px">共識調整後 1X2</h5>
+        ${bar(d.reb)}
+      </div>
+    </div>
+    <div class="concl">
+      <div class="line">
+        <span>最可能結果：<span class="ml">${esc(d.fin.ml_text || '')}</span></span>
+        <span>置信度：<span class="stars">${esc(d.fin.conf || star(d.fin.cs))}</span></span>
+        <span>最終 1X2：${pct(d.fin.h)} / ${pct(d.fin.d)} / ${pct(d.fin.a)}</span>
+      </div>
+      ${bar(d.fin)}
+      ${d.cal ? '<div class="lam" style="margin-top:10px">二階段校準 1X2（參考層，不覆蓋結論）：' + pct(d.cal.h) + ' / ' + pct(d.cal.d) + ' / ' + pct(d.cal.a) + (d.cal.note ? '　' + esc(d.cal.note) : '') + '</div>' : ''}
+      ${(d.fin.risks && d.fin.risks.length) ? '<ul>' + d.fin.risks.map((r) => '<li>' + esc(r) + '</li>').join('') + '</ul>' : ''}
+    </div>
+    <div class="cnote">${esc(d.note || '')}</div>
+  </section>`).join('');
+}
+
+// ---------- 4. 圖表 ----------
+function renderCharts() {
+  const names = DATA.map((d) => d.home + ' · ' + d.away);
+  const A = echarts.init(document.getElementById('chA'));
+  A.setOption({
+    backgroundColor: 'transparent',
+    grid: { left: 6, right: 26, top: 8, bottom: 20, containLabel: true },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: (v) => (v).toFixed(1) + '%' },
+    legend: { top: 0, textStyle: { color: '#93a7b0', fontSize: 11 }, itemWidth: 10, itemHeight: 10 },
+    xAxis: { type: 'value', max: 100, axisLabel: { color: '#6f858d', fontSize: 10, formatter: '{value}%' }, splitLine: { lineStyle: { color: '#1f2a30' } } },
+    yAxis: { type: 'category', data: names, inverse: true, axisLabel: { color: '#93a7b0', fontSize: 10 }, axisLine: { lineStyle: { color: '#26333a' } } },
+    series: [
+      { name: '主勝', type: 'bar', stack: 'x', data: DATA.map((d) => +(d.fin.h * 100).toFixed(1)), itemStyle: { color: '#4fbf87' } },
+      { name: '和局', type: 'bar', stack: 'x', data: DATA.map((d) => +(d.fin.d * 100).toFixed(1)), itemStyle: { color: '#e5b454' } },
+      { name: '客勝', type: 'bar', stack: 'x', data: DATA.map((d) => +(d.fin.a * 100).toFixed(1)), itemStyle: { color: '#5aa8e0' } }
+    ]
+  });
+
+  const B = echarts.init(document.getElementById('chB'));
+  B.setOption({
+    backgroundColor: 'transparent',
+    grid: { left: 6, right: 16, top: 8, bottom: 20, containLabel: true },
+    tooltip: { trigger: 'axis' },
+    legend: { top: 0, textStyle: { color: '#93a7b0', fontSize: 11 }, itemWidth: 10, itemHeight: 10 },
+    xAxis: { type: 'value', axisLabel: { color: '#6f858d', fontSize: 10 }, splitLine: { lineStyle: { color: '#1f2a30' } } },
+    yAxis: { type: 'category', data: names, inverse: true, axisLabel: { color: '#93a7b0', fontSize: 10 }, axisLine: { lineStyle: { color: '#26333a' } } },
+    series: [
+      { name: 'λ 主隊', type: 'bar', data: DATA.map((d) => +Number(d.base.lh).toFixed(2)), itemStyle: { color: '#4c9ba1' } },
+      { name: 'λ 客隊', type: 'bar', data: DATA.map((d) => +Number(d.base.la).toFixed(2)), itemStyle: { color: '#c58b52' } }
+    ]
+  });
+
+  const tally = [0, 0, 0, 0, 0];
+  DATA.forEach((d) => { const c = Math.min(5, Math.max(1, d.fin.cs || 1)); tally[c - 1]++; });
+  const C = echarts.init(document.getElementById('chC'));
+  C.setOption({
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'item', formatter: '{b}：{c} 場（{d}%）' },
+    series: [{
+      type: 'pie', radius: ['46%', '72%'], center: ['50%', '54%'],
+      label: { color: '#93a7b0', fontSize: 10, formatter: '{b}\n{c}' },
+      labelLine: { lineStyle: { color: '#26333a' } },
+      data: tally.map((n, i) => ({ name: star(i + 1), value: n })).filter((x) => x.value > 0),
+      itemStyle: { borderColor: '#151d21', borderWidth: 2 },
+      color: ['#6d7f87', '#7f8f96', '#c58b52', '#a9c0c7', '#4fbf87']
+    }]
+  });
+  window.addEventListener('resize', () => { A.resize(); B.resize(); C.resize(); });
+}
+
+// ---------- 綁定 ----------
+function group(id, key) {
+  document.getElementById(id).addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...e.currentTarget.querySelectorAll('button')].forEach((x) => x.classList.remove('on'));
+    b.classList.add('on');
+    if (key === 'sort') { state.sort = b.dataset.v; state.dir = 1; } else { state[key] = b.dataset.v; }
+    renderTable();
+  });
+}
+group('fConf', 'conf'); group('fHcp', 'hcp'); group('fCal', 'cal'); group('fSort', 'sort');
+function toggleSort(k) { if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = 1; } renderTable(); }
+document.getElementById('thNo').addEventListener('click', () => toggleSort('id'));
+document.getElementById('thCs').addEventListener('click', () => toggleSort('cs'));
+
+// 副標題：場次數 · 四步流水線 · 開球日期區間
+(function meta() {
+  if (DATA.length) {
+    const ks = DATA.map((d) => d.kickoff).sort();
+    document.getElementById('heroSub').textContent =
+      DATA.length + ' 場賽事 · 四步流水線模型（基線 + 共識 + 校準 + 置信度）· ' + ks[0] + ' 至 ' + ks[ks.length - 1];
+  }
+})();
+
+renderTable(); renderCards(); renderCharts();
+</script>
+</body>
+</html>
