@@ -101,7 +101,10 @@ const DATA = rows.slice(0, LIMIT > 0 ? LIMIT : rows.length).map((r, i) => {
       cs: fin.cs || 3,
       risks: (fin.risks && fin.risks.length ? fin.risks : risksOf(r)),
     },
-    cal: p.cal && p.cal.h != null ? { h: +p.cal.h, d: +p.cal.d, a: +p.cal.a, note: p.cal.note || '' } : null,
+    cal: p.cal && p.cal.h != null
+      ? { h: +p.cal.h, d: +p.cal.d, a: +p.cal.a, note: p.cal.note || `walk-forward logistic，同聯賽同分布，樣本 ${p.cal.n || '?'}` }
+      : null,
+    cal_note: p.cal && p.cal.error ? p.cal.error : '',
     note: p.note || '',
     lineup: dg.lineupState || '',
     elo: dg.elo ? `${Math.round(dg.elo.home)} vs ${Math.round(dg.elo.away)}` : '',

@@ -16,6 +16,10 @@ TOKEN="${GH_TOKEN:-}"
 if [ -z "$TOKEN" ] && [ -f .gh_token ]; then TOKEN="$(tr -d ' \r\n' < .gh_token)"; fi
 if [ -z "$TOKEN" ]; then echo "缺少 token：寫入 web/.gh_token 或設 GH_TOKEN"; exit 3; fi
 
+# 0) 監視器（fb/sanity.mjs）：掃出唔合理嘅預測，寫 fb/audit.json 俾卡面帶警告
+#    advisory：有 fail 都唔阻發佈，但會喺 console 出聲
+node ../fb/sanity.mjs >/dev/null 2>&1 || echo "（監視器有 fail，請跑 node fb/sanity.mjs 睇詳情）"
+
 # 1) 更新賽程／狀態／比分總表（48h 未開賽、72h 已完場）
 if [ "${SKIP_FIX:-0}" != "1" ]; then
   node ../fb/fixtures.mjs --out fixtures.json >/dev/null
@@ -34,6 +38,8 @@ fi
 if [ "${SKIP_GUARD:-0}" != "1" ]; then
   if ! node ../fb/noprior.mjs; then echo "守則閘：有預測缺數據來源，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 5; fi
   if ! node ../fb/ahtest.mjs; then echo "亞盤閘：AHD 不變式失敗，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 6; fi
+  # 1b3) 洩漏閘：重算已完場比賽時，訓練集唔可以包含嗰場自己嘅賽果（否則等於作數）
+  if ! node ../fb/leaktest.mjs; then echo "洩漏閘：有預測嘅訓練集包含自己賽果，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 7; fi
 fi
 
 # 1c) 數據源：首選 API；失敗（server 唔喺等）用本地 fixtures.json
@@ -47,6 +53,25 @@ fi
 
 # 2) 重新生成頁面（舊靜態版，霧青玻璃樣）
 ./build.sh "$SRC"
+
+# 2a) 頁面層守則閘：每張卡都要有 data-id／data-status／data-comp，
+#     否則 60 秒自動更新會漏掉佢（ghost 卡曾冇 data-id → 永遠卡喺「未開賽」）
+if [ "${SKIP_GUARD:-0}" != "1" ]; then
+  if ! node cardtest.mjs; then echo "頁面閘：卡片結構有問題，中止發佈（SKIP_GUARD=1 可臨時繞過）"; exit 8; fi
+fi
+
+# 2b) Step 3 附頁：盃賽模擬、報告、國際賽事（冇資料就略過）
+if ls ../fb/tournament/cup-*.json >/dev/null 2>&1; then
+  node mkcups.mjs >/dev/null || echo "（盃賽頁生成失敗，略過）"
+fi
+node mkreport.mjs --out report.html >/dev/null 2>&1 || echo "（報告頁生成失敗，略過）"
+node mkaudit.mjs >/dev/null 2>&1 || echo "（監視頁生成失敗，略過）"
+if ls ../fb/tournament/[0-9]*.json >/dev/null 2>&1; then
+  node mktour.mjs >/dev/null 2>&1 || echo "（國際賽事頁生成失敗，略過）"
+fi
+if ls ../fb/tournament/eu-*.json >/dev/null 2>&1; then
+  node mkeuropa.mjs >/dev/null 2>&1 || echo "（歐聯／歐霸頁生成失敗，略過）"
+fi
 REMOTE_URL="https://x-access-token:${TOKEN}@github.com/stagebegin/matchdeck.git"
 
 git add -A

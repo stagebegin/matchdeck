@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>覆盤 memo · 亞盤標籤統計</title>
+<style>
+:root{--bg:#eef3f4;--ink:#12232b;--muted:#6b838b;--line:#d3e0e2;--cyan:#4c9ba1;--cyan-2:#2f7d83;--card:#ffffff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1220px;margin:0 auto;padding:28px 18px 60px}
+header.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#123338,#1d4a4c);
+  border-radius:18px;padding:32px 28px;color:#e8f3f3;box-shadow:0 10px 30px rgba(18,35,43,.18)}
+header.hero h1{margin:0;font-size:25px;letter-spacing:.5px}
+header.hero p{margin:10px 0 0;font-size:13px;opacity:.86;max-width:820px;line-height:1.75}
+header.hero a{color:#8fd6d2}
+.kpis{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 24px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:130px}
+.kpi b{display:block;font-size:22px;color:var(--cyan-2)}
+.kpi span{font-size:12px;color:var(--muted)}
+h2{font-size:16px;margin:26px 0 8px;letter-spacing:.3px}
+h2 small{font-weight:400;color:var(--muted);font-size:12px;margin-left:6px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{padding:8px 10px;font-size:13px;text-align:left;border-bottom:1px solid #e8eff0}
+th{background:#f4f8f8;font-size:12px;color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:none}
+.tag{font-size:12px;font-weight:700;color:var(--cyan-2);background:rgba(76,155,161,.12);border:1px solid rgba(76,155,161,.32);border-radius:999px;padding:2px 9px;display:inline-block;margin:1px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:#e6eef0;border-radius:3px;overflow:hidden;min-width:64px}
+.bar i{display:block;height:100%;background:var(--cyan)}
+.bar.neg i{background:#c9705f}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7}
+.pos{color:#1e7a50;font-weight:700}.neg{color:#a4443a;font-weight:700}
+.win{color:#1e7a50;font-weight:700}.half{color:#8a6d1f;font-weight:700}.lose{color:#a4443a;font-weight:700}.push{color:var(--muted);font-weight:700}
+footer{margin-top:34px;font-size:12px;color:var(--muted);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>覆盤 memo · 亞盤標籤統計</h1>
+    <p>逐場手動睇盤口後寫低嘅 hashtag 標籤（#初盤合理 終盤升水、#上盤…）。每場只當成<b>一個</b>標籤：
+      寫「#初盤合理 終盤升水」會儲存成單一標籤「初盤合理 終盤升水」，唔會拆開。<br>
+      呢頁統計嘅全部係<b>亞盤（讓球盤）</b>：以模型主盤（讓球方上盤）為準，
+      對比你標註嗰類盤口觀察下，讓球方實際贏盤率同模型預期差幾多。
+      寫 memo 喺 <a href="./index.html">賽前預測台</a> 每張卡片上。
+    </p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <h2>標籤統計（已結算場次 · 亞盤）<small>讓球方 = 模型主盤嘅讓球方（上盤）</small></h2>
+  <div id="tags"></div>
+
+  <h2>逐場 memo（亞盤對帳）</h2>
+  <div id="rows"></div>
+
+  <footer>
+    贏盤率＝讓球方全贏或半贏嘅比例（走水唔算贏）。<br>
+    「實際 vs 模型」差值＝實際贏盤率 − 模型預期贏盤率；負值代表模型高估咗讓球方（盤偏深）。<br>
+    每注期望＝實盤每注平均回報（贏 +1、輸 −1、走水 0，四分一盤兩注各半）；模型期望係同一條線嘅 E。<br>
+    樣本少時（n &lt; 5）數字唔穩定，唔好當結論。
+  </footer>
+</div>
+<script>
+const API='https://oddsapi.2828666.xyz/fbW8FCX0tNblXanTXGyTUB/memos';
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const pct=x=>x==null?'—':(x*100).toFixed(1)+'%';
+const pp=x=>x==null?'—':((x>0?'+':'')+(x*100).toFixed(1)+'pp');
+const fe=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(3);
+function bar(v,neg){const p=Math.max(0,Math.min(1,v||0));return '<div class="bar'+(neg?' neg':'')+'"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>';}
+const RES={win:['全贏','win'],halfwin:['半贏','half'],push:['走水','push'],halflose:['半輸','half'],lose:['全輸','lose']};
+async function main(){
+  let j;
+  try{
+    const r=await fetch(API+'/stats',{cache:'no-store'});
+    j=await r.json();
+  }catch(e){
+    document.getElementById('tags').innerHTML='<div class="empty">讀唔到 API（'+esc(e.message)+'）</div>';
+    return;
+  }
+  document.getElementById('kpis').innerHTML=
+    '<div class="kpi"><b>'+(j.count||0)+'</b><span>已寫 memo</span></div>'+
+    '<div class="kpi"><b>'+(j.settled_with_memo||0)+'</b><span>已結算（有賽果）</span></div>'+
+    '<div class="kpi"><b>'+((j.stats||[]).length)+'</b><span>標籤數</span></div>';
+  const st=j.stats||[];
+  document.getElementById('tags').innerHTML= st.length? (
+    '<table><thead><tr><th>標籤</th><th class="num">場數</th><th class="num">實際贏盤率</th><th class="num">模型預期</th><th>差</th>'+
+    '<th class="num">實際每注</th><th class="num">模型每注</th><th class="num">全贏/半贏/走水/半輸/全輸</th></tr></thead><tbody>'+
+    st.map(s=>{
+      const dev=s.cover_dev;
+      const r=s.results||{};
+      return '<tr><td><span class="tag">#'+esc(s.tag)+'</span></td><td class="num">'+s.n+'</td>'+
+        '<td class="num">'+pct(s.cover_rate)+'</td><td class="num">'+pct(s.exp_cover)+'</td>'+
+        '<td class="'+(dev==null?'':(dev>=0?'pos':'neg'))+'">'+bar(s.cover_rate,dev!=null&&dev<0)+'<br>'+pp(dev)+'</td>'+
+        '<td class="num">'+fe(s.actual_e)+'</td><td class="num">'+fe(s.exp_e)+'</td>'+
+        '<td class="num">'+(r.win||0)+' / '+(r.halfwin||0)+' / '+(r.push||0)+' / '+(r.halflose||0)+' / '+(r.lose||0)+'</td></tr>';
+    }).join('')+'</tbody></table>') : '<div class="empty">仲未有標籤統計。</div>';
+  const rows=(j.rows||[]);
+  document.getElementById('rows').innerHTML= rows.length? (
+    '<table><thead><tr><th>聯賽</th><th>對賽</th><th>比分</th><th class="num">盤口</th><th>讓球方</th><th>模型贏盤率</th><th>實際結果</th><th class="num">實際/模型 每注</th><th>標籤</th><th>備註</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const res=r.ah_result?RES[r.ah_result]:null;
+      const resHtml=res?'<span class="'+res[1]+'">'+res[0]+'</span>':'—';
+      const line=r.line==null?'—':(r.fav==='a'?('客 '+r.line):('主 '+r.line));
+      return '<tr><td>'+esc(r.comp_name||r.comp)+'</td><td>'+esc(r.home)+' vs '+esc(r.away)+'</td>'+
+        '<td>'+(r.sh==null?'—':r.sh+'–'+r.sa)+'</td><td class="num">'+esc(line)+'</td>'+
+        '<td>'+(r.fav==='h'?'主隊':'客隊')+'</td>'+
+        '<td>'+pct(r.exp_win)+'</td><td>'+resHtml+'</td>'+
+        '<td class="num">'+fe(r.ah_e)+' / '+fe(r.exp_e)+'</td>'+
+        '<td>'+(r.tags||[]).map(t=>'<span class="tag">#'+esc(t)+'</span>').join(' ')+'</td>'+
+        '<td class="note">'+esc(r.note||'')+'</td></tr>';
+    }).join('')+'</tbody></table>') : '<div class="empty">仲未有逐場 memo。</div>';
+}
+main();
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html><html lang="zh-HK"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>監視報告 · MatchDeck</title>
+<style>
+:root{--bg:#0c1417;--card:#122025;--line:#1e3a41;--ink:#dcecef;--muted:#8aa6ac;--cyan:#4c9ba1;--warn:#f0b429;--bad:#ff7a5a}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#163037,#0c1417 60%);color:var(--ink);font:14px/1.6 -apple-system,"PingFang HK","Noto Sans HK",sans-serif;padding:24px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+.cards{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:110px}
+.kpi b{display:block;font-size:22px;line-height:1.2}
+.kpi span{color:var(--muted);font-size:11px}
+.kpi.fail b{color:var(--bad)}.kpi.warn b{color:var(--warn)}.kpi.ok b{color:var(--cyan)}
+.area{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.area.fail{border-color:rgba(255,122,90,.45)}
+.area.warn{border-color:rgba(240,180,41,.3)}
+h2{font-size:14px;margin:0 0 10px;letter-spacing:.04em}
+.area.fail h2{color:var(--bad)}.area.warn h2{color:var(--warn)}.area.info h2{color:var(--muted)}
+.n{color:var(--muted);font-weight:400;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;padding:4px 6px;border-bottom:1px solid var(--line)}
+td{padding:5px 6px;border-bottom:1px solid rgba(30,58,65,.5);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.ref{white-space:nowrap;color:var(--cyan);width:42%}
+footer{color:var(--muted);font-size:11px;text-align:center;margin-top:18px;line-height:1.8}
+a{color:var(--cyan)}
+</style></head><body><div class="wrap">
+<h1>監視報告</h1>
+<div class="sub">15/11/2026 下午9:15:01 生成 · 檢查 68 個未開賽／進行中預測（另有 458 個已完場只作記錄）</div>
+<div class="cards">
+  <div class="kpi ok"><b>0</b><span>需要處理</span></div>
+  <div class="kpi warn"><b>27</b><span>值得留意</span></div>
+  <div class="kpi"><b>1</b><span>資訊</span></div>
+  <div class="kpi"><b>526</b><span>預測總數</span></div>
+</div>
+<section class="area warn">
+  <h2>⚠ λ 極端 <span class="n">1</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">SFLW 拉科魯尼亞女足 vs 巴塞隆拿女足</td><td>λ 0.39-4.12 超出常見範圍</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 亞盤 <span class="n">9</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">ENL 北馬其頓 vs 斯洛文尼亞</td><td>主盤 0.5 期望利潤 -6.3%（多數係盤口範圍不足）</td></tr><tr><td class="ref">UD1 迪芬沙士砵亭 vs 彭拿路</td><td>主盤 0.5 期望利潤 -7.4%（多數係盤口範圍不足）</td></tr><tr><td class="ref">ANQ 索馬里 vs 加納</td><td>主盤 0.25 期望利潤 7.3%（多數係盤口範圍不足）</td></tr><tr><td class="ref">ENL 哈薩克 vs 斯洛伐克</td><td>主盤 0.25 期望利潤 6.1%（多數係盤口範圍不足）</td></tr><tr><td class="ref">SFLW 皇家蘇斯達女足 vs 畢爾包女足</td><td>主盤 -0.25 期望利潤 6.8%（多數係盤口範圍不足）</td></tr><tr><td class="ref">SFLW 拉科魯尼亞女足 vs 巴塞隆拿女足</td><td>主盤 3 期望利潤 21.8%（多數係盤口範圍不足）</td></tr><tr><td class="ref">MLSW 新澤西紐約高譚女足 vs 肯薩斯城潮流女足</td><td>主盤 0 期望利潤 6.5%（多數係盤口範圍不足）</td></tr><tr><td class="ref">INT 意大利U21 vs 比利時U21</td><td>主盤 -0.25 期望利潤 -6.2%（多數係盤口範圍不足）</td></tr><tr><td class="ref">INT 安道爾 vs 阿塞拜疆</td><td>主盤 0 期望利潤 -8.0%（多數係盤口範圍不足）</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 入球水平 <span class="n">6</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">ANQ 索馬里 vs 加納</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr><tr><td class="ref">ANQ 納米比亞 vs 喀麥隆</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr><tr><td class="ref">ANQ 蘇丹 vs 塞內加爾</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr><tr><td class="ref">ANQ 中非共和國 vs 貝寧</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr><tr><td class="ref">ANQ 津巴布韋 vs 赤道畿內亞</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr><tr><td class="ref">ANQ 厄立特里亞 vs 畿內亞</td><td>模型總入球 1.80／場（正常 2.0–3.4）· 多數係樣本池唔啱</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 和局率 <span class="n">1</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">SFLW 拉科魯尼亞女足 vs 巴塞隆拿女足</td><td>和局 4.0%（常見 14–32%）</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 樣本 <span class="n">5</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">ULP 杜拜聯FC vs FC沙迦</td><td>只有 49 場歷史（&lt;300），att/def 唔穩</td></tr><tr><td class="ref">ULP 卡爾巴FC vs 沙比阿爾阿里</td><td>只有 49 場歷史（&lt;300），att/def 唔穩</td></tr><tr><td class="ref">ULP 艾查捷拉 vs 賓尼耶斯</td><td>只有 49 場歷史（&lt;300），att/def 唔穩</td></tr><tr><td class="ref">ULP 阿爾華達 vs 科爾法簡</td><td>只有 49 場歷史（&lt;300），att/def 唔穩</td></tr><tr><td class="ref">NTLW 阿納巴莊那女足 vs 洛亞女足</td><td>只有 12 場歷史（&lt;300），att/def 唔穩</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 比分集中 <span class="n">3</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">ULP 艾查捷拉 vs 賓尼耶斯</td><td>最可能比分 0-0 佔 21.0%</td></tr><tr><td class="ref">ENL 立陶宛 vs 列支敦士登</td><td>最可能比分 1-0 佔 20.9%</td></tr><tr><td class="ref">INT 意大利U21 vs 比利時U21</td><td>最可能比分 0-0 佔 22.0%</td></tr></tbody></table>
+</section><section class="area warn">
+  <h2>⚠ 高機率 <span class="n">2</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">ENL 芬蘭 vs 聖馬力諾</td><td>主勝 79.8% 但 Elo 只差 28 分（理論約 54.0%）</td></tr><tr><td class="ref">SFLW 拉科魯尼亞女足 vs 巴塞隆拿女足</td><td>單邊 95.1%（&gt;88%）少見，值得人手望一望</td></tr></tbody></table>
+</section><section class="area info">
+  <h2>· 已知限制 <span class="n">1</span></h2>
+  <table><thead><tr><th>場次</th><th>說明</th></tr></thead><tbody><tr><td class="ref">BDC UCLW UECW AD2 AUC</td><td>跨級別／跨國盃賽冇升降班連通，只用本盃歷史；樣本細嘅隊會較極端</td></tr></tbody></table>
+</section>
+<footer>
+自動每日／每次發佈前檢查（<code>fb/sanity.mjs</code>）。<br>
+規則：樣本 &lt;300 · 模型總入球離 2.0–3.4 · λ 極端 · 機率同 Elo 方向矛盾 · 罕見高機率 · 和局率離 14–32% · 比分過度集中 · 校準層改動 &gt;12pp · 亞盤 |E|&gt;6% · 跨級別盃賽未併池 · 重複預測 · 同隊同日兩場 · 快照停滯 · 預測停產 · 2 小時內開賽仍冇預測。<br>
+<a href="index.html">← 返回賽程</a>
+</footer>
+</div></body></html>

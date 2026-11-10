@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>歐聯／歐霸 聯賽階段模擬</title>
+<style>
+:root{--bg:#0e1417;--card:#151d21;--card2:#1b252a;--line:#26333a;--txt:#e6edf0;--dim:#93a7b0;--accent:#4c9ba1;--green:#4fbf87;--yellow:#e5b454}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+.cup{margin-bottom:46px}
+.hero{padding:32px 26px 24px;border-radius:16px;margin-bottom:16px;background:linear-gradient(150deg,#16323a 0%,#12242a 55%,#101a1f 100%);border:1px solid var(--line);position:relative;overflow:hidden}
+.hero h1{margin:0 0 8px;font-size:25px;letter-spacing:.04em;font-weight:650}
+.hero .sub{color:var(--dim);font-size:13.5px}
+.hero .gen{color:#6f858d;font-size:12px;margin-top:10px}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px;margin-bottom:12px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.mcard b{display:block;font-size:13.5px;margin-bottom:6px;color:#cfe3e8}
+.mcard span{color:var(--dim);font-size:12.5px;line-height:1.65}
+.warn{margin:0 0 18px;padding:12px 16px;border-radius:10px;font-size:12.8px;background:rgba(229,180,84,.1);border:1px solid rgba(229,180,84,.35);color:#f0cf8d}
+.sect-title{font-size:15px;font-weight:600;margin:26px 0 12px;padding-left:10px;border-left:3px solid var(--accent)}
+.cbwrap{display:grid;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cb{display:grid;grid-template-columns:150px 1fr 62px;gap:10px;align-items:center;font-size:13px}
+.cn{color:#d7e6ea}
+.cbar{height:9px;background:#1d282e;border-radius:5px;overflow:hidden}
+.cbar i{display:block;height:100%;background:linear-gradient(90deg,#4c9ba1,#7fd3c6)}
+.cv{text-align:right;color:#bfe6ea;font-variant-numeric:tabular-nums}
+.fixt{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:500;font-size:12.5px}
+tbody tr:last-child td{border-bottom:0}
+.stand tr.seed td{background:rgba(79,191,135,.07)}
+.stand tr.po td{background:rgba(76,155,161,.06)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.dim{color:#6f858d}
+.tm{font-weight:550}
+.elo{color:#6f858d;font-size:11.5px;margin-left:6px;font-variant-numeric:tabular-nums}
+.ch{color:#7fd3c6;font-weight:600}
+.nod{color:#e5b454;font-size:11px;margin-left:6px}
+.nodata{color:#e5b454;font-size:12px}
+.mono{font-variant-numeric:tabular-n;color:var(--dim)}
+.vs{color:#6f858d;padding:0 2px}
+.sc{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:6px;background:#1d282e;font-variant-numeric:tabular-nums;font-size:12.5px}
+.sc b{color:#7fd3c6;font-weight:600}
+.assump{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 34px;color:var(--dim);font-size:12.8px}
+.assump li{margin:5px 0}
+footer{margin-top:30px;color:#6f858d;font-size:12px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body><div class="wrap">
+<div class="cup">
+<div class="hero">
+  <h1>Champions League 2026/2027 · 聯賽階段模擬</h1>
+  <div class="sub">Monte Carlo 10,000 次（seed 20261110）· 強度池 13,427 場 / 387 隊 · 主場係數 ×1.206 · 每隊基準 1.298 球</div>
+  <div class="gen">產生時間 2026-11-12T10:39:14.198Z · 已完場用真實賽果，未完場由模型抽樣</div>
+</div>
+
+<div class="method">
+  <div class="mcard"><b>① 聯賽階段</b><span>36 隊 8 輪（每隊 8 場）。積分 → 淨勝球 → 入球 → 隨機排位。</span></div>
+  <div class="mcard"><b>② 席位</b><span>第 1-8 名直接入 1/8 回合；第 9-24 名打附加賽（9 對 24、10 對 23 …… 16 對 17），兩回合。</span></div>
+  <div class="mcard"><b>③ 淘汰賽</b><span>1/8 回合由 8 支種子對附加賽勝者抽籤決定（FotMob 未提供已抽對賽）；1/4 兩回合；1/2 同決賽單回合中立場。</span></div>
+  <div class="mcard"><b>④ 限制</b><span>和局以十二碼 50/50 決勝（唔模擬加時）；抽籤同主場為隨機假設；模型難以穩定贏市場。</span></div>
+</div>
+<div class="warn">本頁是統計模擬，<b>不構成任何投注建議</b>。市場賠率從未參與運算。</div>
+
+<div class="sect-title">奪冠機率（前十）</div>
+<div class="cbwrap"><div class="cb">
+    <span class="cn">Bayern München</span>
+    <span class="cbar"><i style="width:100%"></i></span>
+    <span class="cv">10.8%</span>
+  </div><div class="cb">
+    <span class="cn">Arsenal</span>
+    <span class="cbar"><i style="width:97.77983348751157%"></i></span>
+    <span class="cv">10.6%</span>
+  </div><div class="cb">
+    <span class="cn">Barcelona</span>
+    <span class="cbar"><i style="width:90.93432007400554%"></i></span>
+    <span class="cv">9.8%</span>
+  </div><div class="cb">
+    <span class="cn">Paris Saint-Germain</span>
+    <span class="cbar"><i style="width:90.1017576318224%"></i></span>
+    <span class="cv">9.7%</span>
+  </div><div class="cb">
+    <span class="cn">Real Madrid</span>
+    <span class="cbar"><i style="width:72.52543940795559%"></i></span>
+    <span class="cv">7.8%</span>
+  </div><div class="cb">
+    <span class="cn">Inter</span>
+    <span class="cbar"><i style="width:41.628122109158184%"></i></span>
+    <span class="cv">4.5%</span>
+  </div><div class="cb">
+    <span class="cn">Como</span>
+    <span class="cbar"><i style="width:40.42553191489362%"></i></span>
+    <span class="cv">4.4%</span>
+  </div><div class="cb">
+    <span class="cn">Sporting CP</span>
+    <span class="cbar"><i style="width:40.05550416281221%"></i></span>
+    <span class="cv">4.3%</span>
+  </div><div class="cb">
+    <span class="cn">Manchester City</span>
+    <span class="cbar"><i style="width:39.13043478260869%"></i></span>
+    <span class="cv">4.2%</span>
+  </div><div class="cb">
+    <span class="cn">Club Brugge</span>
+    <span class="cbar"><i style="width:37.095282146160955%"></i></span>
+    <span class="cv">4.0%</span>
+  </div></div>
+
+<div class="sect-title">聯賽階段排名 · 席位 · 晉級</div>
+<div class="fixt"><table class="stand">
+<thead><tr><th class="num">#</th><th>球隊</th><th class="num">前 8</th><th class="num">附加賽</th><th class="num">1/4</th><th class="num">1/2</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+<tbody><tr class="seed">
+    <td class="num dim">1</td>
+    <td class="tm">Paris Saint-Germain<span class="elo">1774</span></td>
+    <td class="num">97%</td>
+    <td class="num">49%</td>
+    <td class="num">26%</td>
+    <td class="num">16%</td>
+    <td class="num">9.7%</td>
+    <td class="num ch">9.7%</td>
+  </tr><tr class="seed">
+    <td class="num dim">2</td>
+    <td class="tm">Arsenal<span class="elo">1796</span></td>
+    <td class="num">93%</td>
+    <td class="num">48%</td>
+    <td class="num">24%</td>
+    <td class="num">16%</td>
+    <td class="num">10.6%</td>
+    <td class="num ch">10.6%</td>
+  </tr><tr class="seed">
+    <td class="num dim">3</td>
+    <td class="tm">Bayern München<span class="elo">1813</span></td>
+    <td class="num">92%</td>
+    <td class="num">48%</td>
+    <td class="num">24%</td>
+    <td class="num">16%</td>
+    <td class="num">10.8%</td>
+    <td class="num ch">10.8%</td>
+  </tr><tr class="seed">
+    <td class="num dim">4</td>
+    <td class="tm">Real Madrid<span class="elo">1759</span></td>
+    <td class="num">92%</td>
+    <td class="num">47%</td>
+    <td class="num">24%</td>
+    <td class="num">14%</td>
+    <td class="num">7.8%</td>
+    <td class="num ch">7.8%</td>
+  </tr><tr class="seed">
+    <td class="num dim">5</td>
+    <td class="tm">Barcelona<span class="elo">1777</span></td>
+    <td class="num">82%</td>
+    <td class="num">45%</td>
+    <td class="num">22%</td>
+    <td class="num">15%</td>
+    <td class="num">9.8%</td>
+    <td class="num ch">9.8%</td>
+  </tr><tr class="seed">
+    <td class="num dim">6</td>
+    <td class="tm">Club Brugge<span class="elo">1715</span></td>
+    <td class="num">53%</td>
+    <td class="num">36%</td>
+    <td class="num">18%</td>
+    <td class="num">9%</td>
+    <td class="num">4.0%</td>
+    <td class="num ch">4.0%</td>
+  </tr><tr class="seed">
+    <td class="num dim">7</td>
+    <td class="tm">Como<span class="elo">1646</span></td>
+    <td class="num">47%</td>
+    <td class="num">35%</td>
+    <td class="num">17%</td>
+    <td class="num">9%</td>
+    <td class="num">4.4%</td>
+    <td class="num ch">4.4%</td>
+  </tr><tr class="seed">
+    <td class="num dim">8</td>
+    <td class="tm">Manchester City<span class="elo">1681</span></td>
+    <td class="num">47%</td>
+    <td class="num">35%</td>
+    <td class="num">17%</td>
+    <td class="num">9%</td>
+    <td class="num">4.2%</td>
+    <td class="num ch">4.2%</td>
+  </tr><tr class="po">
+    <td class="num dim">9</td>
+    <td class="tm">Aston Villa<span class="elo">1619</span></td>
+    <td class="num">40%</td>
+    <td class="num">33%</td>
+    <td class="num">16%</td>
+    <td class="num">7%</td>
+    <td class="num">2.3%</td>
+    <td class="num ch">2.3%</td>
+  </tr><tr class="po">
+    <td class="num dim">10</td>
+    <td class="tm">Sporting CP<span class="elo">1709</span></td>
+    <td class="num">37%</td>
+    <td class="num">32%</td>
+    <td class="num">16%</td>
+    <td class="num">9%</td>
+    <td class="num">4.3%</td>
+    <td class="num ch">4.3%</td>
+  </tr><tr class="po">
+    <td class="num dim">11</td>
+    <td class="tm">Inter<span class="elo">1723</span></td>
+    <td class="num">34%</td>
+    <td class="num">32%</td>
+    <td class="num">16%</td>
+    <td class="num">9%</td>
+    <td class="num">4.5%</td>
+    <td class="num ch">4.5%</td>
+  </tr><tr class="po">
+    <td class="num dim">12</td>
+    <td class="tm">Borussia Dortmund<span class="elo">1686</span></td>
+    <td class="num">30%</td>
+    <td class="num">30%</td>
+    <td class="num">15%</td>
+    <td class="num">7%</td>
+    <td class="num">3.0%</td>
+    <td class="num ch">3.0%</td>
+  </tr><tr class="po">
+    <td class="num dim">13</td>
+    <td class="tm">Liverpool<span class="elo">1628</span></td>
+    <td class="num">27%</td>
+    <td class="num">30%</td>
+    <td class="num">15%</td>
+    <td class="num">7%</td>
+    <td class="num">2.7%</td>
+    <td class="num ch">2.7%</td>
+  </tr><tr class="po">
+    <td class="num dim">14</td>
+    <td class="tm">Real Betis<span class="elo">1637</span></td>
+    <td class="num">13%</td>
+    <td class="num">26%</td>
+    <td class="num">13%</td>
+    <td class="num">5%</td>
+    <td class="num">1.4%</td>
+    <td class="num ch">1.4%</td>
+  </tr><tr class="po">
+    <td class="num dim">15</td>
+    <td class="tm">VfB Stuttgart<span class="elo">1572</span></td>
+    <td class="num">3%</td>
+    <td class="num">20%</td>
+    <td class="num">10%</td>
+    <td class="num">3%</td>
+    <td class="num">1.1%</td>
+    <td class="num ch">1.1%</td>
+  </tr><tr class="po">
+    <td class="num dim">16</td>
+    <td class="tm">Bodø/Glimt<span class="elo">1705</span></td>
+    <td class="num">2%</td>
+    <td class="num">20%</td>
+    <td class="num">10%</td>
+    <td class="num">5%</td>
+    <td class="num">2.4%</td>
+    <td class="num ch">2.4%</td>
+  </tr><tr class="po">
+    <td class="num dim">17</td>
+    <td class="tm">Viking<span class="elo">1701</span></td>
+    <td class="num">2%</td>
+    <td class="num">19%</td>
+    <td class="num">10%</td>
+    <td class="num">5%</td>
+    <td class="num">2.1%</td>
+    <td class="num ch">2.1%</td>
+  </tr><tr class="po">
+    <td class="num dim">18</td>
+    <td class="tm">Roma<span class="elo">1653</span></td>
+    <td class="num">2%</td>
+    <td class="num">21%</td>
+    <td class="num">11%</td>
+    <td class="num">5%</td>
+    <td class="num">2.4%</td>
+    <td class="num ch">2.4%</td>
+  </tr><tr class="po">
+    <td class="num dim">19</td>
+    <td class="tm">LASK<span class="elo">1614</span></td>
+    <td class="num">2%</td>
+    <td class="num">22%</td>
+    <td class="num">11%</td>
+    <td class="num">4%</td>
+    <td class="num">1.1%</td>
+    <td class="num ch">1.1%</td>
+  </tr><tr class="po">
+    <td class="num dim">20</td>
+    <td class="tm">Galatasaray<span class="elo">1528</span></td>
+    <td class="num">2%</td>
+    <td class="num">20%</td>
+    <td class="num">11%</td>
+    <td class="num">3%</td>
+    <td class="num">0.7%</td>
+    <td class="num ch">0.7%</td>
+  </tr><tr class="po">
+    <td class="num dim">21</td>
+    <td class="tm">FC Porto<span class="elo">1725</span></td>
+    <td class="num">1%</td>
+    <td class="num">21%</td>
+    <td class="num">10%</td>
+    <td class="num">6%</td>
+    <td class="num">3.0%</td>
+    <td class="num ch">3.0%</td>
+  </tr><tr class="po">
+    <td class="num dim">22</td>
+    <td class="tm">Atlético Madrid<span class="elo">1641</span></td>
+    <td class="num">1%</td>
+    <td class="num">19%</td>
+    <td class="num">9%</td>
+    <td class="num">4%</td>
+    <td class="num">1.8%</td>
+    <td class="num ch">1.8%</td>
+  </tr><tr class="po">
+    <td class="num dim">23</td>
+    <td class="tm">PSV Eindhoven<span class="elo">1680</span></td>
+    <td class="num">1%</td>
+    <td class="num">17%</td>
+    <td class="num">9%</td>
+    <td class="num">4%</td>
+    <td class="num">1.6%</td>
+    <td class="num ch">1.6%</td>
+  </tr><tr class="po">
+    <td class="num dim">24</td>
+    <td class="tm">Shakhtar Donetsk<span class="elo">1486</span></td>
+    <td class="num">1%</td>
+    <td class="num">19%</td>
+    <td class="num">10%</td>
+    <td class="num">3%</td>
+    <td class="num">0.7%</td>
+    <td class="num ch">0.7%</td>
+  </tr><tr class="">
+    <td class="num dim">25</td>
+    <td class="tm">Manchester United<span class="elo">1561</span></td>
+    <td class="num">1%</td>
+    <td class="num">17%</td>
+    <td class="num">9%</td>
+    <td class="num">3%</td>
+    <td class="num">1.0%</td>
+    <td class="num ch">1.0%</td>
+  </tr><tr class="">
+    <td class="num dim">26</td>
+    <td class="tm">Villarreal<span class="elo">1543</span></td>
+    <td class="num">0%</td>
+    <td class="num">19%</td>
+    <td class="num">9%</td>
+    <td class="num">2%</td>
+    <td class="num">0.7%</td>
+    <td class="num ch">0.7%</td>
+  </tr><tr class="">
+    <td class="num dim">27</td>
+    <td class="tm">RB Leipzig<span class="elo">1584</span></td>
+    <td class="num">0%</td>
+    <td class="num">13%</td>
+    <td class="num">7%</td>
+    <td class="num">2%</td>
+    <td class="num">0.6%</td>
+    <td class="num ch">0.6%</td>
+  </tr><tr class="">
+    <td class="num dim">28</td>
+    <td class="tm">Napoli<span class="elo">1596</span></td>
+    <td class="num">0%</td>
+    <td class="num">8%</td>
+    <td class="num">4%</td>
+    <td class="num">1%</td>
+    <td class="num">0.4%</td>
+    <td class="num ch">0.4%</td>
+  </tr><tr class="">
+    <td class="num dim">29</td>
+    <td class="tm">Fenerbahçe<span class="elo">1506</span></td>
+    <td class="num">0%</td>
+    <td class="num">5%</td>
+    <td class="num">3%</td>
+    <td class="num">0%</td>
+    <td class="num">0.1%</td>
+    <td class="num ch">0.1%</td>
+  </tr><tr class="">
+    <td class="num dim">30</td>
+    <td class="tm">Feyenoord<span class="elo">1624</span></td>
+    <td class="num">0%</td>
+    <td class="num">7%</td>
+    <td class="num">4%</td>
+    <td class="num">1%</td>
+    <td class="num">0.5%</td>
+    <td class="num ch">0.5%</td>
+  </tr><tr class="">
+    <td class="num dim">31</td>
+    <td class="tm">Lille<span class="elo">1607</span></td>
+    <td class="num">0%</td>
+    <td class="num">3%</td>
+    <td class="num">1%</td>
+    <td class="num">0%</td>
+    <td class="num">0.1%</td>
+    <td class="num ch">0.1%</td>
+  </tr><tr class="">
+    <td class="num dim">32</td>
+    <td class="tm">Lens<span class="elo">1565</span></td>
+    <td class="num">0%</td>
+    <td class="num">2%</td>
+    <td class="num">1%</td>
+    <td class="num">0%</td>
+    <td class="num">0.1%</td>
+    <td class="num ch">0.1%</td>
+  </tr><tr class="">
+    <td class="num dim">33</td>
+    <td class="tm">AEK Athens<span class="elo">1494</span></td>
+    <td class="num">0%</td>
+    <td class="num">1%</td>
+    <td class="num">1%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">34</td>
+    <td class="tm">Sabah FK<span class="elo">1491</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">35</td>
+    <td class="tm">Slavia Prague<span class="elo">1459</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">36</td>
+    <td class="tm">Slovan Bratislava<span class="elo">1419</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody></table></div>
+
+<div class="sect-title">未踢場次 · 最可能比分</div>
+<div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-25 01:45</td>
+    <td class="mono">R5</td>
+    <td>Bodø/Glimt <span class="vs">v</span> LASK</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 01:45</td>
+    <td class="mono">R5</td>
+    <td>Galatasaray <span class="vs">v</span> Aston Villa</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>8%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Arsenal <span class="vs">v</span> Borussia Dortmund</td>
+    <td class="scores"><span class="sc">1 – 0 <b>16%</b></span><span class="sc">2 – 0 <b>15%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Como <span class="vs">v</span> AEK Athens</td>
+    <td class="scores"><span class="sc">3 – 0 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">4 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Feyenoord <span class="vs">v</span> FC Porto</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Manchester City <span class="vs">v</span> Napoli</td>
+    <td class="scores"><span class="sc">2 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>RB Leipzig <span class="vs">v</span> Lens</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">1 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Real Madrid <span class="vs">v</span> PSV Eindhoven</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-25 04:00</td>
+    <td class="mono">R5</td>
+    <td>Slovan Bratislava <span class="vs">v</span> Real Betis</td>
+    <td class="scores"><span class="sc">0 – 3 <b>12%</b></span><span class="sc">0 – 2 <b>10%</b></span><span class="sc">0 – 4 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 01:45</td>
+    <td class="mono">R5</td>
+    <td>Sabah FK <span class="vs">v</span> Barcelona</td>
+    <td class="scores"><span class="sc">0 – 4 <b>8%</b></span><span class="sc">0 – 5 <b>8%</b></span><span class="sc">0 – 3 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 01:45</td>
+    <td class="mono">R5</td>
+    <td>Slavia Prague <span class="vs">v</span> Villarreal</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 3 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Atlético Madrid <span class="vs">v</span> Viking</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Club Brugge <span class="vs">v</span> Liverpool</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Inter <span class="vs">v</span> VfB Stuttgart</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Lille <span class="vs">v</span> Bayern München</td>
+    <td class="scores"><span class="sc">0 – 2 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 3 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Paris Saint-Germain <span class="vs">v</span> Roma</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Shakhtar Donetsk <span class="vs">v</span> Fenerbahçe</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-26 04:00</td>
+    <td class="mono">R5</td>
+    <td>Sporting CP <span class="vs">v</span> Manchester United</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 01:45</td>
+    <td class="mono">R6</td>
+    <td>Viking <span class="vs">v</span> Feyenoord</td>
+    <td class="scores"><span class="sc">2 – 1 <b>8%</b></span><span class="sc">1 – 1 <b>7%</b></span><span class="sc">3 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 01:45</td>
+    <td class="mono">R6</td>
+    <td>Villarreal <span class="vs">v</span> Sabah FK</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>AEK Athens <span class="vs">v</span> Galatasaray</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span><span class="sc">1 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Aston Villa <span class="vs">v</span> Paris Saint-Germain</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">1 – 1 <b>10%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Barcelona <span class="vs">v</span> Manchester City</td>
+    <td class="scores"><span class="sc">2 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">1 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Bayern München <span class="vs">v</span> Slavia Prague</td>
+    <td class="scores"><span class="sc">6 – 0 <b>9%</b></span><span class="sc">5 – 0 <b>9%</b></span><span class="sc">7 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Manchester United <span class="vs">v</span> RB Leipzig</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Roma <span class="vs">v</span> Sporting CP</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>8%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-09 04:00</td>
+    <td class="mono">R6</td>
+    <td>Napoli <span class="vs">v</span> Club Brugge</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 01:45</td>
+    <td class="mono">R6</td>
+    <td>Real Betis <span class="vs">v</span> Como</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 01:45</td>
+    <td class="mono">R6</td>
+    <td>Slovan Bratislava <span class="vs">v</span> Shakhtar Donetsk</td>
+    <td class="scores"><span class="sc">0 – 2 <b>16%</b></span><span class="sc">0 – 1 <b>14%</b></span><span class="sc">0 – 3 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>Arsenal <span class="vs">v</span> Real Madrid</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">2 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>Borussia Dortmund <span class="vs">v</span> Inter</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>LASK <span class="vs">v</span> Fenerbahçe</td>
+    <td class="scores"><span class="sc">3 – 1 <b>8%</b></span><span class="sc">4 – 1 <b>7%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>Lens <span class="vs">v</span> Bodø/Glimt</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 3 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>Liverpool <span class="vs">v</span> FC Porto</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>PSV Eindhoven <span class="vs">v</span> Atlético Madrid</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-10 04:00</td>
+    <td class="mono">R6</td>
+    <td>VfB Stuttgart <span class="vs">v</span> Lille</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">1 – 0 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 01:45</td>
+    <td class="mono">R7</td>
+    <td>Bodø/Glimt <span class="vs">v</span> Atlético Madrid</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 01:45</td>
+    <td class="mono">R7</td>
+    <td>Galatasaray <span class="vs">v</span> Feyenoord</td>
+    <td class="scores"><span class="sc">1 – 1 <b>8%</b></span><span class="sc">1 – 2 <b>7%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>AEK Athens <span class="vs">v</span> Roma</td>
+    <td class="scores"><span class="sc">1 – 3 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span><span class="sc">0 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>Aston Villa <span class="vs">v</span> Borussia Dortmund</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>FC Porto <span class="vs">v</span> Slavia Prague</td>
+    <td class="scores"><span class="sc">3 – 0 <b>13%</b></span><span class="sc">2 – 0 <b>12%</b></span><span class="sc">4 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>Inter <span class="vs">v</span> Liverpool</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>Lille <span class="vs">v</span> Slovan Bratislava</td>
+    <td class="scores"><span class="sc">3 – 0 <b>14%</b></span><span class="sc">2 – 0 <b>14%</b></span><span class="sc">4 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>Real Madrid <span class="vs">v</span> LASK</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-20 04:00</td>
+    <td class="mono">R7</td>
+    <td>VfB Stuttgart <span class="vs">v</span> Club Brugge</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 01:45</td>
+    <td class="mono">R7</td>
+    <td>Fenerbahçe <span class="vs">v</span> Villarreal</td>
+    <td class="scores"><span class="sc">1 – 2 <b>8%</b></span><span class="sc">2 – 2 <b>8%</b></span><span class="sc">1 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 01:45</td>
+    <td class="mono">R7</td>
+    <td>Sabah FK <span class="vs">v</span> Napoli</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">1 – 1 <b>10%</b></span><span class="sc">0 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Como <span class="vs">v</span> Paris Saint-Germain</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Lens <span class="vs">v</span> Manchester City</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Manchester United <span class="vs">v</span> Bayern München</td>
+    <td class="scores"><span class="sc">1 – 3 <b>8%</b></span><span class="sc">1 – 2 <b>7%</b></span><span class="sc">1 – 4 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>RB Leipzig <span class="vs">v</span> Shakhtar Donetsk</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Real Betis <span class="vs">v</span> Arsenal</td>
+    <td class="scores"><span class="sc">0 – 1 <b>15%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Sporting CP <span class="vs">v</span> Barcelona</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-21 04:00</td>
+    <td class="mono">R7</td>
+    <td>Viking <span class="vs">v</span> PSV Eindhoven</td>
+    <td class="scores"><span class="sc">2 – 1 <b>8%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">2 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Arsenal <span class="vs">v</span> Sabah FK</td>
+    <td class="scores"><span class="sc">3 – 0 <b>15%</b></span><span class="sc">4 – 0 <b>13%</b></span><span class="sc">2 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Atlético Madrid <span class="vs">v</span> Fenerbahçe</td>
+    <td class="scores"><span class="sc">3 – 0 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Barcelona <span class="vs">v</span> Como</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Bayern München <span class="vs">v</span> Real Betis</td>
+    <td class="scores"><span class="sc">3 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">4 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Borussia Dortmund <span class="vs">v</span> AEK Athens</td>
+    <td class="scores"><span class="sc">3 – 0 <b>9%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">3 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Club Brugge <span class="vs">v</span> Bodø/Glimt</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Feyenoord <span class="vs">v</span> RB Leipzig</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>LASK <span class="vs">v</span> FC Porto</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Liverpool <span class="vs">v</span> Lens</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Manchester City <span class="vs">v</span> Sporting CP</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Paris Saint-Germain <span class="vs">v</span> Galatasaray</td>
+    <td class="scores"><span class="sc">3 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>PSV Eindhoven <span class="vs">v</span> VfB Stuttgart</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Roma <span class="vs">v</span> Lille</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">2 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Shakhtar Donetsk <span class="vs">v</span> Real Madrid</td>
+    <td class="scores"><span class="sc">0 – 1 <b>13%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Slavia Prague <span class="vs">v</span> Aston Villa</td>
+    <td class="scores"><span class="sc">0 – 2 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 3 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Slovan Bratislava <span class="vs">v</span> Inter</td>
+    <td class="scores"><span class="sc">0 – 4 <b>11%</b></span><span class="sc">0 – 5 <b>10%</b></span><span class="sc">0 – 3 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Napoli <span class="vs">v</span> Viking</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-28 04:00</td>
+    <td class="mono">R8</td>
+    <td>Villarreal <span class="vs">v</span> Manchester United</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr></tbody></table></div>
+
+<div class="sect-title">賽制席位（FotMob legend）</div>
+<ol class="assump"><li>Qualification to 1/8 finals：第 1、2、3、4、5、6、7、8 名</li><li>Qualification to 1/16 finals：第 9、10、11、12、13、14、15、16、17、18、19、20、21、22、23、24 名</li></ol>
+<div class="sect-title">模型假設（全部可查）</div>
+<ol class="assump"><li>聯賽階段：已完場用真實賽果，未完場由 Step 1 模型抽樣（不參考任何未踢賽果）</li><li>積分 → 淨勝球 → 入球 → 隨機；前 8 名直接入 1/8，第 9-24 名打附加賽</li><li>附加賽對應按 UEFA 公布：第 9 名對第 24 名、第 10 名對第 23 名 …… 第 16 名對第 17 名；兩回合合計入球，和則十二碼 50/50</li><li>1/8 回合：8 支種子對 8 支附加賽勝者，**隨機抽籤**（FotMob 未提供已抽對賽）；兩回合</li><li>1/4 回合兩回合；1/2 回合與決賽單回合、中立場，和局以十二碼 50/50 決勝（唔模擬加時）</li><li>隊力合成：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>強度池＝本賽事歷史＋歐洲主要聯賽近三季；跨國聯賽冇升降班連通，攻防线只作相對強度參考</li></ol>
+</div>
+<div class="cup">
+<div class="hero">
+  <h1>Europa League 2026/2027 · 聯賽階段模擬</h1>
+  <div class="sub">Monte Carlo 10,000 次（seed 20261110）· 強度池 13,443 場 / 406 隊 · 主場係數 ×1.197 · 每隊基準 1.297 球</div>
+  <div class="gen">產生時間 2026-11-12T10:39:31.242Z · 已完場用真實賽果，未完場由模型抽樣</div>
+</div>
+
+<div class="method">
+  <div class="mcard"><b>① 聯賽階段</b><span>36 隊 8 輪（每隊 8 場）。積分 → 淨勝球 → 入球 → 隨機排位。</span></div>
+  <div class="mcard"><b>② 席位</b><span>第 1-8 名直接入 1/8 回合；第 9-24 名打附加賽（9 對 24、10 對 23 …… 16 對 17），兩回合。</span></div>
+  <div class="mcard"><b>③ 淘汰賽</b><span>1/8 回合由 8 支種子對附加賽勝者抽籤決定（FotMob 未提供已抽對賽）；1/4 兩回合；1/2 同決賽單回合中立場。</span></div>
+  <div class="mcard"><b>④ 限制</b><span>和局以十二碼 50/50 決勝（唔模擬加時）；抽籤同主場為隨機假設；模型難以穩定贏市場。</span></div>
+</div>
+<div class="warn">本頁是統計模擬，<b>不構成任何投注建議</b>。市場賠率從未參與運算。</div>
+
+<div class="sect-title">奪冠機率（前十）</div>
+<div class="cbwrap"><div class="cb">
+    <span class="cn">Benfica</span>
+    <span class="cbar"><i style="width:100%"></i></span>
+    <span class="cv">15.8%</span>
+  </div><div class="cb">
+    <span class="cn">Union St.Gilloise</span>
+    <span class="cbar"><i style="width:83.19594166138238%"></i></span>
+    <span class="cv">13.1%</span>
+  </div><div class="cb">
+    <span class="cn">Omonia Nicosia</span>
+    <span class="cbar"><i style="width:50.1585288522511%"></i></span>
+    <span class="cv">7.9%</span>
+  </div><div class="cb">
+    <span class="cn">AFC Bournemouth</span>
+    <span class="cbar"><i style="width:48.763474952441335%"></i></span>
+    <span class="cv">7.7%</span>
+  </div><div class="cb">
+    <span class="cn">Ferencváros</span>
+    <span class="cbar"><i style="width:44.70513633481293%"></i></span>
+    <span class="cv">7.0%</span>
+  </div><div class="cb">
+    <span class="cn">Juventus</span>
+    <span class="cbar"><i style="width:39.632213062777424%"></i></span>
+    <span class="cv">6.3%</span>
+  </div><div class="cb">
+    <span class="cn">Olympiacos</span>
+    <span class="cbar"><i style="width:31.83259353202283%"></i></span>
+    <span class="cv">5.0%</span>
+  </div><div class="cb">
+    <span class="cn">Bayer Leverkusen</span>
+    <span class="cbar"><i style="width:31.26188966391883%"></i></span>
+    <span class="cv">4.9%</span>
+  </div><div class="cb">
+    <span class="cn">Lyon</span>
+    <span class="cbar"><i style="width:19.78440076093849%"></i></span>
+    <span class="cv">3.1%</span>
+  </div><div class="cb">
+    <span class="cn">Milan</span>
+    <span class="cbar"><i style="width:16.423589093214964%"></i></span>
+    <span class="cv">2.6%</span>
+  </div></div>
+
+<div class="sect-title">聯賽階段排名 · 席位 · 晉級</div>
+<div class="fixt"><table class="stand">
+<thead><tr><th class="num">#</th><th>球隊</th><th class="num">前 8</th><th class="num">附加賽</th><th class="num">1/4</th><th class="num">1/2</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+<tbody><tr class="seed">
+    <td class="num dim">1</td>
+    <td class="tm">Benfica<span class="elo">1772</span></td>
+    <td class="num">100%</td>
+    <td class="num">50%</td>
+    <td class="num">27%</td>
+    <td class="num">20%</td>
+    <td class="num">15.8%</td>
+    <td class="num ch">15.8%</td>
+  </tr><tr class="seed">
+    <td class="num dim">2</td>
+    <td class="tm">AFC Bournemouth<span class="elo">1620</span></td>
+    <td class="num">100%</td>
+    <td class="num">49%</td>
+    <td class="num">25%</td>
+    <td class="num">14%</td>
+    <td class="num">7.7%</td>
+    <td class="num ch">7.7%</td>
+  </tr><tr class="seed">
+    <td class="num dim">3</td>
+    <td class="tm">Ferencváros<span class="elo">1581</span></td>
+    <td class="num">99%</td>
+    <td class="num">50%</td>
+    <td class="num">25%</td>
+    <td class="num">13%</td>
+    <td class="num">7.0%</td>
+    <td class="num ch">7.0%</td>
+  </tr><tr class="seed">
+    <td class="num dim">4</td>
+    <td class="tm">Union St.Gilloise<span class="elo">1734</span></td>
+    <td class="num">98%</td>
+    <td class="num">50%</td>
+    <td class="num">24%</td>
+    <td class="num">18%</td>
+    <td class="num">13.1%</td>
+    <td class="num ch">13.1%</td>
+  </tr><tr class="seed">
+    <td class="num dim">5</td>
+    <td class="tm">Juventus<span class="elo">1634</span></td>
+    <td class="num">79%</td>
+    <td class="num">45%</td>
+    <td class="num">22%</td>
+    <td class="num">12%</td>
+    <td class="num">6.3%</td>
+    <td class="num ch">6.3%</td>
+  </tr><tr class="seed">
+    <td class="num dim">6</td>
+    <td class="tm">Olympiacos<span class="elo">1559</span></td>
+    <td class="num">78%</td>
+    <td class="num">43%</td>
+    <td class="num">22%</td>
+    <td class="num">11%</td>
+    <td class="num">5.0%</td>
+    <td class="num ch">5.0%</td>
+  </tr><tr class="seed">
+    <td class="num dim">7</td>
+    <td class="tm">Bayer Leverkusen<span class="elo">1617</span></td>
+    <td class="num">70%</td>
+    <td class="num">42%</td>
+    <td class="num">21%</td>
+    <td class="num">11%</td>
+    <td class="num">4.9%</td>
+    <td class="num ch">4.9%</td>
+  </tr><tr class="seed">
+    <td class="num dim">8</td>
+    <td class="tm">Omonia Nicosia<span class="elo">1705</span></td>
+    <td class="num">42%</td>
+    <td class="num">34%</td>
+    <td class="num">17%</td>
+    <td class="num">12%</td>
+    <td class="num">7.9%</td>
+    <td class="num ch">7.9%</td>
+  </tr><tr class="po">
+    <td class="num dim">9</td>
+    <td class="tm">Lyon<span class="elo">1592</span></td>
+    <td class="num">23%</td>
+    <td class="num">29%</td>
+    <td class="num">15%</td>
+    <td class="num">7%</td>
+    <td class="num">3.1%</td>
+    <td class="num ch">3.1%</td>
+  </tr><tr class="po">
+    <td class="num dim">10</td>
+    <td class="tm">NEC Nijmegen<span class="elo">1549</span></td>
+    <td class="num">17%</td>
+    <td class="num">26%</td>
+    <td class="num">13%</td>
+    <td class="num">5%</td>
+    <td class="num">1.8%</td>
+    <td class="num ch">1.8%</td>
+  </tr><tr class="po">
+    <td class="num dim">11</td>
+    <td class="tm">Levski Sofia<span class="elo">1513</span></td>
+    <td class="num">13%</td>
+    <td class="num">25%</td>
+    <td class="num">12%</td>
+    <td class="num">5%</td>
+    <td class="num">1.7%</td>
+    <td class="num ch">1.7%</td>
+  </tr><tr class="po">
+    <td class="num dim">12</td>
+    <td class="tm">Anderlecht<span class="elo">1547</span></td>
+    <td class="num">12%</td>
+    <td class="num">24%</td>
+    <td class="num">12%</td>
+    <td class="num">5%</td>
+    <td class="num">1.9%</td>
+    <td class="num ch">1.9%</td>
+  </tr><tr class="po">
+    <td class="num dim">13</td>
+    <td class="tm">Real Sociedad<span class="elo">1532</span></td>
+    <td class="num">11%</td>
+    <td class="num">23%</td>
+    <td class="num">11%</td>
+    <td class="num">5%</td>
+    <td class="num">2.0%</td>
+    <td class="num ch">2.0%</td>
+  </tr><tr class="po">
+    <td class="num dim">14</td>
+    <td class="tm">Rennes<span class="elo">1561</span></td>
+    <td class="num">9%</td>
+    <td class="num">23%</td>
+    <td class="num">11%</td>
+    <td class="num">4%</td>
+    <td class="num">1.6%</td>
+    <td class="num ch">1.6%</td>
+  </tr><tr class="po">
+    <td class="num dim">15</td>
+    <td class="tm">Salzburg<span class="elo">1585</span></td>
+    <td class="num">9%</td>
+    <td class="num">24%</td>
+    <td class="num">12%</td>
+    <td class="num">6%</td>
+    <td class="num">2.4%</td>
+    <td class="num ch">2.4%</td>
+  </tr><tr class="po">
+    <td class="num dim">16</td>
+    <td class="tm">AZ Alkmaar<span class="elo">1566</span></td>
+    <td class="num">8%</td>
+    <td class="num">23%</td>
+    <td class="num">11%</td>
+    <td class="num">5%</td>
+    <td class="num">1.8%</td>
+    <td class="num ch">1.8%</td>
+  </tr><tr class="po">
+    <td class="num dim">17</td>
+    <td class="tm">Sunderland<span class="elo">1511</span></td>
+    <td class="num">8%</td>
+    <td class="num">24%</td>
+    <td class="num">12%</td>
+    <td class="num">4%</td>
+    <td class="num">1.3%</td>
+    <td class="num ch">1.3%</td>
+  </tr><tr class="po">
+    <td class="num dim">18</td>
+    <td class="tm">Beşiktaş<span class="elo">1505</span></td>
+    <td class="num">5%</td>
+    <td class="num">26%</td>
+    <td class="num">13%</td>
+    <td class="num">5%</td>
+    <td class="num">2.0%</td>
+    <td class="num ch">2.0%</td>
+  </tr><tr class="po">
+    <td class="num dim">19</td>
+    <td class="tm">Dinamo Zagreb<span class="elo">1505</span></td>
+    <td class="num">5%</td>
+    <td class="num">21%</td>
+    <td class="num">10%</td>
+    <td class="num">3%</td>
+    <td class="num">0.9%</td>
+    <td class="num ch">0.9%</td>
+  </tr><tr class="po">
+    <td class="num dim">20</td>
+    <td class="tm">OFI Crete<span class="elo">1507</span></td>
+    <td class="num">4%</td>
+    <td class="num">21%</td>
+    <td class="num">11%</td>
+    <td class="num">4%</td>
+    <td class="num">1.5%</td>
+    <td class="num ch">1.5%</td>
+  </tr><tr class="po">
+    <td class="num dim">21</td>
+    <td class="tm">Crystal Palace<span class="elo">1468</span></td>
+    <td class="num">3%</td>
+    <td class="num">19%</td>
+    <td class="num">10%</td>
+    <td class="num">3%</td>
+    <td class="num">0.8%</td>
+    <td class="num ch">0.8%</td>
+  </tr><tr class="po">
+    <td class="num dim">22</td>
+    <td class="tm">Milan<span class="elo">1611</span></td>
+    <td class="num">3%</td>
+    <td class="num">22%</td>
+    <td class="num">11%</td>
+    <td class="num">5%</td>
+    <td class="num">2.6%</td>
+    <td class="num ch">2.6%</td>
+  </tr><tr class="po">
+    <td class="num dim">23</td>
+    <td class="tm">Sturm Graz<span class="elo">1552</span></td>
+    <td class="num">1%</td>
+    <td class="num">13%</td>
+    <td class="num">7%</td>
+    <td class="num">3%</td>
+    <td class="num">0.9%</td>
+    <td class="num ch">0.9%</td>
+  </tr><tr class="po">
+    <td class="num dim">24</td>
+    <td class="tm">Torreense<span class="elo">1500</span></td>
+    <td class="num">1%</td>
+    <td class="num">14%</td>
+    <td class="num">7%</td>
+    <td class="num">2%</td>
+    <td class="num">0.3%</td>
+    <td class="num ch">0.3%</td>
+  </tr><tr class="">
+    <td class="num dim">25</td>
+    <td class="tm">Hoffenheim<span class="elo">1523</span></td>
+    <td class="num">1%</td>
+    <td class="num">12%</td>
+    <td class="num">6%</td>
+    <td class="num">2%</td>
+    <td class="num">0.8%</td>
+    <td class="num ch">0.8%</td>
+  </tr><tr class="">
+    <td class="num dim">26</td>
+    <td class="tm">Marseille<span class="elo">1573</span></td>
+    <td class="num">1%</td>
+    <td class="num">13%</td>
+    <td class="num">7%</td>
+    <td class="num">3%</td>
+    <td class="num">1.3%</td>
+    <td class="num ch">1.3%</td>
+  </tr><tr class="">
+    <td class="num dim">27</td>
+    <td class="tm">Celta Vigo<span class="elo">1516</span></td>
+    <td class="num">1%</td>
+    <td class="num">14%</td>
+    <td class="num">7%</td>
+    <td class="num">3%</td>
+    <td class="num">1.0%</td>
+    <td class="num ch">1.0%</td>
+  </tr><tr class="">
+    <td class="num dim">28</td>
+    <td class="tm">Sparta Prague<span class="elo">1484</span></td>
+    <td class="num">0%</td>
+    <td class="num">9%</td>
+    <td class="num">5%</td>
+    <td class="num">1%</td>
+    <td class="num">0.2%</td>
+    <td class="num ch">0.2%</td>
+  </tr><tr class="">
+    <td class="num dim">29</td>
+    <td class="tm">NK Celje<span class="elo">1504</span></td>
+    <td class="num">0%</td>
+    <td class="num">13%</td>
+    <td class="num">6%</td>
+    <td class="num">2%</td>
+    <td class="num">0.6%</td>
+    <td class="num ch">0.6%</td>
+  </tr><tr class="">
+    <td class="num dim">30</td>
+    <td class="tm">Celtic<span class="elo">1661</span></td>
+    <td class="num">0%</td>
+    <td class="num">10%</td>
+    <td class="num">5%</td>
+    <td class="num">3%</td>
+    <td class="num">1.4%</td>
+    <td class="num ch">1.4%</td>
+  </tr><tr class="">
+    <td class="num dim">31</td>
+    <td class="tm">Jagiellonia Białystok<span class="elo">1482</span></td>
+    <td class="num">0%</td>
+    <td class="num">3%</td>
+    <td class="num">2%</td>
+    <td class="num">0%</td>
+    <td class="num">0.1%</td>
+    <td class="num ch">0.1%</td>
+  </tr><tr class="">
+    <td class="num dim">32</td>
+    <td class="tm">Viktoria Plzeň<span class="elo">1526</span></td>
+    <td class="num">0%</td>
+    <td class="num">5%</td>
+    <td class="num">2%</td>
+    <td class="num">1%</td>
+    <td class="num">0.4%</td>
+    <td class="num ch">0.4%</td>
+  </tr><tr class="">
+    <td class="num dim">33</td>
+    <td class="tm">Lillestrøm<span class="elo">1475</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">34</td>
+    <td class="tm">Lech Poznań<span class="elo">1480</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">35</td>
+    <td class="tm">Hapoel Beer Sheva<span class="elo">1477</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr class="">
+    <td class="num dim">36</td>
+    <td class="tm">Ararat Armenia<span class="elo">1463</span></td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody></table></div>
+
+<div class="sect-title">未踢場次 · 最可能比分</div>
+<div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Beşiktaş <span class="vs">v</span> Hapoel Beer Sheva</td>
+    <td class="scores"><span class="sc">3 – 0 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">4 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Celta Vigo <span class="vs">v</span> AFC Bournemouth</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 1 <b>12%</b></span><span class="sc">0 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Dinamo Zagreb <span class="vs">v</span> Bayer Leverkusen</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">0 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Marseille <span class="vs">v</span> Levski Sofia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">0 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Olympiacos <span class="vs">v</span> Milan</td>
+    <td class="scores"><span class="sc">0 – 0 <b>19%</b></span><span class="sc">1 – 0 <b>16%</b></span><span class="sc">1 – 1 <b>15%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Salzburg <span class="vs">v</span> Ararat Armenia</td>
+    <td class="scores"><span class="sc">4 – 0 <b>9%</b></span><span class="sc">5 – 0 <b>8%</b></span><span class="sc">3 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Union St.Gilloise <span class="vs">v</span> Lech Poznań</td>
+    <td class="scores"><span class="sc">4 – 0 <b>14%</b></span><span class="sc">5 – 0 <b>12%</b></span><span class="sc">3 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 01:45</td>
+    <td class="mono">R5</td>
+    <td>Viktoria Plzeň <span class="vs">v</span> Benfica</td>
+    <td class="scores"><span class="sc">0 – 2 <b>13%</b></span><span class="sc">0 – 3 <b>11%</b></span><span class="sc">0 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Crystal Palace <span class="vs">v</span> Real Sociedad</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Ferencváros <span class="vs">v</span> NK Celje</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Hoffenheim <span class="vs">v</span> Sturm Graz</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Juventus <span class="vs">v</span> Omonia Nicosia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Lyon <span class="vs">v</span> Lillestrøm</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">1 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>NEC Nijmegen <span class="vs">v</span> Rennes</td>
+    <td class="scores"><span class="sc">1 – 1 <b>8%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>OFI Crete <span class="vs">v</span> Anderlecht</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">0 – 0 <b>10%</b></span><span class="sc">0 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Sparta Prague <span class="vs">v</span> AZ Alkmaar</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Sunderland <span class="vs">v</span> Jagiellonia Białystok</td>
+    <td class="scores"><span class="sc">1 – 0 <b>12%</b></span><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-27 04:00</td>
+    <td class="mono">R5</td>
+    <td>Torreense <span class="vs">v</span> Celtic</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">0 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Anderlecht <span class="vs">v</span> Hoffenheim</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Ararat Armenia <span class="vs">v</span> NEC Nijmegen</td>
+    <td class="scores"><span class="sc">1 – 3 <b>8%</b></span><span class="sc">0 – 3 <b>7%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>AZ Alkmaar <span class="vs">v</span> Sturm Graz</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Hapoel Beer Sheva <span class="vs">v</span> Juventus</td>
+    <td class="scores"><span class="sc">0 – 2 <b>15%</b></span><span class="sc">0 – 1 <b>13%</b></span><span class="sc">0 – 3 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Jagiellonia Białystok <span class="vs">v</span> Crystal Palace</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Marseille <span class="vs">v</span> Celta Vigo</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Omonia Nicosia <span class="vs">v</span> Celtic</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 01:45</td>
+    <td class="mono">R6</td>
+    <td>Rennes <span class="vs">v</span> Dinamo Zagreb</td>
+    <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Milan <span class="vs">v</span> Sunderland</td>
+    <td class="scores"><span class="sc">1 – 0 <b>13%</b></span><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>AFC Bournemouth <span class="vs">v</span> Viktoria Plzeň</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Bayer Leverkusen <span class="vs">v</span> Beşiktaş</td>
+    <td class="scores"><span class="sc">2 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>7%</b></span><span class="sc">2 – 2 <b>6%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Benfica <span class="vs">v</span> OFI Crete</td>
+    <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">3 – 0 <b>13%</b></span><span class="sc">4 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Lech Poznań <span class="vs">v</span> Ferencváros</td>
+    <td class="scores"><span class="sc">0 – 3 <b>10%</b></span><span class="sc">0 – 2 <b>10%</b></span><span class="sc">1 – 3 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Levski Sofia <span class="vs">v</span> Lillestrøm</td>
+    <td class="scores"><span class="sc">1 – 0 <b>16%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Lyon <span class="vs">v</span> Union St.Gilloise</td>
+    <td class="scores"><span class="sc">0 – 1 <b>13%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>NK Celje <span class="vs">v</span> Olympiacos</td>
+    <td class="scores"><span class="sc">0 – 1 <b>15%</b></span><span class="sc">0 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Real Sociedad <span class="vs">v</span> Torreense</td>
+    <td class="scores"><span class="sc">3 – 1 <b>8%</b></span><span class="sc">2 – 1 <b>7%</b></span><span class="sc">4 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-11 04:00</td>
+    <td class="mono">R6</td>
+    <td>Salzburg <span class="vs">v</span> Sparta Prague</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Ararat Armenia <span class="vs">v</span> NK Celje</td>
+    <td class="scores"><span class="sc">1 – 2 <b>8%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">0 – 2 <b>6%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Beşiktaş <span class="vs">v</span> Union St.Gilloise</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 2 <b>9%</b></span><span class="sc">1 – 3 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Ferencváros <span class="vs">v</span> Juventus</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Jagiellonia Białystok <span class="vs">v</span> Lyon</td>
+    <td class="scores"><span class="sc">0 – 2 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Lillestrøm <span class="vs">v</span> AFC Bournemouth</td>
+    <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">1 – 1 <b>10%</b></span><span class="sc">0 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>NEC Nijmegen <span class="vs">v</span> Benfica</td>
+    <td class="scores"><span class="sc">0 – 3 <b>8%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Olympiacos <span class="vs">v</span> Hoffenheim</td>
+    <td class="scores"><span class="sc">1 – 0 <b>16%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Real Sociedad <span class="vs">v</span> Viktoria Plzeň</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 01:45</td>
+    <td class="mono">R7</td>
+    <td>Sturm Graz <span class="vs">v</span> OFI Crete</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">0 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Anderlecht <span class="vs">v</span> Sunderland</td>
+    <td class="scores"><span class="sc">1 – 0 <b>14%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">2 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>AZ Alkmaar <span class="vs">v</span> Dinamo Zagreb</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Bayer Leverkusen <span class="vs">v</span> Salzburg</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Celtic <span class="vs">v</span> Marseille</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Crystal Palace <span class="vs">v</span> Sparta Prague</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Hapoel Beer Sheva <span class="vs">v</span> Celta Vigo</td>
+    <td class="scores"><span class="sc">0 – 1 <b>16%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Lech Poznań <span class="vs">v</span> Torreense</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Levski Sofia <span class="vs">v</span> Milan</td>
+    <td class="scores"><span class="sc">1 – 1 <b>15%</b></span><span class="sc">0 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-22 04:00</td>
+    <td class="mono">R7</td>
+    <td>Rennes <span class="vs">v</span> Omonia Nicosia</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Milan <span class="vs">v</span> Ararat Armenia</td>
+    <td class="scores"><span class="sc">4 – 0 <b>10%</b></span><span class="sc">3 – 0 <b>9%</b></span><span class="sc">5 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>AFC Bournemouth <span class="vs">v</span> Hapoel Beer Sheva</td>
+    <td class="scores"><span class="sc">3 – 0 <b>14%</b></span><span class="sc">2 – 0 <b>14%</b></span><span class="sc">4 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Benfica <span class="vs">v</span> AZ Alkmaar</td>
+    <td class="scores"><span class="sc">3 – 0 <b>11%</b></span><span class="sc">2 – 0 <b>10%</b></span><span class="sc">4 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Celta Vigo <span class="vs">v</span> Lillestrøm</td>
+    <td class="scores"><span class="sc">1 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">2 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Dinamo Zagreb <span class="vs">v</span> Sturm Graz</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Hoffenheim <span class="vs">v</span> Ferencváros</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Juventus <span class="vs">v</span> Real Sociedad</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Lyon <span class="vs">v</span> Bayer Leverkusen</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Marseille <span class="vs">v</span> Anderlecht</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>NK Celje <span class="vs">v</span> NEC Nijmegen</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>OFI Crete <span class="vs">v</span> Lech Poznań</td>
+    <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">3 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Omonia Nicosia <span class="vs">v</span> Beşiktaş</td>
+    <td class="scores"><span class="sc">3 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span><span class="sc">3 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Salzburg <span class="vs">v</span> Crystal Palace</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Sparta Prague <span class="vs">v</span> Rennes</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Sunderland <span class="vs">v</span> Levski Sofia</td>
+    <td class="scores"><span class="sc">0 – 0 <b>17%</b></span><span class="sc">0 – 1 <b>14%</b></span><span class="sc">1 – 1 <b>14%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Torreense <span class="vs">v</span> Olympiacos</td>
+    <td class="scores"><span class="sc">0 – 1 <b>15%</b></span><span class="sc">0 – 2 <b>12%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Union St.Gilloise <span class="vs">v</span> Celtic</td>
+    <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">2 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-29 04:00</td>
+    <td class="mono">R8</td>
+    <td>Viktoria Plzeň <span class="vs">v</span> Jagiellonia Białystok</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr></tbody></table></div>
+
+<div class="sect-title">賽制席位（FotMob legend）</div>
+<ol class="assump"><li>Qualification to 1/8 finals：第 1、2、3、4、5、6、7、8 名</li><li>Qualification to 1/16 finals：第 9、10、11、12、13、14、15、16、17、18、19、20、21、22、23、24 名</li></ol>
+<div class="sect-title">模型假設（全部可查）</div>
+<ol class="assump"><li>聯賽階段：已完場用真實賽果，未完場由 Step 1 模型抽樣（不參考任何未踢賽果）</li><li>積分 → 淨勝球 → 入球 → 隨機；前 8 名直接入 1/8，第 9-24 名打附加賽</li><li>附加賽對應按 UEFA 公布：第 9 名對第 24 名、第 10 名對第 23 名 …… 第 16 名對第 17 名；兩回合合計入球，和則十二碼 50/50</li><li>1/8 回合：8 支種子對 8 支附加賽勝者，**隨機抽籤**（FotMob 未提供已抽對賽）；兩回合</li><li>1/4 回合兩回合；1/2 回合與決賽單回合、中立場，和局以十二碼 50/50 決勝（唔模擬加時）</li><li>隊力合成：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>強度池＝本賽事歷史＋歐洲主要聯賽近三季；跨國聯賽冇升降班連通，攻防线只作相對強度參考</li></ol>
+</div>
+<footer>Step 3 歐聯／歐霸聯賽階段模擬 · 模型輸出非投注建議 · 數據源 FotMob</footer>
+</div></body></html>

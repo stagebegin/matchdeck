@@ -170,9 +170,28 @@ fn ahd_block(p: &Value) -> String {
     )
 }
 
-fn card(f: &Value) -> String {
-    let comp = text(f, &["comp"]);
+/// 覆盤 memo 區塊（hashtag 標籤 + 備註）。內容喺 runtime 由 JS 經 API 載入／儲存。
+fn memo_block(id: &str) -> String {
+    format!(
+        r##"<div class="memo" data-mid="{id}">
+  <div class="memo-head"><span class="memo-dot"></span><b>覆盤 memo</b><span class="memo-sum">未寫</span></div>
+  <div class="memo-tags"></div>
+  <div class="memo-body">
+    <input class="memo-input" placeholder="#初盤合理 終盤升水（寫法：#開頭，空格分隔形容詞；整句會當成一個標籤）" autocomplete="off">
+    <textarea class="memo-note" placeholder="備註（例如：初盤 −0.5 合理，終盤退到 −0.25）"></textarea>
+    <div class="memo-acts"><button class="memo-save">儲存</button><button class="memo-clear ghost">清空</button><span class="memo-msg"></span></div>
+    <div class="memo-hint">用 # 開頭加標籤（可多個，空格分隔）；標籤會正規化，例如「退盤」→「終盤退盤」。</div>
+  </div>
+</div>"##,
+        id = esc(id)
+    )
+}
+
+fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
     let comp_name = text(f, &["compName"]);
+    // 徽章顯示中文名（例如「墨西哥甲組聯賽」）；冇中文名先用馬會代碼（MD1）頂上。
+    // 過濾仍然用馬會代碼（data-comp），唔受顯示改動影響。
+    let comp_label = if comp_name.is_empty() { comp.clone() } else { comp_name.clone() };
     let home = text(f, &["home"]);
     let away = text(f, &["away"]);
     let kick = text(f, &["kick"]);
@@ -200,7 +219,19 @@ fn card(f: &Value) -> String {
         String::from("FotMob 未收錄此場（無數據來源，暫時唔會出預測）")
     };
     let plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name));
+    // 監視器標記（fb/sanity.mjs 每日檢查，經 audit.json → fixtures.mjs 帶上嚟）
+    let warn_items: Vec<String> = f
+        .get("warn")
+        .and_then(|v| v.as_arr())
+        .map(|a| a.iter().filter_map(|x| x.as_str().map(esc)).collect())
+        .unwrap_or_default();
+    let warn_html = if warn_items.is_empty() {
+        String::new()
+    } else {
+        format!("<div class=\"warnchip\">⚠ 監視：{}</div>", warn_items.join("；"))
+    };
     let id = text(f, &["id"]);
+    let memo_html = memo_block(&id);
     let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
         format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
     } else if status == "ft" {
@@ -220,22 +251,25 @@ fn card(f: &Value) -> String {
 
     if !has_pred {
         return format!(
-            r#"<article class="card ghost" data-comp="{comp}" data-text="{plain}">
+            r#"<article class="card ghost" data-id="{id}" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
-    <span class="badge">{comp}</span>
-    <span class="comp-name">{comp_name}</span>
+    <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
   </div>
+  {warn_html}
   <div class="teams">
     <div class="team home"><span class="name">{home}</span></div>
     {score_html}
     <div class="team away"><span class="name">{away}</span></div>
   </div>
   <div class="ghost-note">{ghost_note}</div>
+  {memo_html}
 </article>"#,
+            id = esc(&id),
             comp = esc(&comp),
-            comp_name = esc(&comp_name),
+            comp_label = esc(&comp_label),
+            status = esc(&status),
             home = esc(&home),
             away = esc(&away),
             plain = plain,
@@ -245,6 +279,8 @@ fn card(f: &Value) -> String {
             pulse = pulse,
             score_html = score_html,
             ghost_note = esc(&ghost_note),
+            warn_html = warn_html,
+            memo_html = memo_html,
         );
     }
 
@@ -298,7 +334,13 @@ fn card(f: &Value) -> String {
     let cal_html = {
         let ch = num(&p, &["cal", "h"], -1.0);
         if ch < 0.0 {
-            String::new()
+            // 無同分布校準器 → 明示原因（SKILL L134：唔可以硬套其他聯賽校準器）
+            let err = text(&p, &["cal", "error"]);
+            if err.is_empty() {
+                String::new()
+            } else {
+                format!("<div class=\"calrow\" title=\"Step 5 同分布校準器不可用，本場只顯示基線\">校準：未提供（{}）</div>", esc(&err))
+            }
         } else {
             let cd = num(&p, &["cal", "d"], 0.0);
             let ca = num(&p, &["cal", "a"], 0.0);
@@ -314,16 +356,20 @@ fn card(f: &Value) -> String {
     };
     let lineup_cls = if lineup.starts_with('✅') { "ok" } else if lineup.starts_with('◐') { "mid" } else { "low" };
     let ahd_html = ahd_block(&p);
+    // 讓球盤（多莊共識）賠率區塊：按用戶要求唔喺頁面顯示（數據仍留喺 fixtures/pred 供後用）。
+    let mktah_html = String::new();
     let qual_html = qual_block(&p);
+    // 風險聲明（SKILL L236：fin.risks[] 必填）—— 數據仍寫入 pred，但頁面唔顯示（用戶要求還原原本樣貌）
+    let risks_html = String::new();
 
     format!(
         r#"<article class="card" data-id="{id}" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
-    <span class="badge">{comp}</span>
-    <span class="comp-name">{comp_name}</span>
+    <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
   </div>
+  {warn_html}
   <div class="teams">
     <div class="team home"><span class="name">{home}</span><span class="elo">Elo {elo_h:.0}</span></div>
     {score_html}
@@ -354,7 +400,10 @@ fn card(f: &Value) -> String {
     <div class="hc-row"><span class="hc-key">讓球 +1</span><span>{p1h_p}</span><span>{p1d_p}</span><span>{p1a_p}</span></div>
   </div>
   {ahd_html}
+  {mktah_html}
   {qual_html}
+  {risks_html}
+  {memo_html}
   <div class="tops">{tops}</div>
   <div class="foot">
     {conf_html}{lineup_html}
@@ -362,7 +411,7 @@ fn card(f: &Value) -> String {
   </div>
 </article>"#,
         comp = esc(&comp),
-        comp_name = esc(&comp_name),
+        comp_label = esc(&comp_label),
         home = esc(&home),
         away = esc(&away),
         plain = plain,
@@ -382,6 +431,7 @@ fn card(f: &Value) -> String {
         fa_p = pct(fa),
         odds_h = if fh > 0.0 { format!("{:.2}", 1.0 / fh) } else { "—".into() },
         early_html = early_html,
+        warn_html = warn_html,
         odds_d = if fd > 0.0 { format!("{:.2}", 1.0 / fd) } else { "—".into() },
         odds_a = if fa > 0.0 { format!("{:.2}", 1.0 / fa) } else { "—".into() },
         lh = lh,
@@ -401,7 +451,10 @@ fn card(f: &Value) -> String {
         lineup_html = if SHOW_LINEUP { format!("<span class=\"tag {}\">首發 {}</span>", lineup_cls, esc(&lineup)) } else { String::new() },
         inj_chip = inj_chip,
         ahd_html = ahd_html,
+        mktah_html = mktah_html,
         qual_html = qual_html,
+        risks_html = risks_html,
+        memo_html = memo_html,
     )
 }
 
@@ -411,6 +464,8 @@ const CSS: &str = r#"
 .calrow{margin:2px 0 8px;padding:6px 10px;border-radius:10px;background:rgba(76,155,161,.10);border:1px dashed rgba(76,155,161,.38);font-size:12px;color:#2b616a;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .calrow b{font-variant-numeric:tabular-nums;color:#2b616a}
 .calrow i{margin-left:auto;font-style:normal;color:#5c8b8f;font-size:11px}
+.mktah{margin:6px 0 0;border-top:1px dashed rgba(76,155,161,.28);padding-top:6px}
+.mktah .ahd-head b{color:#2b616a;font-weight:600}
 .ahd{margin:6px 0 0;border-top:1px dashed rgba(76,155,161,.28);padding-top:6px}
 .ahd-head{display:flex;gap:8px;align-items:baseline;font-size:11px;color:#5c8b8f;margin-bottom:3px}
 .ahd-head b{color:#2b616a;font-weight:600}
@@ -493,8 +548,7 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .card::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(240px 120px at 100% 0%,rgba(166,207,209,.28),transparent 70%)}
 .card-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);position:relative}
-.badge{background:var(--cyan);color:#fff;border-radius:7px;padding:2px 7px;font-size:11.5px;letter-spacing:.08em;font-weight:600}
-.comp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38%}
+.badge{background:var(--cyan);color:#fff;border-radius:7px;padding:2px 8px;font-size:11px;letter-spacing:.02em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
 .kick{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .pass{border:1px solid var(--cyan-3);color:var(--cyan);border-radius:6px;padding:1px 6px;font-size:11px}
 
@@ -514,6 +568,7 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .nums .n i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:1px}
 .nums .h b{color:var(--home)} .nums .d b{color:#7f9a9c} .nums .a b{color:var(--away)}
 .early{margin-top:6px;font-size:11px;color:#f0b429;text-align:center;letter-spacing:.04em}
+.warnchip{margin-top:6px;font-size:11px;line-height:1.45;color:#ffb4a2;background:rgba(255,120,90,.10);border:1px solid rgba(255,120,90,.28);border-radius:8px;padding:5px 8px}
 .fair{margin-top:8px;padding:6px 10px;border:1px dashed var(--line);border-radius:8px;font-size:11.5px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
 .meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--ink-2);
@@ -527,6 +582,8 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .hc-key{text-align:left !important;color:var(--muted)}
 
 .tops{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.risks{margin:9px 0 0;padding:8px 10px 8px 26px;border-radius:10px;background:rgba(229,180,84,.08);border:1px solid rgba(229,180,84,.28);font-size:11.8px;color:#c9a558;line-height:1.6}
+.risks li{margin:2px 0}
 .chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
   background:rgba(255,255,255,.6);border-radius:8px;padding:3px 8px;font-size:12px}
 .chip b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
@@ -565,7 +622,6 @@ footer b{color:var(--ink-2);font-weight:600}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
-  .comp-name{display:none}
   .hero{padding-top:44px}
 }
 
@@ -602,11 +658,95 @@ footer b{color:var(--ink-2);font-weight:600}
 .card.ghost{background:rgba(255,255,255,.45);border-style:dashed}
 .card.ghost .ghost-note{margin-top:12px;font-size:12px;color:var(--muted)}
 .card.ghost .team .name{font-weight:600}
+
+/* ── 覆盤 memo（hashtag 標籤） ── */
+.memo{margin-top:12px;border-top:1px dashed rgba(21,48,47,.16);padding-top:10px}
+.memo-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
+.memo-head b{font-size:12px;font-weight:700;color:var(--ink-2)}
+.memo-head .memo-dot{width:7px;height:7px;border-radius:50%;background:transparent;border:1px solid var(--line)}
+.memo.has .memo-dot{background:var(--cyan);border-color:var(--cyan)}
+.memo-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.memo-tags .mt{font-size:11px;font-weight:700;color:var(--cyan-2);background:rgba(76,155,161,.12);
+  border:1px solid rgba(76,155,161,.35);border-radius:999px;padding:2px 9px}
+.memo-body{margin-top:8px;display:none}
+.memo.open .memo-body{display:block}
+.memo-body input,.memo-body textarea{width:100%;box-sizing:border-box;font:inherit;font-size:12px;
+  border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:rgba(255,255,255,.75);color:var(--ink);margin-bottom:6px}
+.memo-body textarea{min-height:52px;resize:vertical}
+.memo-acts{display:flex;align-items:center;gap:8px}
+.memo-acts button{font:inherit;font-size:12px;font-weight:700;border-radius:8px;padding:5px 12px;cursor:pointer;
+  border:1px solid var(--cyan);background:var(--cyan);color:#fff}
+.memo-acts button.ghost{background:transparent;color:var(--ink-2);border-color:var(--line)}
+.memo-acts .memo-msg{font-size:11px;color:var(--muted)}
+.memo-hint{font-size:11px;color:var(--muted);margin-top:4px}
 "#;
 
 const JS: &str = r#"
 (function(){
   const cards=[...document.querySelectorAll('.card')];
+  // ── 覆盤 memo（hashtag 標籤）：runtime 經 fbapi /memos 讀寫 ─────────────
+  const MEMO_API='https://oddsapi.2828666.xyz/fbW8FCX0tNblXanTXGyTUB/memos';
+  const memoBoxes=[...document.querySelectorAll('.memo')];
+  const memoCache={};
+  function memoRender(box, memo){
+    const tags=box.querySelector('.memo-tags');
+    const sum=box.querySelector('.memo-sum');
+    const inp=box.querySelector('.memo-input');
+    const note=box.querySelector('.memo-note');
+    if(memo){
+      box.classList.add('has');
+      sum.textContent=(memo.tags&&memo.tags.length?memo.tags.join(' '):'')+(memo.note?((memo.tags&&memo.tags.length)?' · ':'')+memo.note.slice(0,40):'')||'已寫';
+      tags.innerHTML=(memo.tags||[]).map(t=>'<span class="mt">#'+t.replace(/[<>&]/g,'')+'</span>').join('');
+      if(document.activeElement!==inp) inp.value=(memo.tags||[]).map(t=>'#'+t).join(' ');
+      if(document.activeElement!==note) note.value=memo.note||'';
+    } else {
+      box.classList.remove('has');
+      sum.textContent='未寫';
+      tags.innerHTML='';
+    }
+  }
+  async function memoLoad(){
+    try{
+      const r=await fetch(MEMO_API+'?all=1',{cache:'no-store'});
+      if(!r.ok) return;
+      const j=await r.json();
+      const map={};
+      (j.memos||[]).forEach(m=>{map[m.mid]=m;});
+      memoBoxes.forEach(box=>{
+        const mid=box.dataset.mid;
+        if(map[mid]){memoCache[mid]=map[mid];memoRender(box,map[mid]);}
+      });
+    }catch(e){/* 靜靜失敗 */ }
+  }
+  memoBoxes.forEach(box=>{
+    const head=box.querySelector('.memo-head');
+    head.addEventListener('click',()=>{box.classList.toggle('open');});
+    const msg=box.querySelector('.memo-msg');
+    box.querySelector('.memo-save').addEventListener('click',async()=>{
+      const mid=box.dataset.mid;
+      const raw=box.querySelector('.memo-input').value;
+      const tags=raw.split(/[\s,，、]+/).filter(Boolean);
+      const note=box.querySelector('.memo-note').value;
+      msg.textContent='儲存中…';
+      try{
+        const r=await fetch(MEMO_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mid,tags,note})});
+        const j=await r.json();
+        if(j.ok){memoCache[mid]=j.memo;memoRender(box,j.memo);msg.textContent='已儲存';setTimeout(()=>{msg.textContent='';},2500);}
+        else msg.textContent='失敗：'+(j.error||r.status);
+      }catch(e){msg.textContent='失敗（網絡）';}
+    });
+    box.querySelector('.memo-clear').addEventListener('click',async()=>{
+      const mid=box.dataset.mid;
+      msg.textContent='清空中…';
+      try{
+        const r=await fetch(MEMO_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mid,tags:[],note:''})});
+        const j=await r.json();
+        if(j.ok){delete memoCache[mid];memoRender(box,null);msg.textContent='已清空';setTimeout(()=>{msg.textContent='';},2500);}
+        else msg.textContent='失敗：'+(j.error||r.status);
+      }catch(e){msg.textContent='失敗（網絡）';}
+    });
+  });
+  memoLoad();
   const chips=[...document.querySelectorAll('.fchip')];
   const tabs=[...document.querySelectorAll('.tab')];
   const bodies=[...document.querySelectorAll('.tabbody')];
@@ -858,11 +998,15 @@ fn main() {
     let gen_at = text(&fx, &["generated"]);
 
     if !keep_all {
-        // 已完場保留 72 小時（用戶要求：昨天／前天都要睇到）
-        let cut = now_secs() - 72 * 3600;
+        // 已完場保留 168 小時（7 日）：用戶要求已完場紀錄唔好咁快消失（對帳用）
+        let cut = now_secs() - 168 * 3600;
         rows.retain(|r| {
             let s = text(r, &["status"]);
             if s != "ft" && s != "post" {
+                return true;
+            }
+            // 有覆盤 memo 嘅場次永遠保留（用戶寫咗 memo 就要見到張卡）
+            if r.get("memo").and_then(|x| x.as_bool()).unwrap_or(false) {
                 return true;
             }
             epoch_secs(&text(r, &["kick"])).map(|k| k > cut).unwrap_or(true)
@@ -1002,7 +1146,7 @@ fn main() {
     };
     let body_pre = tab_body(&rows, "pre", "48 小時內暫無未開賽場次。");
     let body_live = tab_body(&rows, "live", "目前沒有進行中的賽事。");
-    let body_ft = tab_body(&rows, "ft", "最近 72 小時沒有完場紀錄。");
+    let body_ft = tab_body(&rows, "ft", "最近 7 日沒有完場紀錄。");
 
     let now = time_now();
     let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
@@ -1042,7 +1186,7 @@ fn main() {
         format!(
             r#"<footer>
     <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
-    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 72 小時（分日子顯示）。<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 7 日（分日子顯示）。<br>
     <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
     <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
   </footer>"#,
@@ -1050,7 +1194,7 @@ fn main() {
             now = now,
         )
     } else {
-        String::from("<footer><b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。</footer>")
+        String::from("<footer><b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。　·　<a href=\"memo.html\">覆盤 memo 標籤勝率</a></footer>")
     };
 
     // 頁頂 tagline 與統計五格：用戶要求收埋；代碼保留，一行開返
