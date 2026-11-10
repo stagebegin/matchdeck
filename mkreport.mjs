@@ -22,14 +22,12 @@ const LIMIT = Number(opt('limit', 0));
 const fx = JSON.parse(fs.readFileSync(IN, 'utf8'));
 const rows = (fx.rows || []).filter((r) => r.pred && (r.status === 'pre' || r.status === 'live'));
 
-/** 讓球顯示：用 ahd 主盤（|cover-0.5| 最小嗰檔）＋讓球方，寫成「主 -1.25」 */
+/** 讓球顯示：主盤係有號數（負＝主讓、正＝客讓），E=0 揀出嚟 */
 function hcpText(p) {
   const ahd = p.ahd;
   if (!ahd || !ahd.mark) return null;
   const m = Math.abs(Number(ahd.mark));
-  const row = (ahd.rows || []).find((r) => Math.abs(Math.abs(r.line) - m) < 1e-9);
-  const fav = (row && row.fav) || 'h';
-  return (fav === 'h' ? '主 -' : '客 -') + m;
+  return (Number(ahd.mark) < 0 ? '主 -' : '客 -') + m;
 }
 
 const pad = (n) => String(n).padStart(2, '0');
