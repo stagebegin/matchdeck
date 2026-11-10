@@ -173,6 +173,9 @@ fn ahd_block(p: &Value) -> String {
 fn card(f: &Value) -> String {
     let comp = text(f, &["comp"]);
     let comp_name = text(f, &["compName"]);
+    // 徽章顯示中文名（例如「墨西哥甲組聯賽」）；冇中文名先用馬會代碼（MD1）頂上。
+    // 過濾仍然用馬會代碼（data-comp），唔受顯示改動影響。
+    let comp_label = if comp_name.is_empty() { comp.clone() } else { comp_name.clone() };
     let home = text(f, &["home"]);
     let away = text(f, &["away"]);
     let kick = text(f, &["kick"]);
@@ -200,6 +203,17 @@ fn card(f: &Value) -> String {
         String::from("FotMob 未收錄此場（無數據來源，暫時唔會出預測）")
     };
     let plain = esc(&format!("{} {} {} {}", comp, home, away, comp_name));
+    // 監視器標記（fb/sanity.mjs 每日檢查，經 audit.json → fixtures.mjs 帶上嚟）
+    let warn_items: Vec<String> = f
+        .get("warn")
+        .and_then(|v| v.as_arr())
+        .map(|a| a.iter().filter_map(|x| x.as_str().map(esc)).collect())
+        .unwrap_or_default();
+    let warn_html = if warn_items.is_empty() {
+        String::new()
+    } else {
+        format!("<div class=\"warnchip\">⚠ 監視：{}</div>", warn_items.join("；"))
+    };
     let id = text(f, &["id"]);
     let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
         format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
@@ -220,13 +234,13 @@ fn card(f: &Value) -> String {
 
     if !has_pred {
         return format!(
-            r#"<article class="card ghost" data-comp="{comp}" data-text="{plain}">
+            r#"<article class="card ghost" data-id="{id}" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
-    <span class="badge">{comp}</span>
-    <span class="comp-name">{comp_name}</span>
+    <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
   </div>
+  {warn_html}
   <div class="teams">
     <div class="team home"><span class="name">{home}</span></div>
     {score_html}
@@ -234,8 +248,10 @@ fn card(f: &Value) -> String {
   </div>
   <div class="ghost-note">{ghost_note}</div>
 </article>"#,
+            id = esc(&id),
             comp = esc(&comp),
-            comp_name = esc(&comp_name),
+            comp_label = esc(&comp_label),
+            status = esc(&status),
             home = esc(&home),
             away = esc(&away),
             plain = plain,
@@ -245,6 +261,7 @@ fn card(f: &Value) -> String {
             pulse = pulse,
             score_html = score_html,
             ghost_note = esc(&ghost_note),
+            warn_html = warn_html,
         );
     }
 
@@ -298,7 +315,13 @@ fn card(f: &Value) -> String {
     let cal_html = {
         let ch = num(&p, &["cal", "h"], -1.0);
         if ch < 0.0 {
-            String::new()
+            // 無同分布校準器 → 明示原因（SKILL L134：唔可以硬套其他聯賽校準器）
+            let err = text(&p, &["cal", "error"]);
+            if err.is_empty() {
+                String::new()
+            } else {
+                format!("<div class=\"calrow\" title=\"Step 5 同分布校準器不可用，本場只顯示基線\">校準：未提供（{}）</div>", esc(&err))
+            }
         } else {
             let cd = num(&p, &["cal", "d"], 0.0);
             let ca = num(&p, &["cal", "a"], 0.0);
@@ -315,15 +338,17 @@ fn card(f: &Value) -> String {
     let lineup_cls = if lineup.starts_with('✅') { "ok" } else if lineup.starts_with('◐') { "mid" } else { "low" };
     let ahd_html = ahd_block(&p);
     let qual_html = qual_block(&p);
+    // 風險聲明（SKILL L236：fin.risks[] 必填）—— 數據仍寫入 pred，但頁面唔顯示（用戶要求還原原本樣貌）
+    let risks_html = String::new();
 
     format!(
         r#"<article class="card" data-id="{id}" data-comp="{comp}" data-text="{plain}" data-status="{status}">
   <div class="card-top">
-    <span class="badge">{comp}</span>
-    <span class="comp-name">{comp_name}</span>
+    <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
   </div>
+  {warn_html}
   <div class="teams">
     <div class="team home"><span class="name">{home}</span><span class="elo">Elo {elo_h:.0}</span></div>
     {score_html}
@@ -355,6 +380,7 @@ fn card(f: &Value) -> String {
   </div>
   {ahd_html}
   {qual_html}
+  {risks_html}
   <div class="tops">{tops}</div>
   <div class="foot">
     {conf_html}{lineup_html}
@@ -362,7 +388,7 @@ fn card(f: &Value) -> String {
   </div>
 </article>"#,
         comp = esc(&comp),
-        comp_name = esc(&comp_name),
+        comp_label = esc(&comp_label),
         home = esc(&home),
         away = esc(&away),
         plain = plain,
@@ -382,6 +408,7 @@ fn card(f: &Value) -> String {
         fa_p = pct(fa),
         odds_h = if fh > 0.0 { format!("{:.2}", 1.0 / fh) } else { "—".into() },
         early_html = early_html,
+        warn_html = warn_html,
         odds_d = if fd > 0.0 { format!("{:.2}", 1.0 / fd) } else { "—".into() },
         odds_a = if fa > 0.0 { format!("{:.2}", 1.0 / fa) } else { "—".into() },
         lh = lh,
@@ -402,6 +429,7 @@ fn card(f: &Value) -> String {
         inj_chip = inj_chip,
         ahd_html = ahd_html,
         qual_html = qual_html,
+        risks_html = risks_html,
     )
 }
 
@@ -493,8 +521,7 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .card::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(240px 120px at 100% 0%,rgba(166,207,209,.28),transparent 70%)}
 .card-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);position:relative}
-.badge{background:var(--cyan);color:#fff;border-radius:7px;padding:2px 7px;font-size:11.5px;letter-spacing:.08em;font-weight:600}
-.comp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38%}
+.badge{background:var(--cyan);color:#fff;border-radius:7px;padding:2px 8px;font-size:11px;letter-spacing:.02em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
 .kick{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .pass{border:1px solid var(--cyan-3);color:var(--cyan);border-radius:6px;padding:1px 6px;font-size:11px}
 
@@ -514,6 +541,7 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .nums .n i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:1px}
 .nums .h b{color:var(--home)} .nums .d b{color:#7f9a9c} .nums .a b{color:var(--away)}
 .early{margin-top:6px;font-size:11px;color:#f0b429;text-align:center;letter-spacing:.04em}
+.warnchip{margin-top:6px;font-size:11px;line-height:1.45;color:#ffb4a2;background:rgba(255,120,90,.10);border:1px solid rgba(255,120,90,.28);border-radius:8px;padding:5px 8px}
 .fair{margin-top:8px;padding:6px 10px;border:1px dashed var(--line);border-radius:8px;font-size:11.5px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 
 .meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:12px;color:var(--ink-2);
@@ -527,6 +555,8 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .hc-key{text-align:left !important;color:var(--muted)}
 
 .tops{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.risks{margin:9px 0 0;padding:8px 10px 8px 26px;border-radius:10px;background:rgba(229,180,84,.08);border:1px solid rgba(229,180,84,.28);font-size:11.8px;color:#c9a558;line-height:1.6}
+.risks li{margin:2px 0}
 .chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
   background:rgba(255,255,255,.6);border-radius:8px;padding:3px 8px;font-size:12px}
 .chip b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
@@ -565,7 +595,6 @@ footer b{color:var(--ink-2);font-weight:600}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
-  .comp-name{display:none}
   .hero{padding-top:44px}
 }
 
@@ -858,8 +887,8 @@ fn main() {
     let gen_at = text(&fx, &["generated"]);
 
     if !keep_all {
-        // 已完場保留 72 小時（用戶要求：昨天／前天都要睇到）
-        let cut = now_secs() - 72 * 3600;
+        // 已完場保留 168 小時（7 日）：用戶要求已完場紀錄唔好咁快消失（對帳用）
+        let cut = now_secs() - 168 * 3600;
         rows.retain(|r| {
             let s = text(r, &["status"]);
             if s != "ft" && s != "post" {
@@ -1002,7 +1031,7 @@ fn main() {
     };
     let body_pre = tab_body(&rows, "pre", "48 小時內暫無未開賽場次。");
     let body_live = tab_body(&rows, "live", "目前沒有進行中的賽事。");
-    let body_ft = tab_body(&rows, "ft", "最近 72 小時沒有完場紀錄。");
+    let body_ft = tab_body(&rows, "ft", "最近 7 日沒有完場紀錄。");
 
     let now = time_now();
     let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
@@ -1042,7 +1071,7 @@ fn main() {
         format!(
             r#"<footer>
     <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
-    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 72 小時（分日子顯示）。<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 7 日（分日子顯示）。<br>
     <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
     <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
   </footer>"#,

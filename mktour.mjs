@@ -14,7 +14,9 @@ const argv = process.argv.slice(2);
 const opt = (k, d) => { const i = argv.indexOf('--' + k); return i < 0 ? d : (argv[i + 1] ?? true); };
 
 const TDIR = path.join(HERE, '..', 'fb', 'tournament');
-const IN = opt('in', null) ? path.resolve(opt('in')) : path.join(TDIR, fs.readdirSync(TDIR).sort().pop());
+// 只揀國際／單一賽事結果（cup-*.json 係盃賽，由 mkcups.mjs 處理）
+const tourFiles = fs.readdirSync(TDIR).filter((f) => /^\d.*\.json$/.test(f)).sort();
+const IN = opt('in', null) ? path.resolve(opt('in')) : path.join(TDIR, tourFiles.pop());
 const OUT = path.join(HERE, opt('out', 'tournament.html')); // 放 repo 根目錄（GitHub Pages 直接服務，dist/ 係 gitignore）
 const T = JSON.parse(fs.readFileSync(IN, 'utf8'));
 

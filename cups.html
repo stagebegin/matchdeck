@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>盃賽模擬總覽 · MatchDeck</title>
+<style>
+:root{--bg:#0e1417;--card:#151d21;--card2:#1b252a;--line:#26333a;--txt:#e6edf0;--dim:#93a7b0;--accent:#4c9ba1;--green:#4fbf87;--yellow:#e5b454}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+.hero{padding:32px 26px 24px;border-radius:16px;margin-bottom:16px;background:linear-gradient(150deg,#16323a 0%,#12242a 55%,#101a1f 100%);border:1px solid var(--line);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(76,155,161,.22),transparent 68%)}
+.hero h1{margin:0 0 8px;font-size:26px;letter-spacing:.04em;font-weight:650}
+.hero .sub{color:var(--dim);font-size:13.5px}
+.hero .gen{color:#6f858d;font-size:12px;margin-top:10px}
+.nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.nav a{color:#bfe6ea;text-decoration:none;font-size:12.5px;padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.nav a:hover{border-color:var(--accent);color:#fff}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px;margin-bottom:12px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.mcard b{display:block;font-size:13.5px;margin-bottom:6px;color:#cfe3e8}
+.mcard span{color:var(--dim);font-size:12.5px;line-height:1.65}
+.warn{margin:0 0 12px;padding:10px 14px;border-radius:10px;font-size:12.5px;background:rgba(229,180,84,.1);border:1px solid rgba(229,180,84,.35);color:#f0cf8d}
+.cup{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:18px 0;overflow:hidden;scroll-margin-top:12px}
+.chead{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;background:var(--card2);border-bottom:1px solid var(--line)}
+.chead h2{margin:0;font-size:16.5px;font-weight:600;letter-spacing:.02em}
+.fmt{font-size:11px;font-weight:500;color:#9fd8d0;background:rgba(76,155,161,.16);border:1px solid rgba(76,155,161,.4);border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:middle}
+.chsub{color:var(--dim);font-size:12.3px;margin-top:5px}
+.chstat{text-align:right;color:var(--dim);font-size:11.5px;line-height:1.3}
+.chstat b{display:block;font-size:17px;color:#bfe6ea;font-variant-numeric:tabular-nums}
+.cbody{padding:14px 18px 18px}
+.sect-title{font-size:14px;font-weight:600;margin:18px 0 10px;padding-left:10px;border-left:3px solid var(--accent)}
+.sect-title.sm{font-size:13px;margin:16px 0 8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:500;font-size:12.3px}
+.gt tbody tr:last-child td{border-bottom:0}
+.tm{font-weight:550}
+.rk{display:inline-block;min-width:18px;color:#5d737b;font-size:11px;font-variant-numeric:tabular-nums}
+.elo{color:#6f858d;font-size:11px;margin-left:6px;font-variant-numeric:tabular-nums}
+.nod{font-size:10.5px;color:#f0cf8d;background:rgba(229,180,84,.12);border:1px solid rgba(229,180,84,.35);border-radius:5px;padding:1px 5px;margin-left:6px}
+.nodata{color:#f0cf8d;font-size:12px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.ch{color:#7fd3c6;font-weight:600}
+.fixt{background:#121a1e;border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+.mono{font-variant-numeric:tabular-nums;color:var(--dim)}
+.vs{color:#6f858d;padding:0 2px}
+.sc{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:6px;background:#1d282e;font-variant-numeric:tabular-nums;font-size:12.5px}
+.sc b{color:#7fd3c6;font-weight:600}
+.assump{margin-top:16px;background:#121a1e;border:1px solid var(--line);border-radius:10px;padding:10px 16px;color:var(--dim);font-size:12.5px}
+.assump summary{cursor:pointer;color:#bfe6ea}
+.assump ol{padding-left:18px}
+.assump li{margin:5px 0}
+footer{margin-top:30px;color:#6f858d;font-size:12px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hero">
+  <h1>盃賽模擬總覽</h1>
+  <div class="sub">11 個賽事 · 合共 110,000 次 Monte Carlo · 強度池 undefined 場 / 1268 隊（跨聯賽近兩季）· 主場係數 ×1.214</div>
+  <div class="gen">已完場用真實賽果；未踢場次由 Dixon-Coles 泊松（ρ=−0.08）抽樣。產生 2026-11-14T00:00:17.621Z</div>
+</div>
+<div class="nav"><a href="#cup-AD2">Australia Championship</a><a href="#cup-AGC">Copa Argentina</a><a href="#cup-ANQ">Africa Cup of Nations Qualification</a><a href="#cup-AUC">Supercopa Argentina</a><a href="#cup-CUP">SAFF Championship</a><a href="#cup-JLC">J. League Cup</a><a href="#cup-SFC">Copa del Rey</a><a href="#cup-UCLW">Women's Champions League</a><a href="#cup-UDC">Copa Uruguay</a><a href="#cup-UECW">UEFA Women's Europa Cup</a><a href="#cup-ULP">League Cup</a></div>
+<div class="method">
+  <div class="mcard"><b>① 隊力合成</b><span>Elo 0.70 ＋ 攻防擬合 0.20 ＋ 近況 0.10（近 365 日場均積分）。年齡／教練戰術／傷停冇涵蓋全部球隊的可靠數據源，設 0 並在此申報。</span></div>
+  <div class="mcard"><b>② 逐場模擬</b><span>Step 1 的 Dixon-Coles 泊松抽樣入球；兩回合按合計入球，和則十二碼 50/50；決賽與四強中立場。</span></div>
+  <div class="mcard"><b>③ 賽制</b><span>按 FotMob 抓到的真實輪次／分組結構；下一圈未抽籤就隨機抽籤＋主場隨機（馬會同 FotMob 都未提供未來對賽）。</span></div>
+  <div class="mcard"><b>④ 限制</b><span>低組別球隊樣本少（甚至只有 1 場），機率可信度較低；模型難以穩定贏市場，唔會用市場賠率校正。</span></div>
+</div>
+<div class="warn">本頁是統計模擬，<b>不構成任何投注建議</b>。機率只反映模型假設下的相對強弱，唔代表真實結果；市場賠率從未參與運算。</div>
+<section class="cup" id="cup-AD2">
+  <div class="chead">
+    <div>
+      <h2>Australia Championship <span class="fmt">分組＋淘汰</span></h2>
+      <div class="chsub">馬會代號 AD2 · 2026/2027 · 分組賽進行中（淘汰賽未抽籤） · 未踢 13 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th>組</th><th class="num">分組首名</th><th class="num">出線</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Oakleigh Cannons<span class="elo">1564</span></td><td class="mono">3</td><td class="num">5.9%</td><td class="num">100.0%</td><td class="num ch">12.6%</td></tr><tr><td class="tm"><span class="rk">2</span>Preston Lions<span class="elo">1587</span></td><td class="mono">4</td><td class="num">70.4%</td><td class="num">100.0%</td><td class="num ch">12.5%</td></tr><tr><td class="tm"><span class="rk">3</span>APIA Leichhardt FC<span class="elo">1672</span></td><td class="mono">2</td><td class="num">99.6%</td><td class="num">100.0%</td><td class="num ch">12.4%</td></tr><tr><td class="tm"><span class="rk">4</span>Lions FC<span class="elo">1583</span></td><td class="mono">4</td><td class="num">29.0%</td><td class="num">94.9%</td><td class="num ch">12.3%</td></tr><tr><td class="tm"><span class="rk">5</span>Bayswater City<span class="elo">1640</span></td><td class="mono">3</td><td class="num">94.1%</td><td class="num">100.0%</td><td class="num ch">12.1%</td></tr><tr><td class="tm"><span class="rk">6</span>Broadmeadow Magic<span class="elo">1607</span></td><td class="mono">2</td><td class="num">0.4%</td><td class="num">93.8%</td><td class="num ch">11.9%</td></tr><tr><td class="tm"><span class="rk">7</span>South Melbourne<span class="elo">1572</span></td><td class="mono">1</td><td class="num">80.2%</td><td class="num">95.2%</td><td class="num ch">11.9%</td></tr><tr><td class="tm"><span class="rk">8</span>Sydney United 58<span class="elo">1516</span></td><td class="mono">1</td><td class="num">13.9%</td><td class="num">64.3%</td><td class="num ch">8.2%</td></tr><tr><td class="tm"><span class="rk">9</span>Sutherland Sharks<span class="elo">1427</span></td><td class="mono">1</td><td class="num">1.5%</td><td class="num">20.7%</td><td class="num ch">2.5%</td></tr><tr><td class="tm"><span class="rk">10</span>Canberra Croatia<span class="elo">1531</span></td><td class="mono">1</td><td class="num">4.4%</td><td class="num">19.8%</td><td class="num ch">2.3%</td></tr><tr><td class="tm"><span class="rk">11</span>Avondale FC<span class="elo">1598</span></td><td class="mono">2</td><td class="num">0.0%</td><td class="num">6.2%</td><td class="num ch">0.7%</td></tr><tr><td class="tm"><span class="rk">12</span>Wollongong Wolves<span class="elo">1516</span></td><td class="mono">4</td><td class="num">0.5%</td><td class="num">4.7%</td><td class="num ch">0.5%</td></tr><tr><td class="tm"><span class="rk">13</span>South Hobart<span class="elo">1549</span></td><td class="mono">4</td><td class="num">0.0%</td><td class="num">0.4%</td><td class="num ch">0.1%</td></tr><tr><td class="tm"><span class="rk">14</span>Sydney Olympic<span class="elo">1491</span></td><td class="mono">3</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">15</span>Adelaide City<span class="elo">1513</span></td><td class="mono">2</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">16</span>Marconi Stallions<span class="elo">1553</span></td><td class="mono">3</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-14 12:00</td>
+    <td class="mono">5</td>
+    <td>South Hobart <span class="vs">v</span> Wollongong Wolves</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-14 12:00</td>
+    <td class="mono">5</td>
+    <td>Sydney United 58 <span class="vs">v</span> South Melbourne</td>
+    <td class="scores"><span class="sc">1 – 1 <b>15%</b></span><span class="sc">0 – 0 <b>13%</b></span><span class="sc">0 – 1 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-14 16:30</td>
+    <td class="mono">5</td>
+    <td>Bayswater City <span class="vs">v</span> Sydney Olympic</td>
+    <td class="scores"><span class="sc">2 – 0 <b>9%</b></span><span class="sc">3 – 0 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 12:00</td>
+    <td class="mono">5</td>
+    <td>Broadmeadow Magic <span class="vs">v</span> Avondale FC</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 12:00</td>
+    <td class="mono">5</td>
+    <td>Sutherland Sharks <span class="vs">v</span> Canberra Croatia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">0 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 16:30</td>
+    <td class="mono">6</td>
+    <td>Lions FC <span class="vs">v</span> Wollongong Wolves</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 16:30</td>
+    <td class="mono">6</td>
+    <td>Preston Lions <span class="vs">v</span> South Hobart</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 16:30</td>
+    <td class="mono">6</td>
+    <td>South Melbourne <span class="vs">v</span> Canberra Croatia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 0 <b>10%</b></span><span class="sc">2 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 16:30</td>
+    <td class="mono">6</td>
+    <td>Sydney United 58 <span class="vs">v</span> Sutherland Sharks</td>
+    <td class="scores"><span class="sc">1 – 0 <b>15%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-21 12:00</td>
+    <td class="mono">6</td>
+    <td>Marconi Stallions <span class="vs">v</span> Sydney Olympic</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-21 12:00</td>
+    <td class="mono">6</td>
+    <td>Oakleigh Cannons <span class="vs">v</span> Bayswater City</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">0 – 1 <b>10%</b></span><span class="sc">0 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-22 12:00</td>
+    <td class="mono">6</td>
+    <td>Adelaide City <span class="vs">v</span> Broadmeadow Magic</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-22 12:00</td>
+    <td class="mono">6</td>
+    <td>Avondale FC <span class="vs">v</span> APIA Leichhardt FC</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 22821 場，其中本盃歷史 496 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-AGC">
+  <div class="chead">
+    <div>
+      <h2>Copa Argentina <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 AGC · 2026/2027 · 當前：Semi-finals · 未踢 1 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Boca Juniors<span class="elo">1604</span></td><td class="num">83.2%</td><td class="num">83.2%</td><td class="num ch">42.2%</td></tr><tr><td class="tm"><span class="rk">2</span>Atlético Tucumán<span class="elo">1481</span></td><td class="num">50.6%</td><td class="num">50.6%</td><td class="num ch">24.8%</td></tr><tr><td class="tm"><span class="rk">3</span>Club Atlético Platense<span class="elo">1512</span></td><td class="num">49.4%</td><td class="num">49.4%</td><td class="num ch">24.8%</td></tr><tr><td class="tm"><span class="rk">4</span>Banfield<span class="elo">1489</span></td><td class="num">16.8%</td><td class="num">16.8%</td><td class="num ch">8.3%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-15 06:00</td>
+    <td class="mono">Semi-finals</td>
+    <td>Banfield <span class="vs">v</span> Boca Juniors</td>
+    <td class="scores"><span class="sc">0 – 2 <b>14%</b></span><span class="sc">0 – 1 <b>11%</b></span><span class="sc">0 – 3 <b>10%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 21807 場，其中本盃歷史 245 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-ANQ">
+  <div class="chead">
+    <div>
+      <h2>Africa Cup of Nations Qualification <span class="fmt">分組＋淘汰</span></h2>
+      <div class="chsub">馬會代號 ANQ · 2026/2027 · 分組賽進行中（淘汰賽未抽籤） · 未踢 75 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    <div class="warn">1／48 隊冇歷史數據（用聯賽平均值先驗，唔係數據）：Eritrea；本輪 3／75 場因此<b>唔出典型比分</b></div>
+    <table class="gt"><thead><tr><th>球隊</th><th>組</th><th class="num">分組首名</th><th class="num">出線</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Morocco<span class="elo">1576</span></td><td class="mono">1</td><td class="num">99.0%</td><td class="num">100.0%</td><td class="num ch">4.4%</td></tr><tr><td class="tm"><span class="rk">2</span>Cameroon<span class="elo">1552</span></td><td class="mono">7</td><td class="num">95.4%</td><td class="num">99.5%</td><td class="num ch">4.4%</td></tr><tr><td class="tm"><span class="rk">3</span>Mali<span class="elo">1563</span></td><td class="mono">11</td><td class="num">70.5%</td><td class="num">97.8%</td><td class="num ch">4.3%</td></tr><tr><td class="tm"><span class="rk">4</span>Algeria<span class="elo">1609</span></td><td class="mono">9</td><td class="num">94.2%</td><td class="num">99.8%</td><td class="num ch">4.1%</td></tr><tr><td class="tm"><span class="rk">5</span>South Africa<span class="elo">1550</span></td><td class="mono">4</td><td class="num">75.9%</td><td class="num">94.4%</td><td class="num ch">4.1%</td></tr><tr><td class="tm"><span class="rk">6</span>Angola<span class="elo">1548</span></td><td class="mono">2</td><td class="num">31.9%</td><td class="num">94.4%</td><td class="num ch">4.1%</td></tr><tr><td class="tm"><span class="rk">7</span>Senegal<span class="elo">1583</span></td><td class="mono">10</td><td class="num">92.1%</td><td class="num">98.7%</td><td class="num ch">4.0%</td></tr><tr><td class="tm"><span class="rk">8</span>Egypt<span class="elo">1560</span></td><td class="mono">2</td><td class="num">67.5%</td><td class="num">98.9%</td><td class="num ch">4.0%</td></tr><tr><td class="tm"><span class="rk">9</span>Ivory Coast<span class="elo">1560</span></td><td class="mono">3</td><td class="num">97.0%</td><td class="num">99.9%</td><td class="num ch">4.0%</td></tr><tr><td class="tm"><span class="rk">10</span>Nigeria<span class="elo">1563</span></td><td class="mono">12</td><td class="num">83.0%</td><td class="num">97.0%</td><td class="num ch">3.8%</td></tr><tr><td class="tm"><span class="rk">11</span>DR Congo<span class="elo">1515</span></td><td class="mono">5</td><td class="num">71.3%</td><td class="num">94.2%</td><td class="num ch">3.8%</td></tr><tr><td class="tm"><span class="rk">12</span>Uganda<span class="elo">1529</span></td><td class="mono">8</td><td class="num">75.8%</td><td class="num">93.0%</td><td class="num ch">3.8%</td></tr><tr><td class="tm"><span class="rk">13</span>Rwanda<span class="elo">1492</span></td><td class="mono">11</td><td class="num">28.0%</td><td class="num">88.9%</td><td class="num ch">3.8%</td></tr><tr><td class="tm"><span class="rk">14</span>Gambia<span class="elo">1502</span></td><td class="mono">3</td><td class="num">2.9%</td><td class="num">86.7%</td><td class="num ch">3.5%</td></tr><tr><td class="tm"><span class="rk">15</span>Togo<span class="elo">1507</span></td><td class="mono">9</td><td class="num">5.2%</td><td class="num">68.0%</td><td class="num ch">3.3%</td></tr><tr><td class="tm"><span class="rk">16</span>Burkina Faso<span class="elo">1515</span></td><td class="mono">6</td><td class="num">38.5%</td><td class="num">71.6%</td><td class="num ch">3.2%</td></tr><tr><td class="tm"><span class="rk">17</span>Benin<span class="elo">1486</span></td><td class="mono">6</td><td class="num">44.9%</td><td class="num">76.7%</td><td class="num ch">3.1%</td></tr><tr><td class="tm"><span class="rk">18</span>Gabon<span class="elo">1488</span></td><td class="mono">1</td><td class="num">0.9%</td><td class="num">76.7%</td><td class="num ch">3.1%</td></tr><tr><td class="tm"><span class="rk">19</span>Guinea-Bissau<span class="elo">1497</span></td><td class="mono">12</td><td class="num">12.8%</td><td class="num">70.6%</td><td class="num ch">2.9%</td></tr><tr><td class="tm"><span class="rk">20</span>Zimbabwe<span class="elo">1535</span></td><td class="mono">5</td><td class="num">19.1%</td><td class="num">63.5%</td><td class="num ch">2.7%</td></tr><tr><td class="tm"><span class="rk">21</span>Guinea<span class="elo">1493</span></td><td class="mono">4</td><td class="num">17.4%</td><td class="num">64.2%</td><td class="num ch">2.7%</td></tr><tr><td class="tm"><span class="rk">22</span>Libya<span class="elo">1458</span></td><td class="mono">8</td><td class="num">13.5%</td><td class="num">59.2%</td><td class="num ch">2.4%</td></tr><tr><td class="tm"><span class="rk">23</span>Mauritania<span class="elo">1502</span></td><td class="mono">6</td><td class="num">16.6%</td><td class="num">50.7%</td><td class="num ch">2.1%</td></tr><tr><td class="tm"><span class="rk">24</span>Comoros<span class="elo">1507</span></td><td class="mono">7</td><td class="num">2.8%</td><td class="num">55.4%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">25</span>Equatorial Guinea<span class="elo">1532</span></td><td class="mono">5</td><td class="num">9.6%</td><td class="num">40.2%</td><td class="num ch">1.7%</td></tr><tr><td class="tm"><span class="rk">26</span>Congo<span class="elo">1464</span></td><td class="mono">7</td><td class="num">1.6%</td><td class="num">37.7%</td><td class="num ch">1.7%</td></tr><tr><td class="tm"><span class="rk">27</span>Kenya<span class="elo">1506</span></td><td class="mono">4</td><td class="num">5.8%</td><td class="num">35.0%</td><td class="num ch">1.7%</td></tr><tr><td class="tm"><span class="rk">28</span>Mozambique<span class="elo">1512</span></td><td class="mono">10</td><td class="num">3.4%</td><td class="num">37.8%</td><td class="num ch">1.6%</td></tr><tr><td class="tm"><span class="rk">29</span>Botswana<span class="elo">1482</span></td><td class="mono">8</td><td class="num">8.8%</td><td class="num">33.3%</td><td class="num ch">1.4%</td></tr><tr><td class="tm"><span class="rk">30</span>Ethiopia<span class="elo">1457</span></td><td class="mono">10</td><td class="num">2.0%</td><td class="num">31.6%</td><td class="num ch">1.3%</td></tr><tr><td class="tm"><span class="rk">31</span>Sudan<span class="elo">1483</span></td><td class="mono">10</td><td class="num">2.5%</td><td class="num">31.9%</td><td class="num ch">1.3%</td></tr><tr><td class="tm"><span class="rk">32</span>Zambia<span class="elo">1529</span></td><td class="mono">9</td><td class="num">0.5%</td><td class="num">26.2%</td><td class="num ch">0.9%</td></tr><tr><td class="tm"><span class="rk">33</span>Niger<span class="elo">1444</span></td><td class="mono">1</td><td class="num">0.1%</td><td class="num">22.1%</td><td class="num ch">0.9%</td></tr><tr><td class="tm"><span class="rk">34</span>Tanzania<span class="elo">1511</span></td><td class="mono">12</td><td class="num">3.0%</td><td class="num">20.6%</td><td class="num ch">0.6%</td></tr><tr><td class="tm"><span class="rk">35</span>Tunisia<span class="elo">1524</span></td><td class="mono">8</td><td class="num">1.9%</td><td class="num">14.6%</td><td class="num ch">0.6%</td></tr><tr><td class="tm"><span class="rk">36</span>Ghana<span class="elo">1472</span></td><td class="mono">3</td><td class="num">0.1%</td><td class="num">9.3%</td><td class="num ch">0.5%</td></tr><tr><td class="tm"><span class="rk">37</span>Madagascar<span class="elo">1454</span></td><td class="mono">12</td><td class="num">1.2%</td><td class="num">11.8%</td><td class="num ch">0.5%</td></tr><tr><td class="tm"><span class="rk">38</span>Cape Verde<span class="elo">1491</span></td><td class="mono">11</td><td class="num">1.5%</td><td class="num">12.9%</td><td class="num ch">0.4%</td></tr><tr><td class="tm"><span class="rk">39</span>Eritrea<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="mono">4</td><td class="num">0.8%</td><td class="num">6.4%</td><td class="num ch">0.3%</td></tr><tr><td class="tm"><span class="rk">40</span>Somalia<span class="elo">1472</span></td><td class="mono">3</td><td class="num">0.0%</td><td class="num">4.1%</td><td class="num ch">0.3%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-15 00:00</td>
+    <td class="mono">3</td>
+    <td>Uganda <span class="vs">v</span> Botswana</td>
+    <td class="scores"><span class="sc">2 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 03:00</td>
+    <td class="mono">3</td>
+    <td>Algeria <span class="vs">v</span> Togo</td>
+    <td class="scores"><span class="sc">2 – 0 <b>11%</b></span><span class="sc">3 – 0 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 03:00</td>
+    <td class="mono">3</td>
+    <td>Angola <span class="vs">v</span> South Sudan</td>
+    <td class="scores"><span class="sc">2 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-16 21:00</td>
+    <td class="mono">4</td>
+    <td>Namibia <span class="vs">v</span> Cameroon</td>
+    <td class="scores"><span class="sc">0 – 2 <b>15%</b></span><span class="sc">0 – 3 <b>13%</b></span><span class="sc">0 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-16 21:00</td>
+    <td class="mono">4</td>
+    <td>Sudan <span class="vs">v</span> Senegal</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 1 <b>12%</b></span><span class="sc">0 – 2 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-16 21:00</td>
+    <td class="mono">4</td>
+    <td>Zimbabwe <span class="vs">v</span> Equatorial Guinea</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">1 – 0 <b>14%</b></span><span class="sc">0 – 0 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-16 23:00</td>
+    <td class="mono">4</td>
+    <td>Somalia <span class="vs">v</span> Ghana</td>
+    <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 1 <b>8%</b></span><span class="sc">2 – 0 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 00:00</td>
+    <td class="mono">4</td>
+    <td>Central African Republic <span class="vs">v</span> Benin</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 00:00</td>
+    <td class="mono">4</td>
+    <td>Eritrea <span class="vs">v</span> Guinea</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>Burundi <span class="vs">v</span> Zambia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>Ethiopia <span class="vs">v</span> Mozambique</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>Lesotho <span class="vs">v</span> Gabon</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>Malawi <span class="vs">v</span> Egypt</td>
+    <td class="scores"><span class="sc">0 – 1 <b>20%</b></span><span class="sc">0 – 0 <b>16%</b></span><span class="sc">0 – 2 <b>14%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>South Sudan <span class="vs">v</span> Angola</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-17 21:00</td>
+    <td class="mono">4</td>
+    <td>Tanzania <span class="vs">v</span> Nigeria</td>
+    <td class="scores"><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Gambia <span class="vs">v</span> Ivory Coast</td>
+    <td class="scores"><span class="sc">0 – 2 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Guinea-Bissau <span class="vs">v</span> Madagascar</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Kenya <span class="vs">v</span> South Africa</td>
+    <td class="scores"><span class="sc">0 – 0 <b>17%</b></span><span class="sc">1 – 0 <b>16%</b></span><span class="sc">1 – 1 <b>14%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Libya <span class="vs">v</span> Tunisia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">0 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Sierra Leone <span class="vs">v</span> DR Congo</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">0 – 0 <b>13%</b></span><span class="sc">1 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 00:00</td>
+    <td class="mono">4</td>
+    <td>Togo <span class="vs">v</span> Algeria</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>9%</b></span><span class="sc">1 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 03:00</td>
+    <td class="mono">4</td>
+    <td>Botswana <span class="vs">v</span> Uganda</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 03:00</td>
+    <td class="mono">4</td>
+    <td>Congo <span class="vs">v</span> Comoros</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">0 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 03:00</td>
+    <td class="mono">4</td>
+    <td>Liberia <span class="vs">v</span> Cape Verde</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 03:00</td>
+    <td class="mono">4</td>
+    <td>Mauritania <span class="vs">v</span> Burkina Faso</td>
+    <td class="scores"><span class="sc">1 – 1 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 03:00</td>
+    <td class="mono">4</td>
+    <td>Rwanda <span class="vs">v</span> Mali</td>
+    <td class="scores"><span class="sc">0 – 0 <b>17%</b></span><span class="sc">1 – 0 <b>15%</b></span><span class="sc">1 – 1 <b>14%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-18 04:00</td>
+    <td class="mono">4</td>
+    <td>Niger <span class="vs">v</span> Morocco</td>
+    <td class="scores"><span class="sc">0 – 2 <b>14%</b></span><span class="sc">0 – 1 <b>14%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Angola <span class="vs">v</span> Egypt</td>
+    <td class="scores"><span class="sc">1 – 1 <b>15%</b></span><span class="sc">0 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Benin <span class="vs">v</span> Burkina Faso</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Botswana <span class="vs">v</span> Libya</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Burundi <span class="vs">v</span> Togo</td>
+    <td class="scores"><span class="sc">1 – 2 <b>8%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">1 – 1 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Cape Verde <span class="vs">v</span> Mali</td>
+    <td class="scores"><span class="sc">1 – 1 <b>15%</b></span><span class="sc">0 – 0 <b>11%</b></span><span class="sc">0 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Central African Republic <span class="vs">v</span> Mauritania</td>
+    <td class="scores"><span class="sc">0 – 1 <b>12%</b></span><span class="sc">1 – 1 <b>11%</b></span><span class="sc">0 – 2 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Comoros <span class="vs">v</span> Cameroon</td>
+    <td class="scores"><span class="sc">0 – 1 <b>20%</b></span><span class="sc">0 – 0 <b>19%</b></span><span class="sc">1 – 1 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Congo <span class="vs">v</span> Namibia</td>
+    <td class="scores"><span class="sc">2 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">3 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Equatorial Guinea <span class="vs">v</span> DR Congo</td>
+    <td class="scores"><span class="sc">1 – 0 <b>16%</b></span><span class="sc">0 – 0 <b>14%</b></span><span class="sc">1 – 1 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Eritrea <span class="vs">v</span> Kenya</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Ethiopia <span class="vs">v</span> Sudan</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Gabon <span class="vs">v</span> Morocco</td>
+    <td class="scores"><span class="sc">0 – 2 <b>10%</b></span><span class="sc">0 – 3 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">03-25 01:00</td>
+    <td class="mono">5</td>
+    <td>Ghana <span class="vs">v</span> Ivory Coast</td>
+    <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">0 – 3 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 23115 場，其中本盃歷史 294 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-AUC">
+  <div class="chead">
+    <div>
+      <h2>Supercopa Argentina <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 AUC · 2026/2027 · 當前：Final · 未踢 1 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Independiente Rivadavia<span class="elo">1509</span></td><td class="num">51.9%</td><td class="num">51.9%</td><td class="num ch">51.9%</td></tr><tr><td class="tm"><span class="rk">2</span>Estudiantes<span class="elo">1468</span></td><td class="num">48.1%</td><td class="num">48.1%</td><td class="num ch">48.1%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-13 07:00</td>
+    <td class="mono">Final</td>
+    <td>Estudiantes <span class="vs">v</span> Independiente Rivadavia</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 21546 場，其中本盃歷史 0 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-CUP">
+  <div class="chead">
+    <div>
+      <h2>SAFF Championship <span class="fmt">分組＋淘汰</span></h2>
+      <div class="chsub">馬會代號 CUP · 2026/2027 · 分組賽進行中（淘汰賽未抽籤） · 未踢 0 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th>組</th><th class="num">分組首名</th><th class="num">出線</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>India<span class="elo">1472</span></td><td class="mono">2</td><td class="num">100.0%</td><td class="num">100.0%</td><td class="num ch">25.9%</td></tr><tr><td class="tm"><span class="rk">2</span>Pakistan<span class="elo">1505</span></td><td class="mono">2</td><td class="num">0.0%</td><td class="num">100.0%</td><td class="num ch">25.6%</td></tr><tr><td class="tm"><span class="rk">3</span>Bhutan<span class="elo">1455</span></td><td class="mono">1</td><td class="num">0.0%</td><td class="num">100.0%</td><td class="num ch">24.7%</td></tr><tr><td class="tm"><span class="rk">4</span>Bangladesh<span class="elo">1506</span></td><td class="mono">1</td><td class="num">100.0%</td><td class="num">100.0%</td><td class="num ch">23.8%</td></tr><tr><td class="tm"><span class="rk">5</span>Sri Lanka<span class="elo">1528</span></td><td class="mono">1</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">6</span>Maldives<span class="elo">1444</span></td><td class="mono">2</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr></tbody></table>
+    
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 20040 場，其中本盃歷史 14 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-JLC">
+  <div class="chead">
+    <div>
+      <h2>J. League Cup <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 JLC · 2026/2027 · 當前：1/4 · 未踢 4 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Kashiwa Reysol<span class="elo">1670</span></td><td class="num">90.8%</td><td class="num">44.6%</td><td class="num ch">22.2%</td></tr><tr><td class="tm"><span class="rk">2</span>Machida Zelvia<span class="elo">1613</span></td><td class="num">87.2%</td><td class="num">44.1%</td><td class="num ch">22.1%</td></tr><tr><td class="tm"><span class="rk">3</span>Urawa Red Diamonds<span class="elo">1564</span></td><td class="num">86.5%</td><td class="num">43.7%</td><td class="num ch">21.8%</td></tr><tr><td class="tm"><span class="rk">4</span>Kashima Antlers<span class="elo">1617</span></td><td class="num">83.0%</td><td class="num">41.4%</td><td class="num ch">21.0%</td></tr><tr><td class="tm"><span class="rk">5</span>Yokohama F.Marinos<span class="elo">1540</span></td><td class="num">17.0%</td><td class="num">8.4%</td><td class="num ch">4.1%</td></tr><tr><td class="tm"><span class="rk">6</span>Vissel Kobe<span class="elo">1592</span></td><td class="num">12.8%</td><td class="num">6.6%</td><td class="num ch">3.3%</td></tr><tr><td class="tm"><span class="rk">7</span>Cerezo Osaka<span class="elo">1528</span></td><td class="num">13.5%</td><td class="num">6.7%</td><td class="num ch">3.3%</td></tr><tr><td class="tm"><span class="rk">8</span>Kawasaki Frontale<span class="elo">1559</span></td><td class="num">9.2%</td><td class="num">4.6%</td><td class="num ch">2.3%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-15 13:00</td>
+    <td class="mono">1/4 · 兩回合</td>
+    <td>Machida Zelvia <span class="vs">v</span> Vissel Kobe</td>
+    <td class="scores"><span class="sc">1 – 0 <b>15%</b></span><span class="sc">1 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 14:00</td>
+    <td class="mono">1/4 · 兩回合</td>
+    <td>Kashima Antlers <span class="vs">v</span> Yokohama F.Marinos</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 14:00</td>
+    <td class="mono">1/4 · 兩回合</td>
+    <td>Cerezo Osaka <span class="vs">v</span> Urawa Red Diamonds</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 16:00</td>
+    <td class="mono">1/4 · 兩回合</td>
+    <td>Kashiwa Reysol <span class="vs">v</span> Kawasaki Frontale</td>
+    <td class="scores"><span class="sc">2 – 1 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span><span class="sc">3 – 0 <b>6%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 23102 場，其中本盃歷史 281 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-SFC">
+  <div class="chead">
+    <div>
+      <h2>Copa del Rey <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 SFC · 2026/2027 · 當前：1st Round · 未踢 16 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    <div class="warn">20／112 隊冇歷史數據（用聯賽平均值先驗，唔係數據）：Mijas-Las Lagunas、Trival Valderas、CD Badajoz、CS Puertollano、Anaitasuna FT、CD Tarancon、Pamplona、Tavernes de la Valldigna、Alcoyano、CF Calamocha、UD Pinatar、Castellonense、Sporting de Alcazar、Peña Sport、Atletico Calatayud、UB Lebrijana、AE Prat、Auriense、Ribadesella CF、Sporting Hortaleza；本輪 9／16 場因此<b>唔出典型比分</b></div>
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Sevilla<span class="elo">1553</span></td><td class="num">100.0%</td><td class="num">4.0%</td><td class="num ch">2.0%</td></tr><tr><td class="tm"><span class="rk">2</span>Zamora<span class="elo">1498</span></td><td class="num">100.0%</td><td class="num">3.6%</td><td class="num ch">2.0%</td></tr><tr><td class="tm"><span class="rk">3</span>CD Coria<span class="elo">1485</span></td><td class="num">100.0%</td><td class="num">3.7%</td><td class="num ch">2.0%</td></tr><tr><td class="tm"><span class="rk">4</span>Sestao<span class="elo">1497</span></td><td class="num">100.0%</td><td class="num">3.9%</td><td class="num ch">2.0%</td></tr><tr><td class="tm"><span class="rk">5</span>Elche<span class="elo">1521</span></td><td class="num">100.0%</td><td class="num">4.0%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">6</span>Getafe<span class="elo">1545</span></td><td class="num">100.0%</td><td class="num">3.6%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">7</span>AD Ceuta FC<span class="elo">1449</span></td><td class="num">100.0%</td><td class="num">3.8%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">8</span>Málaga<span class="elo">1535</span></td><td class="num">100.0%</td><td class="num">3.7%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">9</span>FC Andorra<span class="elo">1481</span></td><td class="num">100.0%</td><td class="num">3.6%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">10</span>Real Valladolid<span class="elo">1473</span></td><td class="num">100.0%</td><td class="num">3.7%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">11</span>Sporting Gijón<span class="elo">1531</span></td><td class="num">100.0%</td><td class="num">3.7%</td><td class="num ch">1.9%</td></tr><tr><td class="tm"><span class="rk">12</span>Almería<span class="elo">1617</span></td><td class="num">100.0%</td><td class="num">3.8%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">13</span>Cultural Leonesa<span class="elo">1422</span></td><td class="num">100.0%</td><td class="num">3.6%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">14</span>CE Europa<span class="elo">1489</span></td><td class="num">100.0%</td><td class="num">3.5%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">15</span>Athletic Club<span class="elo">1556</span></td><td class="num">100.0%</td><td class="num">3.4%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">16</span>Arosa SC<span class="elo">1497</span></td><td class="num">100.0%</td><td class="num">3.4%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">17</span>CD Atlético Paso<span class="elo">1476</span></td><td class="num">100.0%</td><td class="num">3.5%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">18</span>Cádiz<span class="elo">1399</span></td><td class="num">100.0%</td><td class="num">3.4%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">19</span>Granada<span class="elo">1518</span></td><td class="num">100.0%</td><td class="num">3.5%</td><td class="num ch">1.8%</td></tr><tr><td class="tm"><span class="rk">20</span>Burgos CF<span class="elo">1600</span></td><td class="num">100.0%</td><td class="num">3.7%</td><td class="num ch">1.8%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-11 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>Anaitasuna FT <span class="vs">v</span> Deportivo Alavés</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-11 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>Pamplona <span class="vs">v</span> Eibar</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-11 03:00</td>
+    <td class="mono">1st Round</td>
+    <td>Mijas-Las Lagunas <span class="vs">v</span> Real Jaén</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-11 03:00</td>
+    <td class="mono">1st Round</td>
+    <td>SD Amorebieta <span class="vs">v</span> Logroñés</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>7%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-11 03:00</td>
+    <td class="mono">1st Round</td>
+    <td>Trival Valderas <span class="vs">v</span> Leganés</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-11 04:00</td>
+    <td class="mono">1st Round</td>
+    <td>Tavernes de la Valldigna <span class="vs">v</span> Valencia</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-13 01:30</td>
+    <td class="mono">1st Round</td>
+    <td>CS Puertollano <span class="vs">v</span> Albacete</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-13 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>CD Tarancon <span class="vs">v</span> Levante</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-13 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>Navalcarnero <span class="vs">v</span> Real Betis</td>
+    <td class="scores"><span class="sc">0 – 3 <b>9%</b></span><span class="sc">1 – 3 <b>8%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-14 04:00</td>
+    <td class="mono">1st Round</td>
+    <td>Salamanca CF UDS <span class="vs">v</span> Celta Vigo</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">0 – 2 <b>11%</b></span><span class="sc">0 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>Portugalete <span class="vs">v</span> Real Unión</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 02:00</td>
+    <td class="mono">1st Round</td>
+    <td>Utebo <span class="vs">v</span> Sabadell</td>
+    <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">0 – 1 <b>13%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 03:00</td>
+    <td class="mono">1st Round</td>
+    <td>Alcoyano <span class="vs">v</span> Mallorca</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-19 03:00</td>
+    <td class="mono">1st Round</td>
+    <td>CD Badajoz <span class="vs">v</span> Tenerife</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr><tr>
+    <td class="mono">11-19 03:30</td>
+    <td class="mono">1st Round</td>
+    <td>Deportiva Minera <span class="vs">v</span> Cartagena</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 03:30</td>
+    <td class="mono">1st Round</td>
+    <td>Reus <span class="vs">v</span> Barakaldo</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 19642 場，其中本盃歷史 406 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-UCLW">
+  <div class="chead">
+    <div>
+      <h2>Women's Champions League <span class="fmt">聯賽階段</span></h2>
+      <div class="chsub">馬會代號 UCLW · 2026/2027 · 聯賽階段進行中（未有淘汰賽抽籤） · 未踢 20 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">首名</th><th class="num">前 4</th><th class="num">前 8</th><th class="num">期望積分</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Barcelona (W)<span class="elo">1839</span></td><td class="num">81.2%</td><td class="num">99.7%</td><td class="num">100.0%</td><td class="num">16.7</td></tr><tr><td class="tm"><span class="rk">2</span>OL Lyonnes (W)<span class="elo">1774</span></td><td class="num">17.9%</td><td class="num">99.2%</td><td class="num">100.0%</td><td class="num">15.0</td></tr><tr><td class="tm"><span class="rk">3</span>Chelsea (W)<span class="elo">1701</span></td><td class="num">0.1%</td><td class="num">66.1%</td><td class="num">99.0%</td><td class="num">12.8</td></tr><tr><td class="tm"><span class="rk">4</span>Real Madrid (W)<span class="elo">1685</span></td><td class="num">0.0%</td><td class="num">44.7%</td><td class="num">96.3%</td><td class="num">11.3</td></tr><tr><td class="tm"><span class="rk">5</span>Manchester City (W)<span class="elo">1690</span></td><td class="num">0.0%</td><td class="num">43.1%</td><td class="num">97.4%</td><td class="num">11.2</td></tr><tr><td class="tm"><span class="rk">6</span>Bayern München (W)<span class="elo">1759</span></td><td class="num">0.3%</td><td class="num">26.2%</td><td class="num">98.2%</td><td class="num">11.5</td></tr><tr><td class="tm"><span class="rk">7</span>Arsenal (W)<span class="elo">1665</span></td><td class="num">0.6%</td><td class="num">15.7%</td><td class="num">86.3%</td><td class="num">10.4</td></tr><tr><td class="tm"><span class="rk">8</span>Juventus (W)<span class="elo">1507</span></td><td class="num">0.0%</td><td class="num">2.3%</td><td class="num">61.5%</td><td class="num">9.4</td></tr><tr><td class="tm"><span class="rk">9</span>Paris Saint Germain (W)<span class="elo">1605</span></td><td class="num">0.0%</td><td class="num">2.2%</td><td class="num">30.8%</td><td class="num">7.8</td></tr><tr><td class="tm"><span class="rk">10</span>Benfica (W)<span class="elo">1455</span></td><td class="num">0.0%</td><td class="num">0.7%</td><td class="num">22.5%</td><td class="num">7.7</td></tr><tr><td class="tm"><span class="rk">11</span>Roma (W)<span class="elo">1478</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">1.6%</td><td class="num">5.3</td></tr><tr><td class="tm"><span class="rk">12</span>Paris FC (W)<span class="elo">1593</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">3.0%</td><td class="num">7.0</td></tr><tr><td class="tm"><span class="rk">13</span>HB Køge (W)<span class="elo">1501</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">3.0%</td><td class="num">5.9</td></tr><tr><td class="tm"><span class="rk">14</span>Inter (W)<span class="elo">1500</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.3%</td><td class="num">4.5</td></tr><tr><td class="tm"><span class="rk">15</span>Servette (W)<span class="elo">1486</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">3.4</td></tr><tr><td class="tm"><span class="rk">16</span>BK Häcken (W)<span class="elo">1489</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">2.5</td></tr><tr><td class="tm"><span class="rk">17</span>Oud-Heverlee Leuven (W)<span class="elo">1467</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">2.4</td></tr><tr><td class="tm"><span class="rk">18</span>Austria Wien W (W)<span class="elo">1483</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">2.2</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-13 01:45</td>
+    <td class="mono">4</td>
+    <td>Barcelona (W) <span class="vs">v</span> Arsenal (W)</td>
+    <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">3 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-13 04:00</td>
+    <td class="mono">4</td>
+    <td>Benfica (W) <span class="vs">v</span> Austria Wien W (W)</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">0 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 01:45</td>
+    <td class="mono">5</td>
+    <td>BK Häcken (W) <span class="vs">v</span> Manchester City (W)</td>
+    <td class="scores"><span class="sc">0 – 2 <b>16%</b></span><span class="sc">0 – 1 <b>14%</b></span><span class="sc">0 – 3 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 01:45</td>
+    <td class="mono">5</td>
+    <td>Real Madrid (W) <span class="vs">v</span> Inter (W)</td>
+    <td class="scores"><span class="sc">3 – 0 <b>11%</b></span><span class="sc">4 – 0 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 04:00</td>
+    <td class="mono">5</td>
+    <td>Chelsea (W) <span class="vs">v</span> Paris Saint Germain (W)</td>
+    <td class="scores"><span class="sc">1 – 0 <b>15%</b></span><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-19 04:00</td>
+    <td class="mono">5</td>
+    <td>Juventus (W) <span class="vs">v</span> Oud-Heverlee Leuven (W)</td>
+    <td class="scores"><span class="sc">3 – 0 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">4 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 01:45</td>
+    <td class="mono">5</td>
+    <td>Austria Wien W (W) <span class="vs">v</span> Bayern München (W)</td>
+    <td class="scores"><span class="sc">0 – 3 <b>12%</b></span><span class="sc">0 – 4 <b>12%</b></span><span class="sc">0 – 2 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 01:45</td>
+    <td class="mono">5</td>
+    <td>Paris FC (W) <span class="vs">v</span> HB Køge (W)</td>
+    <td class="scores"><span class="sc">3 – 0 <b>9%</b></span><span class="sc">2 – 0 <b>8%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 04:00</td>
+    <td class="mono">5</td>
+    <td>Arsenal (W) <span class="vs">v</span> OL Lyonnes (W)</td>
+    <td class="scores"><span class="sc">0 – 2 <b>11%</b></span><span class="sc">0 – 1 <b>11%</b></span><span class="sc">1 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 04:00</td>
+    <td class="mono">5</td>
+    <td>Barcelona (W) <span class="vs">v</span> Servette (W)</td>
+    <td class="scores"><span class="sc">10 – 0 <b>19%</b></span><span class="sc">9 – 0 <b>16%</b></span><span class="sc">8 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-20 04:00</td>
+    <td class="mono">5</td>
+    <td>Benfica (W) <span class="vs">v</span> Roma (W)</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">1 – 0 <b>12%</b></span><span class="sc">2 – 0 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Bayern München (W) <span class="vs">v</span> Barcelona (W)</td>
+    <td class="scores"><span class="sc">1 – 2 <b>10%</b></span><span class="sc">1 – 1 <b>9%</b></span><span class="sc">0 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>HB Køge (W) <span class="vs">v</span> Benfica (W)</td>
+    <td class="scores"><span class="sc">1 – 1 <b>13%</b></span><span class="sc">2 – 1 <b>9%</b></span><span class="sc">1 – 0 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Inter (W) <span class="vs">v</span> Arsenal (W)</td>
+    <td class="scores"><span class="sc">0 – 2 <b>14%</b></span><span class="sc">0 – 3 <b>12%</b></span><span class="sc">0 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Manchester City (W) <span class="vs">v</span> Austria Wien W (W)</td>
+    <td class="scores"><span class="sc">3 – 0 <b>12%</b></span><span class="sc">4 – 0 <b>12%</b></span><span class="sc">5 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>OL Lyonnes (W) <span class="vs">v</span> BK Häcken (W)</td>
+    <td class="scores"><span class="sc">4 – 0 <b>15%</b></span><span class="sc">3 – 0 <b>15%</b></span><span class="sc">5 – 0 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Oud-Heverlee Leuven (W) <span class="vs">v</span> Chelsea (W)</td>
+    <td class="scores"><span class="sc">0 – 3 <b>16%</b></span><span class="sc">0 – 2 <b>14%</b></span><span class="sc">0 – 4 <b>13%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Paris Saint Germain (W) <span class="vs">v</span> Juventus (W)</td>
+    <td class="scores"><span class="sc">1 – 1 <b>10%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Roma (W) <span class="vs">v</span> Real Madrid (W)</td>
+    <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">0 – 3 <b>11%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">12-17 04:00</td>
+    <td class="mono">6</td>
+    <td>Servette (W) <span class="vs">v</span> Paris FC (W)</td>
+    <td class="scores"><span class="sc">1 – 3 <b>7%</b></span><span class="sc">1 – 4 <b>7%</b></span><span class="sc">1 – 2 <b>6%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 21709 場，其中本盃歷史 229 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>單一聯賽階段：未抽淘汰賽，只出排名機率，唔出奪冠</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-UDC">
+  <div class="chead">
+    <div>
+      <h2>Copa Uruguay <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 UDC · 2026/2027 · 當前：1/4 · 未踢 2 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    <div class="warn">1／8 隊冇歷史數據（用聯賽平均值先驗，唔係數據）：CA Lito</div>
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Nacional<span class="elo">1629</span></td><td class="num">100.0%</td><td class="num">50.2%</td><td class="num ch">25.2%</td></tr><tr><td class="tm"><span class="rk">2</span>Liverpool FC<span class="elo">1612</span></td><td class="num">71.6%</td><td class="num">35.5%</td><td class="num ch">17.6%</td></tr><tr><td class="tm"><span class="rk">3</span>Montevideo City Torque<span class="elo">1590</span></td><td class="num">65.6%</td><td class="num">33.1%</td><td class="num ch">16.9%</td></tr><tr><td class="tm"><span class="rk">4</span>CA Lito<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">49.2%</td><td class="num">24.8%</td><td class="num ch">12.5%</td></tr><tr><td class="tm"><span class="rk">5</span>Danubio<span class="elo">1451</span></td><td class="num">50.8%</td><td class="num">25.3%</td><td class="num ch">12.3%</td></tr><tr><td class="tm"><span class="rk">6</span>Boston River<span class="elo">1490</span></td><td class="num">34.4%</td><td class="num">16.7%</td><td class="num ch">8.5%</td></tr><tr><td class="tm"><span class="rk">7</span>Juventud de las Piedras<span class="elo">1514</span></td><td class="num">28.4%</td><td class="num">14.2%</td><td class="num ch">7.0%</td></tr><tr><td class="tm"><span class="rk">8</span>Deportivo Maldonado<span class="elo">1575</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-11 03:30</td>
+    <td class="mono">1/4</td>
+    <td>Boston River <span class="vs">v</span> Montevideo City Torque</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-11 08:00</td>
+    <td class="mono">1/4</td>
+    <td>Liverpool FC <span class="vs">v</span> Juventud de las Piedras</td>
+    <td class="scores"><span class="sc">1 – 0 <b>16%</b></span><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 19311 場，其中本盃歷史 75 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-UECW">
+  <div class="chead">
+    <div>
+      <h2>UEFA Women's Europa Cup <span class="fmt">純淘汰賽</span></h2>
+      <div class="chsub">馬會代號 UECW · 2026/2027 · 當前：8th Finals · 未踢 1 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    <div class="warn">7／16 隊冇歷史數據（用聯賽平均值先驗，唔係數據）：Torreense (W)、Brøndby IF (W)、Czarni Sosnowiec (W)、Spartak Myjava (W)、Fenerbahçe (W)、Feyenoord (W)、Malmö FF (W)；本輪 1／1 場因此<b>唔出典型比分</b></div>
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">晉級下一圈</th><th class="num">入決賽</th><th class="num">奪冠</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>VfL Wolfsburg (W)<span class="elo">1652</span></td><td class="num">100.0%</td><td class="num">47.1%</td><td class="num ch">24.1%</td></tr><tr><td class="tm"><span class="rk">2</span>Hammarby IF (W)<span class="elo">1527</span></td><td class="num">100.0%</td><td class="num">33.7%</td><td class="num ch">16.9%</td></tr><tr><td class="tm"><span class="rk">3</span>Eintracht Frankfurt (W)<span class="elo">1616</span></td><td class="num">100.0%</td><td class="num">25.7%</td><td class="num ch">13.0%</td></tr><tr><td class="tm"><span class="rk">4</span>Brann (W)<span class="elo">1490</span></td><td class="num">100.0%</td><td class="num">24.4%</td><td class="num ch">12.1%</td></tr><tr><td class="tm"><span class="rk">5</span>Real Sociedad (W)<span class="elo">1597</span></td><td class="num">100.0%</td><td class="num">24.3%</td><td class="num ch">11.8%</td></tr><tr><td class="tm"><span class="rk">6</span>Ajax (W)<span class="elo">1508</span></td><td class="num">100.0%</td><td class="num">16.6%</td><td class="num ch">8.1%</td></tr><tr><td class="tm"><span class="rk">7</span>Sparta Prague (W)<span class="elo">1503</span></td><td class="num">51.8%</td><td class="num">13.3%</td><td class="num ch">6.6%</td></tr><tr><td class="tm"><span class="rk">8</span>Torreense (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">48.2%</td><td class="num">11.8%</td><td class="num ch">5.8%</td></tr><tr><td class="tm"><span class="rk">9</span>Brøndby IF (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">100.0%</td><td class="num">2.9%</td><td class="num ch">1.5%</td></tr><tr><td class="tm"><span class="rk">10</span>Czarni Sosnowiec (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">11</span>Spartak Myjava (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">12</span>PSV (W)<span class="elo">1491</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">13</span>Fenerbahçe (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">14</span>Feyenoord (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">15</span>Malmö FF (W)<span class="nod" title="呢隊冇歷史數據，用聯賽平均值先驗">無數據</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr><tr><td class="tm"><span class="rk">16</span>Rosenborg BK (W)<span class="elo">1500</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num ch">0.0%</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-13 01:00</td>
+    <td class="mono">8th Finals · 兩回合</td>
+    <td>Torreense (W) <span class="vs">v</span> Sparta Prague (W)</td>
+    <td class="scores"><span class="nodata">有球隊冇歷史數據 · 唔出比分</span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 21607 場，其中本盃歷史 61 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>和局以十二碼 50/50 決勝（唔模擬加時）</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<section class="cup" id="cup-ULP">
+  <div class="chead">
+    <div>
+      <h2>League Cup <span class="fmt">聯賽階段</span></h2>
+      <div class="chsub">馬會代號 ULP · 2026/2027 · 聯賽階段進行中（未有淘汰賽抽籤） · 未踢 21 場</div>
+    </div>
+    <div class="chstat"><b>10,000</b><span>次模擬</span></div>
+  </div>
+  <div class="cbody">
+    
+    <table class="gt"><thead><tr><th>球隊</th><th class="num">首名</th><th class="num">前 4</th><th class="num">前 8</th><th class="num">期望積分</th></tr></thead><tbody><tr><td class="tm"><span class="rk">1</span>Al-Wasl<span class="elo">1577</span></td><td class="num">59.7%</td><td class="num">97.8%</td><td class="num">100.0%</td><td class="num">15.6</td></tr><tr><td class="tm"><span class="rk">2</span>Al-Jazira<span class="elo">1585</span></td><td class="num">27.5%</td><td class="num">94.6%</td><td class="num">99.9%</td><td class="num">14.5</td></tr><tr><td class="tm"><span class="rk">3</span>Al-Nasr SC<span class="elo">1534</span></td><td class="num">8.9%</td><td class="num">71.9%</td><td class="num">98.6%</td><td class="num">12.1</td></tr><tr><td class="tm"><span class="rk">4</span>Shabab Al-Ahli Dubai FC<span class="elo">1607</span></td><td class="num">1.6%</td><td class="num">63.4%</td><td class="num">97.0%</td><td class="num">11.7</td></tr><tr><td class="tm"><span class="rk">5</span>Ajman<span class="elo">1477</span></td><td class="num">2.2%</td><td class="num">48.3%</td><td class="num">99.1%</td><td class="num">11.6</td></tr><tr><td class="tm"><span class="rk">6</span>Al-Ain<span class="elo">1660</span></td><td class="num">0.0%</td><td class="num">6.5%</td><td class="num">85.9%</td><td class="num">8.9</td></tr><tr><td class="tm"><span class="rk">7</span>Al-Wahda<span class="elo">1537</span></td><td class="num">0.0%</td><td class="num">6.2%</td><td class="num">60.3%</td><td class="num">8.0</td></tr><tr><td class="tm"><span class="rk">8</span>Sharjah Cultural Club<span class="elo">1506</span></td><td class="num">0.0%</td><td class="num">5.0%</td><td class="num">67.1%</td><td class="num">8.5</td></tr><tr><td class="tm"><span class="rk">9</span>Baniyas<span class="elo">1426</span></td><td class="num">0.2%</td><td class="num">4.1%</td><td class="num">43.8%</td><td class="num">7.7</td></tr><tr><td class="tm"><span class="rk">10</span>Kalba FC<span class="elo">1453</span></td><td class="num">0.0%</td><td class="num">1.4%</td><td class="num">28.0%</td><td class="num">6.8</td></tr><tr><td class="tm"><span class="rk">11</span>United FC<span class="elo">1484</span></td><td class="num">0.0%</td><td class="num">0.8%</td><td class="num">18.1%</td><td class="num">5.7</td></tr><tr><td class="tm"><span class="rk">12</span>Al-Dhafra<span class="elo">1399</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.3%</td><td class="num">1.9</td></tr><tr><td class="tm"><span class="rk">13</span>Khorfakkan<span class="elo">1456</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">1.3%</td><td class="num">2.7</td></tr><tr><td class="tm"><span class="rk">14</span>Hatta<span class="elo">1447</span></td><td class="num">0.0%</td><td class="num">0.0%</td><td class="num">0.7%</td><td class="num">2.6</td></tr></tbody></table>
+    <div class="sect-title sm">未踢場次 · 最可能比分（前 3）</div><div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>輪次</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+    <td class="mono">11-14 20:50</td>
+    <td class="mono">4</td>
+    <td>Al-Dhafra <span class="vs">v</span> Ajman</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-14 23:30</td>
+    <td class="mono">4</td>
+    <td>Al-Wasl <span class="vs">v</span> Al-Nasr SC</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-14 23:30</td>
+    <td class="mono">4</td>
+    <td>Hatta <span class="vs">v</span> Al-Ain</td>
+    <td class="scores"><span class="sc">0 – 3 <b>13%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">0 – 4 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 20:50</td>
+    <td class="mono">4</td>
+    <td>Al-Wahda <span class="vs">v</span> Khorfakkan</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">1 – 1 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 20:50</td>
+    <td class="mono">4</td>
+    <td>United FC <span class="vs">v</span> Sharjah Cultural Club</td>
+    <td class="scores"><span class="sc">2 – 2 <b>7%</b></span><span class="sc">1 – 2 <b>6%</b></span><span class="sc">2 – 3 <b>6%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 23:30</td>
+    <td class="mono">4</td>
+    <td>Al-Jazira <span class="vs">v</span> Baniyas</td>
+    <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">3 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">11-15 23:30</td>
+    <td class="mono">4</td>
+    <td>Kalba FC <span class="vs">v</span> Shabab Al-Ahli Dubai FC</td>
+    <td class="scores"><span class="sc">0 – 2 <b>11%</b></span><span class="sc">0 – 3 <b>9%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-07 21:00</td>
+    <td class="mono">5</td>
+    <td>Al-Jazira <span class="vs">v</span> Ajman</td>
+    <td class="scores"><span class="sc">2 – 0 <b>11%</b></span><span class="sc">3 – 0 <b>9%</b></span><span class="sc">2 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-07 21:00</td>
+    <td class="mono">5</td>
+    <td>Kalba FC <span class="vs">v</span> United FC</td>
+    <td class="scores"><span class="sc">2 – 2 <b>7%</b></span><span class="sc">2 – 1 <b>6%</b></span><span class="sc">3 – 2 <b>6%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-07 23:45</td>
+    <td class="mono">5</td>
+    <td>Al-Nasr SC <span class="vs">v</span> Al-Dhafra</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">3 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-07 23:45</td>
+    <td class="mono">5</td>
+    <td>Shabab Al-Ahli Dubai FC <span class="vs">v</span> Al-Wahda</td>
+    <td class="scores"><span class="sc">1 – 0 <b>13%</b></span><span class="sc">2 – 0 <b>13%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-08 21:00</td>
+    <td class="mono">5</td>
+    <td>Baniyas <span class="vs">v</span> Al-Wasl</td>
+    <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">0 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>10%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-08 21:00</td>
+    <td class="mono">5</td>
+    <td>Hatta <span class="vs">v</span> Khorfakkan</td>
+    <td class="scores"><span class="sc">1 – 1 <b>11%</b></span><span class="sc">1 – 2 <b>10%</b></span><span class="sc">0 – 1 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-08 23:45</td>
+    <td class="mono">5</td>
+    <td>Al-Ain <span class="vs">v</span> Sharjah Cultural Club</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">3 – 0 <b>11%</b></span><span class="sc">2 – 1 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-11 21:05</td>
+    <td class="mono">6</td>
+    <td>Al-Dhafra <span class="vs">v</span> Al-Jazira</td>
+    <td class="scores"><span class="sc">0 – 2 <b>11%</b></span><span class="sc">0 – 3 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-11 21:05</td>
+    <td class="mono">6</td>
+    <td>Al-Wahda <span class="vs">v</span> Kalba FC</td>
+    <td class="scores"><span class="sc">2 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">1 – 1 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-11 23:45</td>
+    <td class="mono">6</td>
+    <td>Ajman <span class="vs">v</span> Shabab Al-Ahli Dubai FC</td>
+    <td class="scores"><span class="sc">0 – 2 <b>11%</b></span><span class="sc">1 – 2 <b>9%</b></span><span class="sc">0 – 3 <b>9%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-12 21:05</td>
+    <td class="mono">6</td>
+    <td>Baniyas <span class="vs">v</span> Al-Nasr SC</td>
+    <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">0 – 1 <b>11%</b></span><span class="sc">0 – 2 <b>11%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-12 21:05</td>
+    <td class="mono">6</td>
+    <td>United FC <span class="vs">v</span> Al-Wasl</td>
+    <td class="scores"><span class="sc">1 – 3 <b>8%</b></span><span class="sc">1 – 4 <b>6%</b></span><span class="sc">1 – 2 <b>6%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-12 23:45</td>
+    <td class="mono">6</td>
+    <td>Khorfakkan <span class="vs">v</span> Al-Ain</td>
+    <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">0 – 3 <b>10%</b></span><span class="sc">1 – 2 <b>8%</b></span></td>
+  </tr><tr>
+    <td class="mono">01-12 23:45</td>
+    <td class="mono">6</td>
+    <td>Sharjah Cultural Club <span class="vs">v</span> Hatta</td>
+    <td class="scores"><span class="sc">2 – 0 <b>11%</b></span><span class="sc">3 – 0 <b>10%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+  </tr></tbody></table></div>
+    <details class="assump"><summary>模型假設（5 條，全部可查）</summary><ol><li>隊力池＝registry 內全部聯賽近兩季＋本盃上兩屆（合共 22846 場，其中本盃歷史 25 場），攻防擬合開總量校正</li><li>合成強度：Elo 0.70、攻防 0.20、近況 0.10（年齡／教練／戰術冇可靠數據源，設 0）</li><li>單一聯賽階段：未抽淘汰賽，只出排名機率，唔出奪冠</li><li>下一圈未抽籤時隨機抽籤、主場隨機（馬會／FotMob 未提供未來對賽）</li><li>兩回合對賽按合計入球，和則十二碼 50/50</li></ol></details>
+  </div>
+</section>
+<footer>Step 3 盃賽模擬 · 模型輸出非投注建議 · 賽制數據源 FotMob＋馬會賽程</footer>
+</div></body></html>

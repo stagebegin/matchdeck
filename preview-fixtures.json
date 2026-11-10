@@ -1,1 +1,3799 @@
-{"generated":"2026-11-07T16:10:50.779Z","counts":{"pre":2,"live":1,"ft":1},"calib":[{"lg":47,"name":"EPL","n":1020,"acc_base":0.5176,"acc_cal":0.5186,"brier_base":0.5936,"brier_cal":0.5904,"n_rows":1232},{"lg":48,"name":"ED1","n":1496,"acc_base":0.4472,"acc_cal":0.4532,"brier_base":0.6443,"brier_cal":0.6353,"n_rows":1841},{"lg":132,"name":"EFA","n":248,"acc_base":0.4435,"acc_cal":0.4435,"brier_base":0.6533,"brier_cal":0.6091,"n_rows":397},{"lg":87,"name":"SFL","n":1030,"acc_base":0.5223,"acc_cal":0.532,"brier_base":0.5857,"brier_cal":0.5836,"n_rows":1251},{"lg":140,"name":"SF2","n":1230,"acc_base":0.4553,"acc_cal":0.4626,"brier_base":0.6433,"brier_cal":0.6329,"n_rows":1536},{"lg":55,"name":"ISA","n":1056,"acc_base":0.5246,"acc_cal":0.5265,"brier_base":0.5891,"brier_cal":0.5854,"n_rows":1241},{"lg":54,"name":"GSL","n":812,"acc_base":0.5222,"acc_cal":0.5234,"brier_base":0.5997,"brier_cal":0.5903,"n_rows":991},{"lg":146,"name":"GD2","n":812,"acc_base":0.4495,"acc_cal":0.4273,"brier_base":0.6505,"brier_cal":0.6349,"n_rows":1010},{"lg":53,"name":"FFL","n":835,"acc_base":0.5329,"acc_cal":0.5317,"brier_base":0.6008,"brier_cal":0.5943,"n_rows":1001},{"lg":110,"name":"FF2","n":844,"acc_base":0.4431,"acc_cal":0.4455,"brier_base":0.6458,"brier_cal":0.6394,"n_rows":1097},{"lg":57,"name":"DFL","n":849,"acc_base":0.5194,"acc_cal":0.5265,"brier_base":0.5896,"brier_cal":0.5775,"n_rows":1027},{"lg":111,"name":"DF2","n":1066,"acc_base":0.485,"acc_cal":0.4916,"brier_base":0.6213,"brier_cal":0.6146,"n_rows":1277},{"lg":61,"name":"PFL","n":837,"acc_base":0.5484,"acc_cal":0.5496,"brier_base":0.5579,"brier_cal":0.5519,"n_rows":1009},{"lg":40,"name":"BFL","n":857,"acc_base":0.5018,"acc_cal":0.4982,"brier_base":0.6144,"brier_cal":0.6048,"n_rows":1030},{"lg":64,"name":"SPL","n":647,"acc_base":0.5178,"acc_cal":0.5116,"brier_base":0.5866,"brier_cal":0.5774,"n_rows":753},{"lg":38,"name":"AT1","n":555,"acc_base":0.4937,"acc_cal":0.4901,"brier_base":0.628,"brier_cal":0.6159,"n_rows":652},{"lg":69,"name":"SU1","n":635,"acc_base":0.4488,"acc_cal":0.4598,"brier_base":0.6436,"brier_cal":0.6319,"n_rows":757},{"lg":46,"name":"DK1","n":540,"acc_base":0.4852,"acc_cal":0.4722,"brier_base":0.6369,"brier_cal":0.6265,"n_rows":658},{"lg":59,"name":"NTL","n":747,"acc_base":0.5288,"acc_cal":0.5315,"brier_base":0.5822,"brier_cal":0.5781,"n_rows":921},{"lg":67,"name":"SAL","n":768,"acc_base":0.4844,"acc_cal":0.4909,"brier_base":0.6216,"brier_cal":0.6141,"n_rows":937},{"lg":63,"name":"RPL","n":683,"acc_base":0.5242,"acc_cal":0.5329,"brier_base":0.5877,"brier_cal":0.5783,"n_rows":825},{"lg":223,"name":"JD1","n":956,"acc_base":0.4519,"acc_cal":0.4603,"brier_base":0.6458,"brier_cal":0.6386,"n_rows":1202},{"lg":8974,"name":"JD2","n":1118,"acc_base":0.4454,"acc_cal":0.4517,"brier_base":0.6489,"brier_cal":0.6396,"n_rows":1387},{"lg":9080,"name":"KD1","n":725,"acc_base":0.389,"acc_cal":0.3903,"brier_base":0.6663,"brier_cal":0.6555,"n_rows":890},{"lg":9116,"name":"KD2","n":821,"acc_base":0.4361,"acc_cal":0.4434,"brier_base":0.6497,"brier_cal":0.6433,"n_rows":1000},{"lg":113,"name":"AD1","n":387,"acc_base":0.4419,"acc_cal":0.4625,"brier_base":0.6579,"brier_cal":0.64,"n_rows":527},{"lg":9495,"name":"AD1W","n":312,"acc_base":0.484,"acc_cal":0.4968,"brier_base":0.6181,"brier_cal":0.6075,"n_rows":421},{"lg":8938,"name":"AD2","n":1153,"acc_base":0.5377,"acc_cal":0.5412,"brier_base":0.5871,"brier_cal":0.5759,"n_rows":1332},{"lg":130,"name":"MLS","n":1796,"acc_base":0.4733,"acc_cal":0.4666,"brier_base":0.6441,"brier_cal":0.6336,"n_rows":2078},{"lg":8972,"name":"USL","n":1331,"acc_base":0.4613,"acc_cal":0.4621,"brier_base":0.6345,"brier_cal":0.6283,"n_rows":1607},{"lg":230,"name":"MXL","n_rows":137,"insufficient":true,"reason":"樣本 137 < 300"},{"lg":8976,"name":"MD1","n":720,"acc_base":0.4847,"acc_cal":0.5069,"brier_base":0.6298,"brier_cal":0.6072,"n_rows":850},{"lg":273,"name":"CD1","n":737,"acc_base":0.4708,"acc_cal":0.4654,"brier_base":0.6291,"brier_cal":0.621,"n_rows":928},{"lg":112,"name":"APL","n":824,"acc_base":0.4175,"acc_cal":0.4466,"brier_base":0.6712,"brier_cal":0.6399,"n_rows":989},{"lg":8814,"name":"BD2","n":1051,"acc_base":0.4681,"acc_cal":0.4814,"brier_base":0.6231,"brier_cal":0.6169,"n_rows":1502},{"lg":9067,"name":"BDC","n":289,"acc_base":0.4118,"acc_cal":0.4291,"brier_base":0.6508,"brier_cal":0.6291,"n_rows":518},{"lg":8984,"name":"TL1","n":614,"acc_base":0.5537,"acc_cal":0.5619,"brier_base":0.5851,"brier_cal":0.5754,"n_rows":775},{"lg":538,"name":"UPR","n":408,"acc_base":0.5417,"acc_cal":0.5417,"brier_base":0.5772,"brier_cal":0.571,"n_rows":588},{"lg":535,"name":"QSL","n":311,"acc_base":0.5338,"acc_cal":0.5466,"brier_base":0.6017,"brier_cal":0.5932,"n_rows":446}],"pooled":{"v":1,"lg":"pooled","name":"pooled","n_samples":30824,"leagues":38,"W":[[0.2852,0.2622,-0.0639,-0.1997,0.5248,0.404,-0.3833],[-0.2098,-0.0377,0.1203,-0.0811,-0.1388,-0.1184,-0.1229],[-0.0754,-0.2245,-0.0563,0.2808,-0.3861,-0.2856,0.5063]],"mu":[0.45032,0.23219,0.31748,0.15015,0.53177,0.3163],"sd":[1.01453,1.00122,1.01189,1.02345,1.05772,1.05546],"metrics":{"n":30824,"acc_base":0.4838,"acc_cal":0.4861,"brier_base":0.6211,"brier_cal":0.6161},"ts":1794049723624},"rows":[{"id":"50079222","comp":"AD1","compName":"澳洲職業聯賽","kick":"2026-11-07T16:40:00.000+08:00","home":"墨爾本城","away":"西悉尼流浪者","homeEn":"","awayEn":"","status":"ft","minute":"","sh":null,"sa":null,"pred":{"pass":"t60","m_id":"50079222","home":"墨爾本城","away":"西悉尼流浪者","comp":"AD1","compName":"澳洲職業聯賽","kickoff":"2026-11-07T16:40:00.000+08:00","handicap":{"lines":[0,1,-1],"mark":null},"base":{"h":0.481,"d":0.252,"a":0.267,"lh":1.753,"la":1.26,"sl":0.5797},"factors":[{"p":"Elo 1553 vs 1462（差 92）","txt":"時序 Elo（K=20、主場 +60、走過 527 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/113/overview"},{"p":"攻防：主 att 0.98/def 0.89，客 att 0.98/def 1.02","txt":"時間衰減加權（半衰期 180 天）；H=1.209、base=1.453 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/113/overview"},{"p":"天氣 12℃、風 4km/h","txt":"FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":null,"fin":{"h":0.481,"d":0.252,"a":0.267,"ml":3.75,"conf":"★★★☆☆","cs":3,"risks":[]},"cal":null,"note":"","diag":{"league":113,"seasons":[[2023,169],[2024,176],[2025,163],[2026,19]],"n":527,"H":1.2092677556806026,"base":1.4530343944478874,"elo":{"home":1553.4078010864393,"away":1461.6941057847348},"lambda_adj":{"lh":1.7525152049718595,"la":1.2602847107522153,"adjH":1,"adjA":1},"injuries":{"home":[],"away":[]},"lineupState":"✅ 官方","handicap":{"0":{"h":0.4816518487959269,"d":0.22507056111736573,"a":0.2932775900867073},"1":{"h":0.7067224099132927,"d":0.15113265662519193,"a":0.1421449334615153},"-1":{"h":0.28083937177849816,"d":0.20081247701742866,"a":0.5183481512040733}},"o25":0.5796704447880906,"o35":0.3556341703605247,"btts":0.6009280264781692,"tops":[{"s":"1-1","p":0.11725002353779765},{"s":"2-1","p":0.09513076344134203},{"s":"1-0","p":0.0774579168341325},{"s":"2-0","p":0.07548354957393885},{"s":"1-2","p":0.06841130185186284}]},"ahd":{"mark":-0.5,"rows":[{"line":-2,"fav":"h","win":0.1173,"halfwin":0,"push":0.1489,"halflose":0,"lose":0.7338,"cover":0.1918},{"line":-1.75,"fav":"h","win":0.1173,"halfwin":0.1489,"push":0,"halflose":0,"lose":0.7338,"cover":0.1918},{"line":-1.5,"fav":"h","win":0.2662,"halfwin":0,"push":0,"halflose":0,"lose":0.7338,"cover":0.2662},{"line":-1.25,"fav":"h","win":0.2662,"halfwin":0,"push":0,"halflose":0.2148,"lose":0.519,"cover":0.2662},{"line":-1,"fav":"h","win":0.2662,"halfwin":0,"push":0.2148,"halflose":0,"lose":0.519,"cover":0.3736},{"line":-0.75,"fav":"h","win":0.2662,"halfwin":0.2148,"push":0,"halflose":0,"lose":0.519,"cover":0.3736},{"line":-0.5,"fav":"h","win":0.481,"halfwin":0,"push":0,"halflose":0,"lose":0.519,"cover":0.481},{"line":-0.25,"fav":"h","win":0.481,"halfwin":0,"push":0,"halflose":0.252,"lose":0.267,"cover":0.481},{"line":0,"fav":"h","win":0.481,"halfwin":0,"push":0.252,"halflose":0,"lose":0.267,"cover":0.607},{"line":0.25,"fav":"a","win":0.267,"halfwin":0,"push":0,"halflose":0.252,"lose":0.481,"cover":0.267},{"line":0.5,"fav":"a","win":0.267,"halfwin":0,"push":0,"halflose":0,"lose":0.733,"cover":0.267},{"line":0.75,"fav":"a","win":0.1149,"halfwin":0.152,"push":0,"halflose":0,"lose":0.733,"cover":0.191},{"line":1,"fav":"a","win":0.1149,"halfwin":0,"push":0.152,"halflose":0,"lose":0.733,"cover":0.191},{"line":1.25,"fav":"a","win":0.1149,"halfwin":0,"push":0,"halflose":0.152,"lose":0.733,"cover":0.1149},{"line":1.5,"fav":"a","win":0.1149,"halfwin":0,"push":0,"halflose":0,"lose":0.8851,"cover":0.1149},{"line":1.75,"fav":"a","win":0.0379,"halfwin":0.077,"push":0,"halflose":0,"lose":0.8851,"cover":0.0764},{"line":2,"fav":"a","win":0.0379,"halfwin":0,"push":0.077,"halflose":0,"lose":0.8851,"cover":0.0764}]}}},{"id":"50079230","comp":"ISA","compName":"意大利甲組聯賽","kick":"2026-11-07T22:00:00.000+08:00","home":"卡利亞里","away":"費辛隆尼","homeEn":"Cagliari","awayEn":"Frosinone","status":"ft","minute":"FT","sh":1,"sa":0,"pred":{"pass":"t25","m_id":"50079230","home":"卡利亞里","away":"費辛隆尼","comp":"ISA","compName":"意大利甲組聯賽","kickoff":"2026-11-07T22:00:00.000+08:00","handicap":{"lines":[0,1,-1],"mark":null},"base":{"h":0.1901,"d":0.1989,"a":0.611,"lh":1.316,"la":2.417,"sl":0.7201},"factors":[{"p":"Elo 1472 vs 1485（差 -14）","txt":"時序 Elo（K=20、主場 +60、走過 1241 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/55/overview"},{"p":"攻防：主 att 0.82/def 1.04，客 att 1.70/def 1.09","txt":"時間衰減加權（半衰期 180 天）；H=1.076、base=1.363 球","src":"同一批賽果擬合","url":"https://www.fotmob.com/leagues/55/overview"},{"p":"傷停：主 6 人（攻 2.5／防 0.5／門 0）、客 2 人（攻 1／防 0／門 0）","txt":"有界調整（非 skill 規定，我自訂）：攻缺 −2.0%/人、防缺 +2.0%/人、門將 −1.5%/人，限 ±8%；本場 λ 乘數 主 0.950／客 0.990","src":"FotMob 隊伍名單 injury 欄","url":"https://www.fotmob.com"},{"p":"天氣 21℃、風 3km/h","txt":"FotMob matchDetails","src":"FotMob","url":"https://www.fotmob.com"}],"reb":null,"fin":{"h":0.1804,"d":0.1992,"a":0.6204,"ml":1.61,"conf":"★★★☆☆","cs":3,"risks":[]},"cal":{"h":0.2231,"d":0.251,"a":0.5259,"src":"walk-forward logistic（Step 5）","n":1056,"alpha":0.68,"league_n":1241,"own":{"acc":0.5265,"brier":0.5854},"base":{"acc":0.5246,"brier":0.5891}},"note":"","diag":{"league":55,"seasons":[[2023,380],[2024,380],[2025,380],[2026,101]],"n":1241,"H":1.075864291374465,"base":1.3625148437523993,"elo":{"home":1471.5474715370062,"away":1485.1584556664804},"lambda_adj":{"lh":1.2505948541372678,"la":2.3927203179464893,"adjH":0.95,"adjA":0.99},"injuries":{"home":[{"name":"Yerry Mina","role":"defenders","age":32,"type":null,"since":null,"expected":"About 1-2 weeks"},{"name":"Riyad Idrissi","role":"midfielders","age":21,"type":null,"since":null,"expected":"Late November 2026"},{"name":"Mattia Felici","role":"midfielders","age":25,"type":null,"since":null,"expected":"Out for season"},{"name":"Giuseppe Aurelio","role":"midfielders","age":26,"type":null,"since":null,"expected":"Late November 2026"},{"name":"M'Bala Nzola","role":"attackers","age":30,"type":null,"since":null,"expected":"Late November 2026"},{"name":"Alieu Fadera","role":"attackers","age":25,"type":null,"since":null,"expected":"Late November 2026"}],"away":[{"name":"Florian Grillitsch","role":"midfielders","age":31,"type":null,"since":null,"expected":"Mid November 2026"},{"name":"Antonio Raimondo","role":"attackers","age":22,"type":null,"since":null,"expected":"Late January 2027"}]},"lineupState":"✅ 官方","handicap":{"0":{"h":0.22392320069511662,"d":0.17986641258245822,"a":0.5962103867224249},"1":{"h":0.4037896132775748,"d":0.19289110433820836,"a":0.40331928238421666},"-1":{"h":0.10823900602161292,"d":0.11568419467350365,"a":0.7760767993048833}},"o25":0.7201472394153298,"o35":0.5127536298669365,"btts":0.6727044902032167,"tops":[{"s":"1-2","p":0.09194810448017758},{"s":"1-1","p":0.08217501441587584},{"s":"1-3","p":0.07407612720080388},{"s":"0-2","p":0.06984732023100178},{"s":"2-2","p":0.06052096121609787}]},"ahd":{"mark":0.75,"rows":[{"line":-2,"fav":"h","win":0.0232,"halfwin":0,"push":0.0502,"halflose":0,"lose":0.9265,"cover":0.0483},{"line":-1.75,"fav":"h","win":0.0232,"halfwin":0.0502,"push":0,"halflose":0,"lose":0.9265,"cover":0.0483},{"line":-1.5,"fav":"h","win":0.0735,"halfwin":0,"push":0,"halflose":0,"lose":0.9265,"cover":0.0735},{"line":-1.25,"fav":"h","win":0.0735,"halfwin":0,"push":0,"halflose":0.1069,"lose":0.8196,"cover":0.0735},{"line":-1,"fav":"h","win":0.0735,"halfwin":0,"push":0.1069,"halflose":0,"lose":0.8196,"cover":0.1269},{"line":-0.75,"fav":"h","win":0.0735,"halfwin":0.1069,"push":0,"halflose":0,"lose":0.8196,"cover":0.1269},{"line":-0.5,"fav":"h","win":0.1804,"halfwin":0,"push":0,"halflose":0,"lose":0.8196,"cover":0.1804},{"line":-0.25,"fav":"h","win":0.1804,"halfwin":0,"push":0,"halflose":0.1992,"lose":0.6204,"cover":0.1804},{"line":0,"fav":"h","win":0.1804,"halfwin":0,"push":0.1992,"halflose":0,"lose":0.6204,"cover":0.28},{"line":0.25,"fav":"a","win":0.6204,"halfwin":0,"push":0,"halflose":0.1992,"lose":0.1804,"cover":0.6204},{"line":0.5,"fav":"a","win":0.6204,"halfwin":0,"push":0,"halflose":0,"lose":0.3796,"cover":0.6204},{"line":0.75,"fav":"a","win":0.4101,"halfwin":0.2103,"push":0,"halflose":0,"lose":0.3796,"cover":0.5153},{"line":1,"fav":"a","win":0.4101,"halfwin":0,"push":0.2103,"halflose":0,"lose":0.3796,"cover":0.5153},{"line":1.25,"fav":"a","win":0.4101,"halfwin":0,"push":0,"halflose":0.2103,"lose":0.3796,"cover":0.4101},{"line":1.5,"fav":"a","win":0.4101,"halfwin":0,"push":0,"halflose":0,"lose":0.5899,"cover":0.4101},{"line":1.75,"fav":"a","win":0.2262,"halfwin":0.1839,"push":0,"halflose":0,"lose":0.5899,"cover":0.3182},{"line":2,"fav":"a","win":0.2262,"halfwin":0,"push":0.1839,"halflose":0,"lose":0.5899,"cover":0.3182}]}}},{"id":"50079239","comp":"GSL","compName":"德國甲組聯賽","kick":"2026-11-07T22:30:00.000+08:00","home":"緬恩斯","away":"拜仁慕尼黑","homeEn":"Mainz","awayEn":"Bayern Munich","status":"pre","minute":"","sh":null,"sa":null,"pred":{"pass":"preview","m_id":"50079239","home":"緬恩斯","away":"拜仁慕尼黑","comp":"GSL","compName":"德國甲組聯賽","kickoff":"2026-11-07T22:30:00.000+08:00","handicap":{"lines":[0,1,-1],"mark":1.25},"base":{"h":0.1942,"d":0.1487,"a":0.6571,"lh":2.056,"la":3.541,"sl":0.9174},"factors":[{"p":"Elo 1500 vs 1774（差 -274）","txt":"時序 Elo（K=20、主場 +60、走過 991 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/54/overview"},{"p":"攻防：主 att 1.18/def 1.13，客 att 1.92/def 0.77","txt":"時間衰減加權（半衰期 180 天）；H=1.385、base=1.633 球；λ 由 xG 擬合（非 skill 硬性規定，walk-forward 回測 Brier 0.6024→0.5906）","src":"FotMob matchDetails xG（每場 expected_goals）","url":"https://www.fotmob.com/leagues/54/overview"},{"p":"傷停：主 3 人（攻 1／防 0.5／門 0）、客 5 人（攻 2.5／防 0／門 0）","txt":"有界調整（非 skill 規定，我自訂）：攻缺 −2.0%/人、防缺 +2.0%/人、門將 −1.5%/人，限 ±8%；本場 λ 乘數 主 0.980／客 0.960","src":"FotMob 隊伍名單 injury 欄","url":"https://www.fotmob.com"}],"ahd":{"mark":1.25,"rows":[{"line":-2,"fav":"h","win":0.0427,"halfwin":0,"push":0.0583,"halflose":0,"lose":0.899,"cover":0.0718},{"line":-1.75,"fav":"h","win":0.0427,"halfwin":0.0583,"push":0,"halflose":0,"lose":0.899,"cover":0.0718},{"line":-1.5,"fav":"h","win":0.101,"halfwin":0,"push":0,"halflose":0,"lose":0.899,"cover":0.101},{"line":-1.25,"fav":"h","win":0.101,"halfwin":0,"push":0,"halflose":0.1012,"lose":0.7979,"cover":0.101},{"line":-1,"fav":"h","win":0.101,"halfwin":0,"push":0.1012,"halflose":0,"lose":0.7979,"cover":0.1516},{"line":-0.75,"fav":"h","win":0.101,"halfwin":0.1012,"push":0,"halflose":0,"lose":0.7979,"cover":0.1516},{"line":-0.5,"fav":"h","win":0.2021,"halfwin":0,"push":0,"halflose":0,"lose":0.7979,"cover":0.2021},{"line":-0.25,"fav":"h","win":0.2021,"halfwin":0,"push":0,"halflose":0.1546,"lose":0.6432,"cover":0.2021},{"line":0,"fav":"h","win":0.2021,"halfwin":0,"push":0.1546,"halflose":0,"lose":0.6432,"cover":0.2795},{"line":0.25,"fav":"a","win":0.6432,"halfwin":0,"push":0,"halflose":0.1546,"lose":0.2021,"cover":0.6432},{"line":0.5,"fav":"a","win":0.6432,"halfwin":0,"push":0,"halflose":0,"lose":0.3568,"cover":0.6432},{"line":0.75,"fav":"a","win":0.4709,"halfwin":0.1723,"push":0,"halflose":0,"lose":0.3568,"cover":0.5571},{"line":1,"fav":"a","win":0.4709,"halfwin":0,"push":0.1723,"halflose":0,"lose":0.3568,"cover":0.5571},{"line":1.25,"fav":"a","win":0.4709,"halfwin":0,"push":0,"halflose":0.1723,"lose":0.3568,"cover":0.4709},{"line":1.5,"fav":"a","win":0.4709,"halfwin":0,"push":0,"halflose":0,"lose":0.5291,"cover":0.4709},{"line":1.75,"fav":"a","win":0.305,"halfwin":0.1659,"push":0,"halflose":0,"lose":0.5291,"cover":0.388},{"line":2,"fav":"a","win":0.305,"halfwin":0,"push":0.1659,"halflose":0,"lose":0.5291,"cover":0.388}]},"reb":null,"fin":{"h":0.2021,"d":0.1546,"a":0.6432,"ml":1.55,"conf":"★☆☆☆☆","cs":1,"risks":[]},"cal":{"h":0.1405,"d":0.2487,"a":0.6108,"src":"walk-forward logistic（Step 5）","n":812,"alpha":0.62,"league_n":991,"own":{"acc":0.5234,"brier":0.5903},"base":{"acc":0.5222,"brier":0.5997}},"note":"","diag":{"league":54,"seasons":[[2023,306],[2024,306],[2025,306],[2026,73]],"n":991,"H":1.306222171547746,"base":1.6530599941033497,"elo":{"home":1500.212947470734,"away":1773.9726612803156},"lambda_adj":{"lh":2.015111282416346,"la":3.3993450094587523,"adjH":0.98,"adjA":0.96},"injuries":{"home":[{"name":"Dominik Kohr","role":"defenders","age":32,"type":null,"since":null,"expected":"Early January 2027"},{"name":"Otto Ruoppi","role":"midfielders","age":20,"type":null,"since":null,"expected":"Early November 2026"},{"name":"Silas Katompa Mvumpa","role":"attackers","age":28,"type":null,"since":null,"expected":"Early January 2027"}],"away":[{"name":"Serge Gnabry","role":"midfielders","age":31,"type":null,"since":null,"expected":"Early January 2027"},{"name":"Jamal Musiala","role":"midfielders","age":23,"type":null,"since":null,"expected":"Late November 2026"},{"name":"Ismael Saibari","role":"midfielders","age":25,"type":null,"since":null,"expected":"Early February 2027"},{"name":"Bara Ndiaye","role":"midfielders","age":18,"type":null,"since":null,"expected":"Mid November 2026"},{"name":"Luis Díaz","role":"attackers","age":29,"type":null,"since":null,"expected":"Late November 2026"}]},"lineupState":"◌ 未公開","handicap":{"0":{"h":0.22873119005923406,"d":0.1353671988903457,"a":0.6359016110504206},"1":{"h":0.36409838894958013,"d":0.15312933681881333,"a":0.48277227423160707},"-1":{"h":0.12970399390580506,"d":0.09902719615342911,"a":0.7712688099407662}},"o25":0.9173570764334682,"o35":0.8088609759466643,"btts":0.8489215612872936,"tops":[{"s":"2-3","p":0.058074417737166345},{"s":"1-3","p":0.05648614037253365},{"s":"2-4","p":0.0514101515916821},{"s":"1-4","p":0.050004135254937195},{"s":"2-2","p":0.049201926435136836}]}}},{"id":"50079314","comp":"SFL","compName":"西班牙甲組聯賽","kick":"2026-11-08T04:00:00.000+08:00","home":"華倫西亞","away":"皇家馬德里","homeEn":"Valencia","awayEn":"Real Madrid","status":"pre","minute":"","sh":null,"sa":null,"pred":{"pass":"preview","m_id":"50079314","home":"華倫西亞","away":"皇家馬德里","comp":"SFL","compName":"西班牙甲組聯賽","kickoff":"2026-11-08T04:00:00.000+08:00","handicap":{"lines":[0,1,-1],"mark":0.75},"base":{"h":0.199,"d":0.2319,"a":0.5691,"lh":1.102,"la":1.979,"sl":0.5947},"factors":[{"p":"Elo 1495 vs 1745（差 -250）","txt":"時序 Elo（K=20、主場 +60、走過 1251 場）","src":"FotMob 賽果","url":"https://www.fotmob.com/leagues/87/overview"},{"p":"攻防：主 att 0.85/def 0.91，客 att 1.56/def 0.71","txt":"時間衰減加權（半衰期 180 天）；H=1.321、base=1.388 球；λ 由 xG 擬合（非 skill 硬性規定，walk-forward 回測 Brier 0.6024→0.5906）","src":"FotMob matchDetails xG（每場 expected_goals）","url":"https://www.fotmob.com/leagues/87/overview"},{"p":"傷停：主 5 人（攻 1.5／防 1／門 0）、客 3 人（攻 0.5／防 1／門 0）","txt":"有界調整（非 skill 規定，我自訂）：攻缺 −2.0%/人、防缺 +2.0%/人、門將 −1.5%/人，限 ±8%；本場 λ 乘數 主 0.990／客 1.010","src":"FotMob 隊伍名單 injury 欄","url":"https://www.fotmob.com"}],"ahd":{"mark":0.75,"rows":[{"line":-2,"fav":"h","win":0.0216,"halfwin":0,"push":0.053,"halflose":0,"lose":0.9254,"cover":0.0481},{"line":-1.75,"fav":"h","win":0.0216,"halfwin":0.053,"push":0,"halflose":0,"lose":0.9254,"cover":0.0481},{"line":-1.5,"fav":"h","win":0.0746,"halfwin":0,"push":0,"halflose":0,"lose":0.9254,"cover":0.0746},{"line":-1.25,"fav":"h","win":0.0746,"halfwin":0,"push":0,"halflose":0.1195,"lose":0.8058,"cover":0.0746},{"line":-1,"fav":"h","win":0.0746,"halfwin":0,"push":0.1195,"halflose":0,"lose":0.8058,"cover":0.1344},{"line":-0.75,"fav":"h","win":0.0746,"halfwin":0.1195,"push":0,"halflose":0,"lose":0.8058,"cover":0.1344},{"line":-0.5,"fav":"h","win":0.1942,"halfwin":0,"push":0,"halflose":0,"lose":0.8058,"cover":0.1942},{"line":-0.25,"fav":"h","win":0.1942,"halfwin":0,"push":0,"halflose":0.2298,"lose":0.576,"cover":0.1942},{"line":0,"fav":"h","win":0.1942,"halfwin":0,"push":0.2298,"halflose":0,"lose":0.576,"cover":0.3091},{"line":0.25,"fav":"a","win":0.576,"halfwin":0,"push":0,"halflose":0.2298,"lose":0.1942,"cover":0.576},{"line":0.5,"fav":"a","win":0.576,"halfwin":0,"push":0,"halflose":0,"lose":0.424,"cover":0.576},{"line":0.75,"fav":"a","win":0.3504,"halfwin":0.2256,"push":0,"halflose":0,"lose":0.424,"cover":0.4632},{"line":1,"fav":"a","win":0.3504,"halfwin":0,"push":0.2256,"halflose":0,"lose":0.424,"cover":0.4632},{"line":1.25,"fav":"a","win":0.3504,"halfwin":0,"push":0,"halflose":0.2256,"lose":0.424,"cover":0.3504},{"line":1.5,"fav":"a","win":0.3504,"halfwin":0,"push":0,"halflose":0,"lose":0.6496,"cover":0.3504},{"line":1.75,"fav":"a","win":0.1726,"halfwin":0.1779,"push":0,"halflose":0,"lose":0.6496,"cover":0.2615},{"line":2,"fav":"a","win":0.1726,"halfwin":0,"push":0.1779,"halflose":0,"lose":0.6496,"cover":0.2615}]},"reb":null,"fin":{"h":0.1942,"d":0.2298,"a":0.576,"ml":1.74,"conf":"★★☆☆☆","cs":2,"risks":[]},"cal":{"h":0.1823,"d":0.2749,"a":0.5428,"src":"walk-forward logistic（Step 5）","n":1030,"alpha":0.67,"league_n":1251,"own":{"acc":0.532,"brier":0.5836},"base":{"acc":0.5223,"brier":0.5857}},"note":"","diag":{"league":87,"seasons":[[2023,380],[2024,380],[2025,380],[2026,111]],"n":1251,"H":1.351547284958093,"base":1.3925394648546163,"elo":{"home":1495.0915481684776,"away":1745.3860864756427},"lambda_adj":{"lh":1.0910857763505228,"la":1.9988754810306761,"adjH":0.99,"adjA":1.01},"injuries":{"home":[{"name":"José Copete","role":"defenders","age":27,"type":null,"since":null,"expected":"Back in training"},{"name":"Dimitri Foulquier","role":"defenders","age":33,"type":null,"since":null,"expected":"Doubtful"},{"name":"David Otorbi","role":"midfielders","age":19,"type":null,"since":null,"expected":"Early December 2026"},{"name":"Sergi Canós","role":"attackers","age":29,"type":null,"since":null,"expected":"Late November 2026"},{"name":"Diego López","role":"attackers","age":24,"type":null,"since":null,"expected":"Mid February 2027"}],"away":[{"name":"Raúl Asencio","role":"defenders","age":23,"type":null,"since":null,"expected":"Early January 2027"},{"name":"Ferland Mendy","role":"defenders","age":31,"type":null,"since":null,"expected":"Back in training"},{"name":"Rodrygo","role":"attackers","age":25,"type":null,"since":null,"expected":"Late December 2026"}]},"lineupState":"◌ 未公開","handicap":{"0":{"h":0.23073107480986382,"d":0.2108831738470975,"a":0.5583857513430383},"1":{"h":0.4416142486569615,"d":0.20992360785871444,"a":0.3484621434843236},"-1":{"h":0.10393054916240776,"d":0.12680052564745603,"a":0.7692689251901358}},"o25":0.5947489005263913,"o35":0.3709470649753085,"btts":0.5835477133822804,"tops":[{"s":"1-1","p":0.10813608745474991},{"s":"1-2","p":0.09907892089653852},{"s":"0-2","p":0.0898995604320492},{"s":"0-1","p":0.08283955655430723},{"s":"1-3","p":0.06536185665579827}]}}}]}
+{
+ "generated": "2026-11-12T10:28:36.228Z",
+ "counts": {
+  "ft": 3,
+  "live": 1,
+  "pre": 3
+ },
+ "calib": [
+  {
+   "lg": 110,
+   "name": "FF2",
+   "n": 844,
+   "acc_base": 0.4431,
+   "acc_cal": 0.4455,
+   "brier_base": 0.6458,
+   "brier_cal": 0.6394,
+   "n_rows": 1100
+  },
+  {
+   "lg": 111,
+   "name": "DF2",
+   "n": 1066,
+   "acc_base": 0.485,
+   "acc_cal": 0.4916,
+   "brier_base": 0.6213,
+   "brier_cal": 0.6146,
+   "n_rows": 1279
+  },
+  {
+   "lg": 112,
+   "name": "APL",
+   "n": 828,
+   "acc_base": 0.4094,
+   "acc_cal": 0.4469,
+   "brier_base": 0.671,
+   "brier_cal": 0.6402,
+   "n_rows": 996
+  },
+  {
+   "lg": 113,
+   "name": "AD1",
+   "n": 393,
+   "acc_base": 0.4453,
+   "acc_cal": 0.4707,
+   "brier_base": 0.6554,
+   "brier_cal": 0.6369,
+   "n_rows": 531
+  },
+  {
+   "lg": 130,
+   "name": "MLS",
+   "n": 1810,
+   "acc_base": 0.4729,
+   "acc_cal": 0.4669,
+   "brier_base": 0.6418,
+   "brier_cal": 0.6326,
+   "n_rows": 2093
+  },
+  {
+   "lg": 132,
+   "name": "EFA",
+   "n": 285,
+   "acc_base": 0.4667,
+   "acc_cal": 0.4526,
+   "brier_base": 0.6352,
+   "brier_cal": 0.6041,
+   "n_rows": 435
+  },
+  {
+   "lg": 138,
+   "name": "SFC",
+   "n": 193,
+   "acc_base": 0.5907,
+   "acc_cal": 0.601,
+   "brier_base": 0.5949,
+   "brier_cal": 0.5324,
+   "n_rows": 409
+  },
+  {
+   "lg": 140,
+   "name": "SF2",
+   "n": 1232,
+   "acc_base": 0.4521,
+   "acc_cal": 0.461,
+   "brier_base": 0.6403,
+   "brier_cal": 0.6334,
+   "n_rows": 1544
+  },
+  {
+   "lg": 142,
+   "name": "ELT",
+   "n": 311,
+   "acc_base": 0.5402,
+   "acc_cal": 0.5241,
+   "brier_base": 0.6091,
+   "brier_cal": 0.5842,
+   "n_rows": 453
+  },
+  {
+   "lg": 146,
+   "name": "GD2",
+   "n": 815,
+   "acc_base": 0.4577,
+   "acc_cal": 0.4282,
+   "brier_base": 0.646,
+   "brier_cal": 0.6356,
+   "n_rows": 1017
+  },
+  {
+   "lg": 161,
+   "name": "UD1",
+   "n": 931,
+   "acc_base": 0.4694,
+   "acc_cal": 0.4662,
+   "brier_base": 0.632,
+   "brier_cal": 0.627,
+   "n_rows": 1178
+  },
+  {
+   "lg": 223,
+   "name": "JD1",
+   "n": 956,
+   "acc_base": 0.4519,
+   "acc_cal": 0.4603,
+   "brier_base": 0.6458,
+   "brier_cal": 0.6386,
+   "n_rows": 1206
+  },
+  {
+   "lg": 273,
+   "name": "CD1",
+   "n": 739,
+   "acc_base": 0.475,
+   "acc_cal": 0.4655,
+   "brier_base": 0.6321,
+   "brier_cal": 0.6214,
+   "n_rows": 936
+  },
+  {
+   "lg": 38,
+   "name": "AT1",
+   "n": 561,
+   "acc_base": 0.492,
+   "acc_cal": 0.4955,
+   "brier_base": 0.625,
+   "brier_cal": 0.6151,
+   "n_rows": 657
+  },
+  {
+   "lg": 40,
+   "name": "BFL",
+   "n": 861,
+   "acc_base": 0.5017,
+   "acc_cal": 0.5041,
+   "brier_base": 0.6152,
+   "brier_cal": 0.6062,
+   "n_rows": 1038
+  },
+  {
+   "lg": 46,
+   "name": "DK1",
+   "n": 540,
+   "acc_base": 0.4852,
+   "acc_cal": 0.4722,
+   "brier_base": 0.6369,
+   "brier_cal": 0.6265,
+   "n_rows": 663
+  },
+  {
+   "lg": 47,
+   "name": "EPL",
+   "n": 1040,
+   "acc_base": 0.5144,
+   "acc_cal": 0.5154,
+   "brier_base": 0.5925,
+   "brier_cal": 0.591,
+   "n_rows": 1241
+  },
+  {
+   "lg": 48,
+   "name": "ED1",
+   "n": 1498,
+   "acc_base": 0.4486,
+   "acc_cal": 0.4513,
+   "brier_base": 0.6426,
+   "brier_cal": 0.6357,
+   "n_rows": 1852
+  },
+  {
+   "lg": 51,
+   "name": "FVL",
+   "n": 597,
+   "acc_base": 0.4841,
+   "acc_cal": 0.4824,
+   "brier_base": 0.632,
+   "brier_cal": 0.6222,
+   "n_rows": 688
+  },
+  {
+   "lg": 53,
+   "name": "FFL",
+   "n": 838,
+   "acc_base": 0.5191,
+   "acc_cal": 0.5274,
+   "brier_base": 0.602,
+   "brier_cal": 0.5949,
+   "n_rows": 1009
+  },
+  {
+   "lg": 535,
+   "name": "QSL",
+   "n": 315,
+   "acc_base": 0.546,
+   "acc_cal": 0.5556,
+   "brier_base": 0.5961,
+   "brier_cal": 0.5895,
+   "n_rows": 450
+  },
+  {
+   "lg": 538,
+   "name": "UPR",
+   "n": 424,
+   "acc_base": 0.5448,
+   "acc_cal": 0.5448,
+   "brier_base": 0.576,
+   "brier_cal": 0.5717,
+   "n_rows": 595
+  },
+  {
+   "lg": 54,
+   "name": "GSL",
+   "n": 815,
+   "acc_base": 0.5178,
+   "acc_cal": 0.5202,
+   "brier_base": 0.5935,
+   "brier_cal": 0.5896,
+   "n_rows": 999
+  },
+  {
+   "lg": 55,
+   "name": "ISA",
+   "n": 1062,
+   "acc_base": 0.5311,
+   "acc_cal": 0.533,
+   "brier_base": 0.5876,
+   "brier_cal": 0.5846,
+   "n_rows": 1250
+  },
+  {
+   "lg": 57,
+   "name": "DFL",
+   "n": 853,
+   "acc_base": 0.5217,
+   "acc_cal": 0.524,
+   "brier_base": 0.5928,
+   "brier_cal": 0.5802,
+   "n_rows": 1035
+  },
+  {
+   "lg": 59,
+   "name": "NTL",
+   "n": 752,
+   "acc_base": 0.5359,
+   "acc_cal": 0.5479,
+   "brier_base": 0.5806,
+   "brier_cal": 0.576,
+   "n_rows": 929
+  },
+  {
+   "lg": 61,
+   "name": "PFL",
+   "n": 841,
+   "acc_base": 0.547,
+   "acc_cal": 0.5565,
+   "brier_base": 0.5575,
+   "brier_cal": 0.5513,
+   "n_rows": 1016
+  },
+  {
+   "lg": 63,
+   "name": "RPL",
+   "n": 702,
+   "acc_base": 0.5214,
+   "acc_cal": 0.5285,
+   "brier_base": 0.5885,
+   "brier_cal": 0.5811,
+   "n_rows": 832
+  },
+  {
+   "lg": 64,
+   "name": "SPL",
+   "n": 647,
+   "acc_base": 0.5178,
+   "acc_cal": 0.5116,
+   "brier_base": 0.5866,
+   "brier_cal": 0.5774,
+   "n_rows": 759
+  },
+  {
+   "lg": 67,
+   "name": "SAL",
+   "n": 771,
+   "acc_base": 0.4825,
+   "acc_cal": 0.4877,
+   "brier_base": 0.6214,
+   "brier_cal": 0.6141,
+   "n_rows": 944
+  },
+  {
+   "lg": 69,
+   "name": "SU1",
+   "n": 639,
+   "acc_base": 0.4476,
+   "acc_cal": 0.457,
+   "brier_base": 0.6435,
+   "brier_cal": 0.6315,
+   "n_rows": 763
+  },
+  {
+   "lg": 87,
+   "name": "SFL",
+   "n": 1031,
+   "acc_base": 0.5315,
+   "acc_cal": 0.5325,
+   "brier_base": 0.5823,
+   "brier_cal": 0.5808,
+   "n_rows": 1260
+  },
+  {
+   "lg": 8814,
+   "name": "BD2",
+   "n": 1051,
+   "acc_base": 0.4643,
+   "acc_cal": 0.4824,
+   "brier_base": 0.6245,
+   "brier_cal": 0.618,
+   "n_rows": 1510
+  },
+  {
+   "lg": 8938,
+   "name": "AD2",
+   "n": 1153,
+   "acc_base": 0.5377,
+   "acc_cal": 0.5412,
+   "brier_base": 0.5871,
+   "brier_cal": 0.5759,
+   "n_rows": 1335
+  },
+  {
+   "lg": 8972,
+   "name": "USL",
+   "n": 1335,
+   "acc_base": 0.4629,
+   "acc_cal": 0.4622,
+   "brier_base": 0.6329,
+   "brier_cal": 0.6276,
+   "n_rows": 1611
+  },
+  {
+   "lg": 8974,
+   "name": "JD2",
+   "n": 1118,
+   "acc_base": 0.4454,
+   "acc_cal": 0.4517,
+   "brier_base": 0.6489,
+   "brier_cal": 0.6396,
+   "n_rows": 1391
+  },
+  {
+   "lg": 8976,
+   "name": "MD1",
+   "n": 720,
+   "acc_base": 0.4847,
+   "acc_cal": 0.5069,
+   "brier_base": 0.6298,
+   "brier_cal": 0.6072,
+   "n_rows": 854
+  },
+  {
+   "lg": 8984,
+   "name": "TL1",
+   "n": 625,
+   "acc_base": 0.5536,
+   "acc_cal": 0.5552,
+   "brier_base": 0.5862,
+   "brier_cal": 0.5762,
+   "n_rows": 782
+  },
+  {
+   "lg": 9067,
+   "name": "BDC",
+   "n": 298,
+   "acc_base": 0.396,
+   "acc_cal": 0.4564,
+   "brier_base": 0.6523,
+   "brier_cal": 0.6323,
+   "n_rows": 520
+  },
+  {
+   "lg": 9080,
+   "name": "KD1",
+   "n": 725,
+   "acc_base": 0.389,
+   "acc_cal": 0.3903,
+   "brier_base": 0.6663,
+   "brier_cal": 0.6555,
+   "n_rows": 894
+  },
+  {
+   "lg": 9116,
+   "name": "KD2",
+   "n": 821,
+   "acc_base": 0.4361,
+   "acc_cal": 0.4434,
+   "brier_base": 0.6497,
+   "brier_cal": 0.6433,
+   "n_rows": 1003
+  },
+  {
+   "lg": 9227,
+   "name": "EPLW",
+   "n": 317,
+   "acc_base": 0.6183,
+   "acc_cal": 0.6404,
+   "brier_base": 0.505,
+   "brier_cal": 0.4987,
+   "n_rows": 459
+  },
+  {
+   "lg": 9495,
+   "name": "AD1W",
+   "n": 312,
+   "acc_base": 0.484,
+   "acc_cal": 0.4968,
+   "brier_base": 0.6181,
+   "brier_cal": 0.6075,
+   "n_rows": 421
+  },
+  {
+   "lg": 9676,
+   "name": "GSLW",
+   "n": 329,
+   "acc_base": 0.6626,
+   "acc_cal": 0.6687,
+   "brier_base": 0.4601,
+   "brier_cal": 0.4525,
+   "n_rows": 510
+  },
+  {
+   "lg": 9906,
+   "name": "MXLW",
+   "n": 973,
+   "acc_base": 0.6516,
+   "acc_cal": 0.6495,
+   "brier_base": 0.4755,
+   "brier_cal": 0.4724,
+   "n_rows": 1132
+  },
+  {
+   "lg": 9907,
+   "name": "SFLW",
+   "n": 667,
+   "acc_base": 0.5742,
+   "acc_cal": 0.5757,
+   "brier_base": 0.5437,
+   "brier_cal": 0.537,
+   "n_rows": 799
+  }
+ ],
+ "pooled": {
+  "v": 1,
+  "lg": "pooled",
+  "name": "pooled",
+  "n_samples": 35324,
+  "leagues": 46,
+  "W": [
+   [
+    0.2852,
+    0.2661,
+    -0.0668,
+    -0.2007,
+    0.5393,
+    0.4437,
+    -0.3776
+   ],
+   [
+    -0.2241,
+    -0.05,
+    0.1595,
+    -0.1074,
+    -0.1678,
+    -0.1089,
+    -0.1494
+   ],
+   [
+    -0.0611,
+    -0.2161,
+    -0.0926,
+    0.3081,
+    -0.3715,
+    -0.3348,
+    0.527
+   ]
+  ],
+  "mu": [
+   0.44891,
+   0.22894,
+   0.32215,
+   0.14988,
+   0.53157,
+   0.3253
+  ],
+  "sd": [
+   1.01624,
+   1.00142,
+   1.01363,
+   1.02684,
+   1.0656,
+   1.06166
+  ],
+  "metrics": {
+   "n": 35324,
+   "acc_base": 0.494,
+   "acc_cal": 0.4957,
+   "brier_base": 0.6129,
+   "brier_cal": 0.6086
+  },
+  "ts": 1794348234909
+ },
+ "rows": [
+  {
+   "id": "50080111",
+   "comp": "GSLW",
+   "compName": "女子德國甲組聯賽",
+   "kick": "2026-11-10T01:00:00.000+08:00",
+   "home": "科隆女足",
+   "away": "RB萊比錫女足",
+   "homeEn": "Cologne Women",
+   "awayEn": "RB Leipzig Women",
+   "status": "ft",
+   "minute": "FT",
+   "sh": 3,
+   "sa": 1,
+   "pred": {
+    "pass": "t25",
+    "m_id": "50080111",
+    "home": "科隆女足",
+    "away": "RB萊比錫女足",
+    "comp": "GSLW",
+    "compName": "女子德國甲組聯賽",
+    "kickoff": "2026-11-10T01:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": -0.5
+    },
+    "base": {
+     "h": 0.4424,
+     "d": 0.2416,
+     "a": 0.316,
+     "lh": 1.824,
+     "la": 1.521,
+     "sl": 0.6493
+    },
+    "factors": [
+     {
+      "p": "Elo 1485 vs 1464（差 20）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 509 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/9676/overview"
+     },
+     {
+      "p": "攻防：主 att 0.97/def 0.85，客 att 1.03/def 1.00",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.090、base=1.731 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/9676/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 1.20 / 客 1.80 → λ 主 0.989× 客 1.011×；戰術師（w 0.05）：控球取向接近（主 44% / 客 51%，差 7pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 16 / 客 17 → λ 主 0.996× 客 1.004×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.998／客 ×1.002",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": -0.25,
+     "rows": [
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.108,
+       "halfwin": 0,
+       "push": 0.1351,
+       "halflose": 0,
+       "lose": 0.7569,
+       "cover": 0.1755,
+       "e": -0.6489
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.108,
+       "halfwin": 0.1351,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7569,
+       "cover": 0.2093,
+       "e": -0.5814
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.2431,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7569,
+       "cover": 0.2431,
+       "e": -0.5138
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.2431,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1976,
+       "lose": 0.5593,
+       "cover": 0.2925,
+       "e": -0.415
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.2431,
+       "halfwin": 0,
+       "push": 0.1976,
+       "halflose": 0,
+       "lose": 0.5593,
+       "cover": 0.3419,
+       "e": -0.3162
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.2431,
+       "halfwin": 0.1976,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5593,
+       "cover": 0.3913,
+       "e": -0.2174
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.4407,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5593,
+       "cover": 0.4407,
+       "e": -0.1186
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.4407,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2418,
+       "lose": 0.3175,
+       "cover": 0.5011,
+       "e": 0.0023
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.4407,
+       "halfwin": 0,
+       "push": 0.2418,
+       "halflose": 0,
+       "lose": 0.3175,
+       "cover": 0.5616,
+       "e": 0.1232
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.3175,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2418,
+       "lose": 0.4407,
+       "cover": 0.378,
+       "e": -0.2441
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.3175,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6825,
+       "cover": 0.3175,
+       "e": -0.365
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.1532,
+       "halfwin": 0.1643,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6825,
+       "cover": 0.2764,
+       "e": -0.4471
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.1532,
+       "halfwin": 0,
+       "push": 0.1643,
+       "halflose": 0,
+       "lose": 0.6825,
+       "cover": 0.2354,
+       "e": -0.5293
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.1532,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1643,
+       "lose": 0.6825,
+       "cover": 0.1943,
+       "e": -0.6115
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.1532,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8468,
+       "cover": 0.1532,
+       "e": -0.6936
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.0584,
+       "halfwin": 0.0948,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8468,
+       "cover": 0.1295,
+       "e": -0.741
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.0584,
+       "halfwin": 0,
+       "push": 0.0948,
+       "halflose": 0,
+       "lose": 0.8468,
+       "cover": 0.1058,
+       "e": -0.7884
+      }
+     ],
+     "line": -0.25,
+     "fav": "h",
+     "e": 0.0023
+    },
+    "reb": {
+     "h": 0.4407,
+     "d": 0.2418,
+     "a": 0.3175
+    },
+    "fin": {
+     "h": 0.4407,
+     "d": 0.2418,
+     "a": 0.3175,
+     "ml": 3.15,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": {
+     "h": 0.4608,
+     "d": 0.2289,
+     "a": 0.3103,
+     "src": "walk-forward logistic（Step 5）",
+     "n": 329,
+     "alpha": 0.4,
+     "league_n": 508,
+     "own": {
+      "acc": 0.6687,
+      "brier": 0.4525
+     },
+     "base": {
+      "acc": 0.6626,
+      "brier": 0.4601
+     }
+    },
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 9676,
+     "seasons": [
+      [
+       2023,
+       132
+      ],
+      [
+       2024,
+       132
+      ],
+      [
+       2025,
+       183
+      ],
+      [
+       2026,
+       62
+      ]
+     ],
+     "n": 509,
+     "H": 1.0897945197500822,
+     "base": 1.73081591583696,
+     "elo": {
+      "home": 1484.613360563355,
+      "away": 1464.3545598180683
+     },
+     "lambda_adj": {
+      "lh": 1.819230132410343,
+      "la": 1.524089865968933,
+      "adjH": 0.9976564367787485,
+      "adjA": 1.002329143098942
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": 43.8,
+      "away": 51.2
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 1.20 / 客 1.80 → λ 主 0.989× 客 1.011×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "控球取向接近（主 44% / 客 51%，差 7pp ≤ 8）→ 無調整",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 16 / 客 17 → λ 主 0.996× 客 1.004×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.4476984867547898,
+       "d": 0.21260296988428387,
+       "a": 0.3396985433609263
+      },
+      "1": {
+       "h": 0.6603014566390734,
+       "d": 0.1594971553742869,
+       "a": 0.18020138798663932
+      },
+      "-1": {
+       "h": 0.26227269303249623,
+       "d": 0.18542579372229345,
+       "a": 0.5523015132452102
+      }
+     },
+     "o25": 0.6493421357818256,
+     "o35": 0.4293706978466536,
+     "btts": 0.6630708346646326,
+     "tops": [
+      {
+       "s": "1-1",
+       "p": 0.10568883577956802
+      },
+      {
+       "s": "2-1",
+       "p": 0.08922406274558567
+      },
+      {
+       "s": "1-2",
+       "p": 0.07440045308595813
+      },
+      {
+       "s": "2-2",
+       "p": 0.06783474808020219
+      },
+      {
+       "s": "2-0",
+       "p": 0.05867887475174125
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50079838",
+   "comp": "NTL",
+   "compName": "挪威超級聯賽",
+   "kick": "2026-11-10T02:00:00.000+08:00",
+   "home": "基斯迪辛德",
+   "away": "華拉倫加",
+   "homeEn": "Kristiansund",
+   "awayEn": "Valerenga",
+   "status": "ft",
+   "minute": "FT",
+   "sh": 1,
+   "sa": 0,
+   "pred": {
+    "pass": "t25",
+    "m_id": "50079838",
+    "home": "基斯迪辛德",
+    "away": "華拉倫加",
+    "comp": "NTL",
+    "compName": "挪威超級聯賽",
+    "kickoff": "2026-11-10T02:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": 0.25
+    },
+    "base": {
+     "h": 0.3291,
+     "d": 0.2144,
+     "a": 0.4564,
+     "lh": 1.86,
+     "la": 2.193,
+     "sl": 0.7695
+    },
+    "factors": [
+     {
+      "p": "Elo 1441 vs 1501（差 -60）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 928 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/59/overview"
+     },
+     {
+      "p": "攻防：主 att 0.83/def 1.19，客 att 1.10/def 1.05",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.288、base=1.666 球；λ 由 xG 擬合（非 skill 硬性規定，walk-forward 回測 Brier 0.6024→0.5906）",
+      "src": "FotMob matchDetails xG（每場 expected_goals）",
+      "url": "https://www.fotmob.com/leagues/59/overview"
+     },
+     {
+      "p": "傷停：主 2 人（攻 1／防 0／門 0）、客 2 人（攻 1／防 0／門 0）",
+      "txt": "有界調整（非 skill 規定，我自訂）：攻缺 −2.0%/人、防缺 +2.0%/人、門將 −1.5%/人，限 ±8%；本場 λ 乘數 主 0.985／客 0.991",
+      "src": "FotMob 隊伍名單 injury 欄",
+      "url": "https://www.fotmob.com"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師✓、情境師✓、風險師✓",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 0.80 / 客 2.00 → λ 主 0.979× 客 1.021×；戰術師（w 0.05）：控球取向差 9pp（主 40% / 客 49%）→ 只調總入球 0.998×；情境師（w 0.2）：休息日 主 8 / 客 8 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 0.980×/0.980×｜合成 λ 主 ×0.985／客 ×0.991",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": 0.25,
+     "rows": [
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.0727,
+       "halfwin": 0,
+       "push": 0.0977,
+       "halflose": 0,
+       "lose": 0.8296,
+       "cover": 0.1215,
+       "e": -0.7569
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.0727,
+       "halfwin": 0.0977,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8296,
+       "cover": 0.146,
+       "e": -0.7081
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.1704,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8296,
+       "cover": 0.1704,
+       "e": -0.6592
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.1704,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1561,
+       "lose": 0.6735,
+       "cover": 0.2094,
+       "e": -0.5811
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.1704,
+       "halfwin": 0,
+       "push": 0.1561,
+       "halflose": 0,
+       "lose": 0.6735,
+       "cover": 0.2485,
+       "e": -0.5031
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.1704,
+       "halfwin": 0.1561,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6735,
+       "cover": 0.2875,
+       "e": -0.425
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.3265,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6735,
+       "cover": 0.3265,
+       "e": -0.347
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.3265,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2159,
+       "lose": 0.4577,
+       "cover": 0.3805,
+       "e": -0.2391
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.3265,
+       "halfwin": 0,
+       "push": 0.2159,
+       "halflose": 0,
+       "lose": 0.4577,
+       "cover": 0.4345,
+       "e": -0.1312
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.4577,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2159,
+       "lose": 0.3265,
+       "cover": 0.5117,
+       "e": 0.0232
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.4577,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5423,
+       "cover": 0.4577,
+       "e": -0.0846
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.2714,
+       "halfwin": 0.1863,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5423,
+       "cover": 0.4111,
+       "e": -0.1778
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.2714,
+       "halfwin": 0,
+       "push": 0.1863,
+       "halflose": 0,
+       "lose": 0.5423,
+       "cover": 0.3645,
+       "e": -0.2709
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.2714,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1863,
+       "lose": 0.5423,
+       "cover": 0.318,
+       "e": -0.3641
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.2714,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7286,
+       "cover": 0.2714,
+       "e": -0.4572
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.1339,
+       "halfwin": 0.1375,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7286,
+       "cover": 0.237,
+       "e": -0.526
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.1339,
+       "halfwin": 0,
+       "push": 0.1375,
+       "halflose": 0,
+       "lose": 0.7286,
+       "cover": 0.2026,
+       "e": -0.5947
+      }
+     ],
+     "line": 0.25,
+     "fav": "a",
+     "e": 0.0232
+    },
+    "reb": {
+     "h": 0.3265,
+     "d": 0.2159,
+     "a": 0.4577
+    },
+    "fin": {
+     "h": 0.3265,
+     "d": 0.2159,
+     "a": 0.4577,
+     "ml": 2.19,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": {
+     "h": 0.3436,
+     "d": 0.2242,
+     "a": 0.4322,
+     "src": "walk-forward logistic（Step 5）",
+     "n": 747,
+     "alpha": 0.6,
+     "league_n": 922,
+     "own": {
+      "acc": 0.5315,
+      "brier": 0.5781
+     },
+     "base": {
+      "acc": 0.5288,
+      "brier": 0.5822
+     }
+    },
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 59,
+     "seasons": [
+      [
+       2023,
+       240
+      ],
+      [
+       2024,
+       241
+      ],
+      [
+       2025,
+       240
+      ],
+      [
+       2026,
+       207
+      ]
+     ],
+     "n": 928,
+     "H": 1.3009888383971475,
+     "base": 1.6787600887328018,
+     "elo": {
+      "home": 1441.3514299641554,
+      "away": 1501.0145964702435
+     },
+     "lambda_adj": {
+      "lh": 1.8315440930290752,
+      "la": 2.1731301954277025,
+      "adjH": 0.9847601352855626,
+      "adjA": 0.9909262875646723
+     },
+     "injuries": {
+      "home": [
+       {
+        "name": "Wilfred George Igor",
+        "role": "midfielders",
+        "age": 21,
+        "type": null,
+        "since": null,
+        "expected": "Mid November 2026"
+       },
+       {
+        "name": "David Tufekčić",
+        "role": "attackers",
+        "age": 22,
+        "type": null,
+        "since": null,
+        "expected": "Doubtful"
+       }
+      ],
+      "away": [
+       {
+        "name": "Omar Bully Drammeh",
+        "role": "midfielders",
+        "age": 23,
+        "type": null,
+        "since": null,
+        "expected": "Early November 2026"
+       },
+       {
+        "name": "Elbasan Rashani",
+        "role": "attackers",
+        "age": 33,
+        "type": null,
+        "since": null,
+        "expected": "About 1-2 weeks"
+       }
+      ]
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": 39.6,
+      "away": 48.8
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 0.80 / 客 2.00 → λ 主 0.979× 客 1.021×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "控球取向差 9pp（主 40% / 客 49%）→ 只調總入球 0.998×",
+       "used": true
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 8 / 客 8 → λ 主 1.000× 客 1.000×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 0.980×/0.980×",
+       "used": true
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.34860456082951014,
+       "d": 0.18823938933841985,
+       "a": 0.4631560498320691
+      },
+      "1": {
+       "h": 0.53684395016793,
+       "d": 0.1728968473796776,
+       "a": 0.29025920245239173
+      },
+      "-1": {
+       "h": 0.19865455871281032,
+       "d": 0.14995000211669995,
+       "a": 0.6513954391704889
+      }
+     },
+     "o25": 0.7695429306107573,
+     "o35": 0.5767893249083973,
+     "btts": 0.7557695290337915,
+     "tops": [
+      {
+       "s": "1-2",
+       "p": 0.07769554871890769
+      },
+      {
+       "s": "1-1",
+       "p": 0.0765253796201092
+      },
+      {
+       "s": "2-2",
+       "p": 0.07225253044463609
+      },
+      {
+       "s": "2-1",
+       "p": 0.06589290592095924
+      },
+      {
+       "s": "1-3",
+       "p": 0.05679620004374377
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50079544",
+   "comp": "SFLW",
+   "compName": "女子西班牙甲組聯賽",
+   "kick": "2026-11-10T02:00:00.000+08:00",
+   "home": "馬德里體育會女足",
+   "away": "利雲特巴達隆拿女足",
+   "homeEn": "Atletico Madrid Women",
+   "awayEn": "Levante Badalona Women",
+   "status": "ft",
+   "minute": "FT",
+   "sh": 3,
+   "sa": 0,
+   "pred": {
+    "pass": "t25",
+    "m_id": "50079544",
+    "home": "馬德里體育會女足",
+    "away": "利雲特巴達隆拿女足",
+    "comp": "SFLW",
+    "compName": "女子西班牙甲組聯賽",
+    "kickoff": "2026-11-10T02:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": -2
+    },
+    "base": {
+     "h": 0.7544,
+     "d": 0.1491,
+     "a": 0.0965,
+     "lh": 2.872,
+     "la": 0.992,
+     "sl": 0.7412
+    },
+    "factors": [
+     {
+      "p": "Elo 1621 vs 1456（差 165）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 797 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/9907/overview"
+     },
+     {
+      "p": "攻防：主 att 1.51/def 0.82，客 att 0.82/def 1.15",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.138、base=1.461 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/9907/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 0.20 → λ 主 1.030× 客 0.970×；戰術師（w 0.05）：控球取向接近（主 56% / 客 56%，差 1pp ≤ 8）→ 無調整；情境師（w 0.2）：休息日 主 9 / 客 8 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.005／客 ×0.994",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": -1.75,
+     "rows": [
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.3608,
+       "halfwin": 0,
+       "push": 0.2044,
+       "halflose": 0,
+       "lose": 0.4348,
+       "cover": 0.463,
+       "e": -0.074
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.3608,
+       "halfwin": 0.2044,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4348,
+       "cover": 0.5141,
+       "e": 0.0282
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.5652,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4348,
+       "cover": 0.5652,
+       "e": 0.1304
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.5652,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1924,
+       "lose": 0.2423,
+       "cover": 0.6133,
+       "e": 0.2267
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.5652,
+       "halfwin": 0,
+       "push": 0.1924,
+       "halflose": 0,
+       "lose": 0.2423,
+       "cover": 0.6614,
+       "e": 0.3229
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.5652,
+       "halfwin": 0.1924,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.2423,
+       "cover": 0.7095,
+       "e": 0.4191
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.7577,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.2423,
+       "cover": 0.7577,
+       "e": 0.5154
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.7577,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1476,
+       "lose": 0.0947,
+       "cover": 0.7946,
+       "e": 0.5892
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.7577,
+       "halfwin": 0,
+       "push": 0.1476,
+       "halflose": 0,
+       "lose": 0.0947,
+       "cover": 0.8315,
+       "e": 0.663
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.0947,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1476,
+       "lose": 0.7577,
+       "cover": 0.1316,
+       "e": -0.7368
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.0947,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9053,
+       "cover": 0.0947,
+       "e": -0.8106
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.0321,
+       "halfwin": 0.0626,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9053,
+       "cover": 0.0791,
+       "e": -0.8419
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.0321,
+       "halfwin": 0,
+       "push": 0.0626,
+       "halflose": 0,
+       "lose": 0.9053,
+       "cover": 0.0634,
+       "e": -0.8732
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.0321,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.0626,
+       "lose": 0.9053,
+       "cover": 0.0478,
+       "e": -0.9045
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.0321,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9679,
+       "cover": 0.0321,
+       "e": -0.9358
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.0082,
+       "halfwin": 0.0239,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9679,
+       "cover": 0.0261,
+       "e": -0.9477
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.0082,
+       "halfwin": 0,
+       "push": 0.0239,
+       "halflose": 0,
+       "lose": 0.9679,
+       "cover": 0.0202,
+       "e": -0.9597
+      }
+     ],
+     "line": -1.75,
+     "fav": "h",
+     "e": 0.0282
+    },
+    "reb": {
+     "h": 0.7577,
+     "d": 0.1476,
+     "a": 0.0947
+    },
+    "fin": {
+     "h": 0.7577,
+     "d": 0.1476,
+     "a": 0.0947,
+     "ml": 10.56,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": {
+     "h": 0.6824,
+     "d": 0.1864,
+     "a": 0.1312,
+     "src": "walk-forward logistic（Step 5）",
+     "n": 667,
+     "alpha": 0.57,
+     "league_n": 796,
+     "own": {
+      "acc": 0.5757,
+      "brier": 0.537
+     },
+     "base": {
+      "acc": 0.5742,
+      "brier": 0.5437
+     }
+    },
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 9907,
+     "seasons": [
+      [
+       2023,
+       240
+      ],
+      [
+       2024,
+       240
+      ],
+      [
+       2025,
+       240
+      ],
+      [
+       2026,
+       77
+      ]
+     ],
+     "n": 797,
+     "H": 1.1378891997648624,
+     "base": 1.4606644714241737,
+     "elo": {
+      "home": 1621.2007464870433,
+      "away": 1455.976740368407
+     },
+     "lambda_adj": {
+      "lh": 2.8874692351722935,
+      "la": 0.9865915371625343,
+      "adjH": 1.0054669467604376,
+      "adjA": 0.9944232793541766
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": 55.6,
+      "away": 56.2
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 2.00 / 客 0.20 → λ 主 1.030× 客 0.970×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "控球取向接近（主 56% / 客 56%，差 1pp ≤ 8）→ 無調整",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 9 / 客 8 → λ 主 1.005× 客 0.995×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.7279165606434109,
+       "d": 0.14345505830933777,
+       "a": 0.12862838104725008
+      },
+      "1": {
+       "h": 0.8713716189527487,
+       "d": 0.07497517241618379,
+       "a": 0.05365320863106619
+      },
+      "-1": {
+       "h": 0.5428016179217976,
+       "d": 0.1851149427216135,
+       "a": 0.27208343935658774
+      }
+     },
+     "o25": 0.7412152150777171,
+     "o35": 0.5394043086407193,
+     "btts": 0.5983764163658283,
+     "tops": [
+      {
+       "s": "2-0",
+       "p": 0.08655446802952926
+      },
+      {
+       "s": "2-1",
+       "p": 0.08587279424612562
+      },
+      {
+       "s": "3-0",
+       "p": 0.08285482495047358
+      },
+      {
+       "s": "3-1",
+       "p": 0.08220228830755913
+      },
+      {
+       "s": "1-1",
+       "p": 0.06458918114437343
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50080135",
+   "comp": "AD2",
+   "compName": "澳洲冠軍聯賽盃",
+   "kick": "2026-11-12T16:30:00.000+08:00",
+   "home": "西部APIA FC",
+   "away": "阿德萊德城",
+   "homeEn": "Wests APIA FC",
+   "awayEn": "Adelaide City",
+   "status": "live",
+   "minute": "89‎’‎",
+   "sh": 3,
+   "sa": 0,
+   "pred": {
+    "pass": "t25",
+    "m_id": "50080135",
+    "home": "西部APIA FC",
+    "away": "阿德萊德城",
+    "comp": "AD2",
+    "compName": "澳洲冠軍聯賽盃",
+    "kickoff": "2026-11-12T16:30:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": -1.5
+    },
+    "base": {
+     "h": 0.708,
+     "d": 0.1658,
+     "a": 0.1262,
+     "lh": 2.755,
+     "la": 1.135,
+     "sl": 0.7454
+    },
+    "factors": [
+     {
+      "p": "Elo 1667 vs 1517（差 150）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 1335 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/8938/overview"
+     },
+     {
+      "p": "攻防：主 att 1.51/def 0.62，客 att 1.10/def 1.00",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.086、base=1.674 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/8938/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 2.20 / 客 0.40 → λ 主 1.030× 客 0.970×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 5 / 客 4 → λ 主 1.005× 客 0.995×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.005／客 ×0.994",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": -1.5,
+     "line": -1.5,
+     "fav": "h",
+     "e": 0.0261,
+     "rows": [
+      {
+       "line": -3,
+       "fav": "h",
+       "win": 0.1662,
+       "halfwin": 0,
+       "push": 0.1489,
+       "halflose": 0,
+       "lose": 0.685,
+       "cover": 0.2406,
+       "e": -0.5188
+      },
+      {
+       "line": -2.75,
+       "fav": "h",
+       "win": 0.1662,
+       "halfwin": 0.1489,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.685,
+       "cover": 0.2778,
+       "e": -0.4444
+      },
+      {
+       "line": -2.5,
+       "fav": "h",
+       "win": 0.315,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.685,
+       "cover": 0.315,
+       "e": -0.3699
+      },
+      {
+       "line": -2.25,
+       "fav": "h",
+       "win": 0.315,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.198,
+       "lose": 0.4869,
+       "cover": 0.3646,
+       "e": -0.2709
+      },
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.315,
+       "halfwin": 0,
+       "push": 0.198,
+       "halflose": 0,
+       "lose": 0.4869,
+       "cover": 0.4141,
+       "e": -0.1719
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.315,
+       "halfwin": 0.198,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4869,
+       "cover": 0.4636,
+       "e": -0.0729
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.5131,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4869,
+       "cover": 0.5131,
+       "e": 0.0261
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.5131,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1986,
+       "lose": 0.2884,
+       "cover": 0.5627,
+       "e": 0.1254
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.5131,
+       "halfwin": 0,
+       "push": 0.1986,
+       "halflose": 0,
+       "lose": 0.2884,
+       "cover": 0.6123,
+       "e": 0.2247
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.5131,
+       "halfwin": 0.1986,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.2884,
+       "cover": 0.662,
+       "e": 0.324
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.7116,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.2884,
+       "cover": 0.7116,
+       "e": 0.4233
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.7116,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1644,
+       "lose": 0.124,
+       "cover": 0.7527,
+       "e": 0.5054
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.7116,
+       "halfwin": 0,
+       "push": 0.1644,
+       "halflose": 0,
+       "lose": 0.124,
+       "cover": 0.7938,
+       "e": 0.5876
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.124,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1644,
+       "lose": 0.7116,
+       "cover": 0.1651,
+       "e": -0.6698
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.124,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.876,
+       "cover": 0.124,
+       "e": -0.752
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.0461,
+       "halfwin": 0.0779,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.876,
+       "cover": 0.1045,
+       "e": -0.7909
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.0461,
+       "halfwin": 0,
+       "push": 0.0779,
+       "halflose": 0,
+       "lose": 0.876,
+       "cover": 0.0851,
+       "e": -0.8299
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.0461,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.0779,
+       "lose": 0.876,
+       "cover": 0.0656,
+       "e": -0.8689
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.0461,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9539,
+       "cover": 0.0461,
+       "e": -0.9078
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.0132,
+       "halfwin": 0.0329,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9539,
+       "cover": 0.0379,
+       "e": -0.9243
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.0132,
+       "halfwin": 0,
+       "push": 0.0329,
+       "halflose": 0,
+       "lose": 0.9539,
+       "cover": 0.0296,
+       "e": -0.9407
+      },
+      {
+       "line": 2.25,
+       "fav": "a",
+       "win": 0.0132,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.0329,
+       "lose": 0.9539,
+       "cover": 0.0214,
+       "e": -0.9572
+      },
+      {
+       "line": 2.5,
+       "fav": "a",
+       "win": 0.0132,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9868,
+       "cover": 0.0132,
+       "e": -0.9736
+      },
+      {
+       "line": 2.75,
+       "fav": "a",
+       "win": 0.0031,
+       "halfwin": 0.0101,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9868,
+       "cover": 0.0107,
+       "e": -0.9787
+      },
+      {
+       "line": 3,
+       "fav": "a",
+       "win": 0.0031,
+       "halfwin": 0,
+       "push": 0.0101,
+       "halflose": 0,
+       "lose": 0.9868,
+       "cover": 0.0081,
+       "e": -0.9837
+      }
+     ]
+    },
+    "reb": {
+     "h": 0.7116,
+     "d": 0.1644,
+     "a": 0.124
+    },
+    "fin": {
+     "h": 0.7116,
+     "d": 0.1644,
+     "a": 0.124,
+     "ml": 8.06,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": {
+     "h": 0.6596,
+     "d": 0.1671,
+     "a": 0.1733,
+     "src": "walk-forward logistic（Step 5）",
+     "n": 1153,
+     "alpha": 0.7,
+     "league_n": 1335,
+     "own": {
+      "acc": 0.5412,
+      "brier": 0.5759
+     },
+     "base": {
+      "acc": 0.5377,
+      "brier": 0.5871
+     }
+    },
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 8938,
+     "seasons": [
+      [
+       2023,
+       0
+      ],
+      [
+       2024,
+       0
+      ],
+      [
+       2025,
+       1297
+      ],
+      [
+       2026,
+       38
+      ]
+     ],
+     "n": 1335,
+     "H": 1.0864066142476119,
+     "base": 1.6742270816613012,
+     "pool": null,
+     "elo": {
+      "home": 1667.0567027739348,
+      "away": 1517.1515762692202
+     },
+     "lambda_adj": {
+      "lh": 2.7703902408777266,
+      "la": 1.129154993806895,
+      "adjH": 1.0054461050435537,
+      "adjA": 0.9944441019200879
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": null,
+      "away": null
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 2.20 / 客 0.40 → λ 主 1.030× 客 0.970×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "未接每場控球／射門數據，無調整（待補）",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 5 / 客 4 → λ 主 1.005× 客 0.995×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.6857821629054396,
+       "d": 0.15492785635570028,
+       "a": 0.15928998073886114
+      },
+      "1": {
+       "h": 0.84071001926114,
+       "d": 0.08839820737925269,
+       "a": 0.07089177335960838
+      },
+      "-1": {
+       "h": 0.4980459398909276,
+       "d": 0.18773622301451143,
+       "a": 0.3142178370945614
+      }
+     },
+     "o25": 0.745426475923914,
+     "o35": 0.5448547050831986,
+     "btts": 0.6406777670037779,
+     "tops": [
+      {
+       "s": "2-1",
+       "p": 0.08806348676610311
+      },
+      {
+       "s": "3-1",
+       "p": 0.08088291127380007
+      },
+      {
+       "s": "2-0",
+       "p": 0.07755730213247027
+      },
+      {
+       "s": "3-0",
+       "p": 0.0712333864735241
+      },
+      {
+       "s": "1-1",
+       "p": 0.06903470531752866
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50079982",
+   "comp": "E2Q",
+   "compName": "U21歐國外",
+   "kick": "2026-11-12T21:00:00.000+08:00",
+   "home": "冰島U21",
+   "away": "希臘U21",
+   "homeEn": "Iceland U21",
+   "awayEn": "Greece U21",
+   "status": "pre",
+   "minute": "",
+   "sh": null,
+   "sa": null,
+   "pred": {
+    "pass": "preview",
+    "m_id": "50079982",
+    "home": "冰島U21",
+    "away": "希臘U21",
+    "comp": "E2Q",
+    "compName": "U21歐國外",
+    "kickoff": "2026-11-12T21:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": 0.25
+    },
+    "base": {
+     "h": 0.3355,
+     "d": 0.2569,
+     "a": 0.4076,
+     "lh": 1.447,
+     "la": 1.613,
+     "sl": 0.5901
+    },
+    "factors": [
+     {
+      "p": "Elo 1512 vs 1582（差 -71）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 496 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/10437/overview"
+     },
+     {
+      "p": "攻防：主 att 1.41/def 0.80，客 att 1.63/def 0.68",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.217、base=1.245 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/10437/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 2.40 → λ 主 0.993× 客 1.007×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 37 / 客 37 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×0.999／客 ×1.001",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     },
+     {
+      "p": "天氣 1℃、風 4km/h",
+      "txt": "FotMob matchDetails",
+      "src": "FotMob",
+      "url": "https://www.fotmob.com"
+     }
+    ],
+    "ahd": {
+     "mark": 0.25,
+     "line": 0.25,
+     "fav": "a",
+     "e": -0.0549,
+     "rows": [
+      {
+       "line": -3,
+       "fav": "h",
+       "win": 0.018,
+       "halfwin": 0,
+       "push": 0.041,
+       "halflose": 0,
+       "lose": 0.941,
+       "cover": 0.0385,
+       "e": -0.923
+      },
+      {
+       "line": -2.75,
+       "fav": "h",
+       "win": 0.018,
+       "halfwin": 0.041,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.941,
+       "cover": 0.0488,
+       "e": -0.9024
+      },
+      {
+       "line": -2.5,
+       "fav": "h",
+       "win": 0.059,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.941,
+       "cover": 0.059,
+       "e": -0.8819
+      },
+      {
+       "line": -2.25,
+       "fav": "h",
+       "win": 0.059,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1001,
+       "lose": 0.8408,
+       "cover": 0.0841,
+       "e": -0.8318
+      },
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.059,
+       "halfwin": 0,
+       "push": 0.1001,
+       "halflose": 0,
+       "lose": 0.8408,
+       "cover": 0.1091,
+       "e": -0.7818
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.059,
+       "halfwin": 0.1001,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8408,
+       "cover": 0.1341,
+       "e": -0.7317
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.1592,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8408,
+       "cover": 0.1592,
+       "e": -0.6817
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.1592,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1756,
+       "lose": 0.6652,
+       "cover": 0.2031,
+       "e": -0.5939
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.1592,
+       "halfwin": 0,
+       "push": 0.1756,
+       "halflose": 0,
+       "lose": 0.6652,
+       "cover": 0.247,
+       "e": -0.506
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.1592,
+       "halfwin": 0.1756,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6652,
+       "cover": 0.2909,
+       "e": -0.4182
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.3348,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6652,
+       "cover": 0.3348,
+       "e": -0.3304
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.3348,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2569,
+       "lose": 0.4083,
+       "cover": 0.399,
+       "e": -0.202
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.3348,
+       "halfwin": 0,
+       "push": 0.2569,
+       "halflose": 0,
+       "lose": 0.4083,
+       "cover": 0.4632,
+       "e": -0.0735
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.4083,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2569,
+       "lose": 0.3348,
+       "cover": 0.4726,
+       "e": -0.0549
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.4083,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5917,
+       "cover": 0.4083,
+       "e": -0.1833
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.2112,
+       "halfwin": 0.1972,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.5917,
+       "cover": 0.359,
+       "e": -0.2819
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.2112,
+       "halfwin": 0,
+       "push": 0.1972,
+       "halflose": 0,
+       "lose": 0.5917,
+       "cover": 0.3098,
+       "e": -0.3805
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.2112,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1972,
+       "lose": 0.5917,
+       "cover": 0.2605,
+       "e": -0.4791
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.2112,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7888,
+       "cover": 0.2112,
+       "e": -0.5776
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.0863,
+       "halfwin": 0.1249,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7888,
+       "cover": 0.18,
+       "e": -0.6401
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.0863,
+       "halfwin": 0,
+       "push": 0.1249,
+       "halflose": 0,
+       "lose": 0.7888,
+       "cover": 0.1487,
+       "e": -0.7025
+      },
+      {
+       "line": 2.25,
+       "fav": "a",
+       "win": 0.0863,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1249,
+       "lose": 0.7888,
+       "cover": 0.1175,
+       "e": -0.765
+      },
+      {
+       "line": 2.5,
+       "fav": "a",
+       "win": 0.0863,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9137,
+       "cover": 0.0863,
+       "e": -0.8274
+      },
+      {
+       "line": 2.75,
+       "fav": "a",
+       "win": 0.0291,
+       "halfwin": 0.0572,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9137,
+       "cover": 0.072,
+       "e": -0.856
+      },
+      {
+       "line": 3,
+       "fav": "a",
+       "win": 0.0291,
+       "halfwin": 0,
+       "push": 0.0572,
+       "halflose": 0,
+       "lose": 0.9137,
+       "cover": 0.0577,
+       "e": -0.8846
+      }
+     ]
+    },
+    "reb": {
+     "h": 0.3348,
+     "d": 0.2569,
+     "a": 0.4083
+    },
+    "fin": {
+     "h": 0.3348,
+     "d": 0.2569,
+     "a": 0.4083,
+     "ml": 2.45,
+     "conf": "★★★☆☆",
+     "cs": 3,
+     "risks": []
+    },
+    "cal": null,
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 10437,
+     "seasons": [
+      [
+       2023,
+       256
+      ],
+      [
+       2024,
+       0
+      ],
+      [
+       2025,
+       240
+      ],
+      [
+       2026,
+       0
+      ]
+     ],
+     "n": 496,
+     "H": 1.2167815375871447,
+     "base": 1.2445465268295295,
+     "pool": null,
+     "elo": {
+      "home": 1511.5173738848168,
+      "away": 1582.0227245775452
+     },
+     "lambda_adj": {
+      "lh": 1.4454990150048797,
+      "la": 1.6143976401546511,
+      "adjH": 0.9988836791209112,
+      "adjA": 1.001109897973705
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": null,
+      "away": null
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 2.00 / 客 2.40 → λ 主 0.993× 客 1.007×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "未接每場控球／射門數據，無調整（待補）",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 37 / 客 37 → λ 主 1.000× 客 1.000×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.35414550897389296,
+       "d": 0.2271781592045721,
+       "a": 0.41867633182153474
+      },
+      "1": {
+       "h": 0.5813236681784648,
+       "d": 0.1863726244368167,
+       "a": 0.23230370738471823
+      },
+      "-1": {
+       "h": 0.18466619834932538,
+       "d": 0.16947931062456748,
+       "a": 0.645854491026107
+      }
+     },
+     "o25": 0.5900555631024146,
+     "o35": 0.36614482413805943,
+     "btts": 0.6210412452099611,
+     "tops": [
+      {
+       "s": "1-1",
+       "p": 0.1182049187091163
+      },
+      {
+       "s": "1-2",
+       "p": 0.08824915513536265
+      },
+      {
+       "s": "2-1",
+       "p": 0.07919261435162936
+      },
+      {
+       "s": "0-1",
+       "p": 0.06687665920312538
+      },
+      {
+       "s": "2-2",
+       "p": 0.0638533141994296
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50080230",
+   "comp": "INT",
+   "compName": "國際賽",
+   "kick": "2026-11-12T21:00:00.000+08:00",
+   "home": "蘇格蘭U21",
+   "away": "烏克蘭U21",
+   "homeEn": "Scotland U21",
+   "awayEn": "Ukraine U21",
+   "status": "pre",
+   "minute": "",
+   "sh": null,
+   "sa": null,
+   "pred": {
+    "pass": "preview",
+    "m_id": "50080230",
+    "home": "蘇格蘭U21",
+    "away": "烏克蘭U21",
+    "comp": "INT",
+    "compName": "國際賽",
+    "kickoff": "2026-11-12T21:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": -1.5
+    },
+    "base": {
+     "h": 0.6776,
+     "d": 0.174,
+     "a": 0.1484,
+     "lh": 2.715,
+     "la": 1.252,
+     "sl": 0.757
+    },
+    "factors": [
+     {
+      "p": "Elo 1524 vs 1526（差 -3）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 520 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/114/overview"
+     },
+     {
+      "p": "攻防：主 att 1.57/def 0.94，客 att 1.07/def 1.14",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.213、base=1.250 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/114/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 2.00 / 客 1.00 → λ 主 1.018× 客 0.982×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 37 / 客 38 → λ 主 0.994× 客 1.006×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.002／客 ×0.998",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": -1.5,
+     "line": -1.5,
+     "fav": "h",
+     "e": -0.0419,
+     "rows": [
+      {
+       "line": -3,
+       "fav": "h",
+       "win": 0.1484,
+       "halfwin": 0,
+       "push": 0.1393,
+       "halflose": 0,
+       "lose": 0.7124,
+       "cover": 0.218,
+       "e": -0.564
+      },
+      {
+       "line": -2.75,
+       "fav": "h",
+       "win": 0.1484,
+       "halfwin": 0.1393,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7124,
+       "cover": 0.2528,
+       "e": -0.4944
+      },
+      {
+       "line": -2.5,
+       "fav": "h",
+       "win": 0.2876,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.7124,
+       "cover": 0.2876,
+       "e": -0.4247
+      },
+      {
+       "line": -2.25,
+       "fav": "h",
+       "win": 0.2876,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1914,
+       "lose": 0.521,
+       "cover": 0.3355,
+       "e": -0.329
+      },
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.2876,
+       "halfwin": 0,
+       "push": 0.1914,
+       "halflose": 0,
+       "lose": 0.521,
+       "cover": 0.3833,
+       "e": -0.2333
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.2876,
+       "halfwin": 0.1914,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.521,
+       "cover": 0.4312,
+       "e": -0.1376
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.479,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.521,
+       "cover": 0.479,
+       "e": -0.0419
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.479,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1997,
+       "lose": 0.3213,
+       "cover": 0.5289,
+       "e": 0.0579
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.479,
+       "halfwin": 0,
+       "push": 0.1997,
+       "halflose": 0,
+       "lose": 0.3213,
+       "cover": 0.5789,
+       "e": 0.1577
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.479,
+       "halfwin": 0.1997,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.3213,
+       "cover": 0.6288,
+       "e": 0.2576
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.6787,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.3213,
+       "cover": 0.6787,
+       "e": 0.3574
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.6787,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1736,
+       "lose": 0.1477,
+       "cover": 0.7221,
+       "e": 0.4442
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.6787,
+       "halfwin": 0,
+       "push": 0.1736,
+       "halflose": 0,
+       "lose": 0.1477,
+       "cover": 0.7655,
+       "e": 0.531
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.1477,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1736,
+       "lose": 0.6787,
+       "cover": 0.1911,
+       "e": -0.6178
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.1477,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8523,
+       "cover": 0.1477,
+       "e": -0.7046
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.0587,
+       "halfwin": 0.089,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8523,
+       "cover": 0.1255,
+       "e": -0.7491
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.0587,
+       "halfwin": 0,
+       "push": 0.089,
+       "halflose": 0,
+       "lose": 0.8523,
+       "cover": 0.1032,
+       "e": -0.7936
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.0587,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.089,
+       "lose": 0.8523,
+       "cover": 0.0809,
+       "e": -0.8381
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.0587,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9413,
+       "cover": 0.0587,
+       "e": -0.8826
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.0182,
+       "halfwin": 0.0405,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9413,
+       "cover": 0.0486,
+       "e": -0.9029
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.0182,
+       "halfwin": 0,
+       "push": 0.0405,
+       "halflose": 0,
+       "lose": 0.9413,
+       "cover": 0.0385,
+       "e": -0.9231
+      },
+      {
+       "line": 2.25,
+       "fav": "a",
+       "win": 0.0182,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.0405,
+       "lose": 0.9413,
+       "cover": 0.0283,
+       "e": -0.9433
+      },
+      {
+       "line": 2.5,
+       "fav": "a",
+       "win": 0.0182,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9818,
+       "cover": 0.0182,
+       "e": -0.9635
+      },
+      {
+       "line": 2.75,
+       "fav": "a",
+       "win": 0.0047,
+       "halfwin": 0.0135,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9818,
+       "cover": 0.0148,
+       "e": -0.9703
+      },
+      {
+       "line": 3,
+       "fav": "a",
+       "win": 0.0047,
+       "halfwin": 0,
+       "push": 0.0135,
+       "halflose": 0,
+       "lose": 0.9818,
+       "cover": 0.0115,
+       "e": -0.9771
+      }
+     ]
+    },
+    "reb": {
+     "h": 0.6787,
+     "d": 0.1736,
+     "a": 0.1477
+    },
+    "fin": {
+     "h": 0.6787,
+     "d": 0.1736,
+     "a": 0.1477,
+     "ml": 6.77,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": null,
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 114,
+     "seasons": {
+      "344": [
+       [
+        2023,
+        0
+       ],
+       [
+        2024,
+        0
+       ],
+       [
+        2025,
+        0
+       ],
+       [
+        2026,
+        24
+       ]
+      ],
+      "10437": [
+       [
+        2023,
+        256
+       ],
+       [
+        2024,
+        0
+       ],
+       [
+        2025,
+        240
+       ],
+       [
+        2026,
+        0
+       ]
+      ]
+     },
+     "n": 520,
+     "H": 1.2128482050976375,
+     "base": 1.249664974864794,
+     "pool": {
+      "pools": [
+       [
+        344,
+        24
+       ],
+       [
+        10437,
+        496
+       ]
+      ],
+      "rows": 520
+     },
+     "elo": {
+      "home": 1523.5998539470406,
+      "away": 1526.474691888166
+     },
+     "lambda_adj": {
+      "lh": 2.7191545019063783,
+      "la": 1.250210278906344,
+      "adjH": 1.0015279266792103,
+      "adjA": 0.9984203209360013
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": null,
+      "away": null
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 2.00 / 客 1.00 → λ 主 1.018× 客 0.982×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "未接每場控球／射門數據，無調整（待補）",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 37 / 客 38 → λ 主 0.994× 客 1.006×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.6561794072763711,
+       "d": 0.16064234721410525,
+       "a": 0.18317824550952355
+      },
+      "1": {
+       "h": 0.8168217544904766,
+       "d": 0.09759775819614532,
+       "a": 0.08558048731337833
+      },
+      "-1": {
+       "h": 0.4692574675191796,
+       "d": 0.18692193975719146,
+       "a": 0.34382059272362864
+      }
+     },
+     "o25": 0.7570197239869108,
+     "o35": 0.5600392094921967,
+     "btts": 0.6719856095368668,
+     "tops": [
+      {
+       "s": "2-1",
+       "p": 0.08735853381376049
+      },
+      {
+       "s": "3-1",
+       "p": 0.07905965281375922
+      },
+      {
+       "s": "2-0",
+       "p": 0.0697646922589149
+      },
+      {
+       "s": "1-1",
+       "p": 0.0695005540007694
+      },
+      {
+       "s": "3-0",
+       "p": 0.0631371900129094
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  },
+  {
+   "id": "50080417",
+   "comp": "INT",
+   "compName": "國際賽",
+   "kick": "2026-11-12T21:00:00.000+08:00",
+   "home": "塞爾維亞U21",
+   "away": "北馬其頓U21",
+   "homeEn": "Serbia U21",
+   "awayEn": "North Macedonia U21",
+   "status": "pre",
+   "minute": "",
+   "sh": null,
+   "sa": null,
+   "pred": {
+    "pass": "preview",
+    "m_id": "50080417",
+    "home": "塞爾維亞U21",
+    "away": "北馬其頓U21",
+    "comp": "INT",
+    "compName": "國際賽",
+    "kickoff": "2026-11-12T21:00:00.000+08:00",
+    "handicap": {
+     "lines": [
+      0,
+      1,
+      -1
+     ],
+     "mark": -0.75
+    },
+    "base": {
+     "h": 0.5636,
+     "d": 0.2461,
+     "a": 0.1903,
+     "lh": 1.815,
+     "la": 0.97,
+     "sl": 0.5268
+    },
+    "factors": [
+     {
+      "p": "Elo 1507 vs 1426（差 81）",
+      "txt": "時序 Elo（K=20、主場 +60、走過 520 場）",
+      "src": "FotMob 賽果",
+      "url": "https://www.fotmob.com/leagues/114/overview"
+     },
+     {
+      "p": "攻防：主 att 0.95/def 1.12，客 att 0.69/def 1.26",
+      "txt": "時間衰減加權（半衰期 180 天）；H=1.213、base=1.250 球",
+      "src": "同一批賽果擬合",
+      "url": "https://www.fotmob.com/leagues/114/overview"
+     },
+     {
+      "p": "共識層：統計師✓、戰術師—、情境師✓、風險師—",
+      "txt": "統計師（w 0.15）：近 5 場場均得分 主 1.80 / 客 0.80 → λ 主 1.018× 客 0.982×；戰術師（w 0.05）：未接每場控球／射門數據，無調整（待補）；情境師（w 0.2）：休息日 主 38 / 客 38 → λ 主 1.000× 客 1.000×；風險師（w 0.6）：傷停 λ 1.000×/1.000×｜合成 λ 主 ×1.003／客 ×0.997",
+      "src": "agents.mjs（Step 2 規則式四代理）",
+      "url": ""
+     }
+    ],
+    "ahd": {
+     "mark": -0.75,
+     "line": -0.75,
+     "fav": "h",
+     "e": 0.0128,
+     "rows": [
+      {
+       "line": -3,
+       "fav": "h",
+       "win": 0.0586,
+       "halfwin": 0,
+       "push": 0.0944,
+       "halflose": 0,
+       "lose": 0.8471,
+       "cover": 0.1057,
+       "e": -0.7885
+      },
+      {
+       "line": -2.75,
+       "fav": "h",
+       "win": 0.0586,
+       "halfwin": 0.0944,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8471,
+       "cover": 0.1293,
+       "e": -0.7413
+      },
+      {
+       "line": -2.5,
+       "fav": "h",
+       "win": 0.1529,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8471,
+       "cover": 0.1529,
+       "e": -0.6941
+      },
+      {
+       "line": -2.25,
+       "fav": "h",
+       "win": 0.1529,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1767,
+       "lose": 0.6704,
+       "cover": 0.1971,
+       "e": -0.6058
+      },
+      {
+       "line": -2,
+       "fav": "h",
+       "win": 0.1529,
+       "halfwin": 0,
+       "push": 0.1767,
+       "halflose": 0,
+       "lose": 0.6704,
+       "cover": 0.2413,
+       "e": -0.5174
+      },
+      {
+       "line": -1.75,
+       "fav": "h",
+       "win": 0.1529,
+       "halfwin": 0.1767,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6704,
+       "cover": 0.2855,
+       "e": -0.4291
+      },
+      {
+       "line": -1.5,
+       "fav": "h",
+       "win": 0.3296,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.6704,
+       "cover": 0.3296,
+       "e": -0.3407
+      },
+      {
+       "line": -1.25,
+       "fav": "h",
+       "win": 0.3296,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2357,
+       "lose": 0.4347,
+       "cover": 0.3886,
+       "e": -0.2229
+      },
+      {
+       "line": -1,
+       "fav": "h",
+       "win": 0.3296,
+       "halfwin": 0,
+       "push": 0.2357,
+       "halflose": 0,
+       "lose": 0.4347,
+       "cover": 0.4475,
+       "e": -0.105
+      },
+      {
+       "line": -0.75,
+       "fav": "h",
+       "win": 0.3296,
+       "halfwin": 0.2357,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4347,
+       "cover": 0.5064,
+       "e": 0.0128
+      },
+      {
+       "line": -0.5,
+       "fav": "h",
+       "win": 0.5653,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.4347,
+       "cover": 0.5653,
+       "e": 0.1307
+      },
+      {
+       "line": -0.25,
+       "fav": "h",
+       "win": 0.5653,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2456,
+       "lose": 0.1891,
+       "cover": 0.6267,
+       "e": 0.2535
+      },
+      {
+       "line": 0,
+       "fav": "h",
+       "win": 0.5653,
+       "halfwin": 0,
+       "push": 0.2456,
+       "halflose": 0,
+       "lose": 0.1891,
+       "cover": 0.6881,
+       "e": 0.3762
+      },
+      {
+       "line": 0.25,
+       "fav": "a",
+       "win": 0.1891,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.2456,
+       "lose": 0.5653,
+       "cover": 0.2505,
+       "e": -0.499
+      },
+      {
+       "line": 0.5,
+       "fav": "a",
+       "win": 0.1891,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8109,
+       "cover": 0.1891,
+       "e": -0.6218
+      },
+      {
+       "line": 0.75,
+       "fav": "a",
+       "win": 0.0679,
+       "halfwin": 0.1212,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.8109,
+       "cover": 0.1588,
+       "e": -0.6824
+      },
+      {
+       "line": 1,
+       "fav": "a",
+       "win": 0.0679,
+       "halfwin": 0,
+       "push": 0.1212,
+       "halflose": 0,
+       "lose": 0.8109,
+       "cover": 0.1285,
+       "e": -0.743
+      },
+      {
+       "line": 1.25,
+       "fav": "a",
+       "win": 0.0679,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.1212,
+       "lose": 0.8109,
+       "cover": 0.0982,
+       "e": -0.8036
+      },
+      {
+       "line": 1.5,
+       "fav": "a",
+       "win": 0.0679,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9321,
+       "cover": 0.0679,
+       "e": -0.8642
+      },
+      {
+       "line": 1.75,
+       "fav": "a",
+       "win": 0.018,
+       "halfwin": 0.0499,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.9321,
+       "cover": 0.0554,
+       "e": -0.8891
+      },
+      {
+       "line": 2,
+       "fav": "a",
+       "win": 0.018,
+       "halfwin": 0,
+       "push": 0.0499,
+       "halflose": 0,
+       "lose": 0.9321,
+       "cover": 0.043,
+       "e": -0.9141
+      },
+      {
+       "line": 2.25,
+       "fav": "a",
+       "win": 0.018,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0.0499,
+       "lose": 0.9321,
+       "cover": 0.0305,
+       "e": -0.939
+      },
+      {
+       "line": 2.5,
+       "fav": "a",
+       "win": 0.018,
+       "halfwin": 0,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.982,
+       "cover": 0.018,
+       "e": -0.964
+      },
+      {
+       "line": 2.75,
+       "fav": "a",
+       "win": 0.0038,
+       "halfwin": 0.0142,
+       "push": 0,
+       "halflose": 0,
+       "lose": 0.982,
+       "cover": 0.0145,
+       "e": -0.9711
+      },
+      {
+       "line": 3,
+       "fav": "a",
+       "win": 0.0038,
+       "halfwin": 0,
+       "push": 0.0142,
+       "halflose": 0,
+       "lose": 0.982,
+       "cover": 0.0109,
+       "e": -0.9781
+      }
+     ]
+    },
+    "reb": {
+     "h": 0.5653,
+     "d": 0.2456,
+     "a": 0.1891
+    },
+    "fin": {
+     "h": 0.5653,
+     "d": 0.2456,
+     "a": 0.1891,
+     "ml": 5.29,
+     "conf": "★★☆☆☆",
+     "cs": 2,
+     "risks": []
+    },
+    "cal": null,
+    "note": "hc 列＝負二項(ν=1.4) 重算（讓球專用），1X2 主結論與亞盤仍為泊松＋DC 輸出。",
+    "diag": {
+     "league": 114,
+     "seasons": {
+      "344": [
+       [
+        2023,
+        0
+       ],
+       [
+        2024,
+        0
+       ],
+       [
+        2025,
+        0
+       ],
+       [
+        2026,
+        24
+       ]
+      ],
+      "10437": [
+       [
+        2023,
+        256
+       ],
+       [
+        2024,
+        0
+       ],
+       [
+        2025,
+        240
+       ],
+       [
+        2026,
+        0
+       ]
+      ]
+     },
+     "n": 520,
+     "H": 1.2128482050976375,
+     "base": 1.249664974864794,
+     "pool": {
+      "pools": [
+       [
+        344,
+        24
+       ],
+       [
+        10437,
+        496
+       ]
+      ],
+      "rows": 520
+     },
+     "elo": {
+      "home": 1506.505677381157,
+      "away": 1425.8701055263282
+     },
+     "lambda_adj": {
+      "lh": 1.819606701345463,
+      "la": 0.9670037516500501,
+      "adjH": 1.002679351877725,
+      "adjA": 0.9972800954174779
+     },
+     "injuries": {
+      "home": [],
+      "away": []
+     },
+     "lineupState": "◌ 未公開",
+     "possession": {
+      "home": null,
+      "away": null
+     },
+     "quality": {
+      "home": null,
+      "away": null
+     },
+     "consensus": [
+      {
+       "key": "stat",
+       "name": "統計師",
+       "w": 0.15,
+       "note": "近 5 場場均得分 主 1.80 / 客 0.80 → λ 主 1.018× 客 0.982×",
+       "used": true
+      },
+      {
+       "key": "tac",
+       "name": "戰術師",
+       "w": 0.05,
+       "note": "未接每場控球／射門數據，無調整（待補）",
+       "used": false
+      },
+      {
+       "key": "ctx",
+       "name": "情境師",
+       "w": 0.2,
+       "note": "休息日 主 38 / 客 38 → λ 主 1.000× 客 1.000×",
+       "used": true
+      },
+      {
+       "key": "risk",
+       "name": "風險師",
+       "w": 0.6,
+       "note": "傷停 λ 1.000×/1.000×",
+       "used": false
+      }
+     ],
+     "handicap": {
+      "0": {
+       "h": 0.5536911921106746,
+       "d": 0.22636905905688998,
+       "a": 0.21993974883243586
+      },
+      "1": {
+       "h": 0.7800602511675645,
+       "d": 0.12653482281620484,
+       "a": 0.09340492601623095
+      },
+      "-1": {
+       "h": 0.3341406361208677,
+       "d": 0.2195505559898068,
+       "a": 0.44630880788932586
+      }
+     },
+     "o25": 0.526814314793226,
+     "o35": 0.30458822346816294,
+     "btts": 0.5283631322706386,
+     "tops": [
+      {
+       "s": "1-1",
+       "p": 0.11738387782660525
+      },
+      {
+       "s": "1-0",
+       "p": 0.10339665816322129
+      },
+      {
+       "s": "2-0",
+       "p": 0.10170894498229047
+      },
+      {
+       "s": "2-1",
+       "p": 0.09862117155067782
+      },
+      {
+       "s": "0-0",
+       "p": 0.07046234737285732
+      }
+     ]
+    }
+   },
+   "has_fm": true,
+   "fm_lg": null
+  }
+ ]
+}

@@ -304,6 +304,7 @@ function renderCards() {
       </div>
       ${bar(d.fin)}
       ${d.cal ? '<div class="lam" style="margin-top:10px">二階段校準 1X2（參考層，不覆蓋結論）：' + pct(d.cal.h) + ' / ' + pct(d.cal.d) + ' / ' + pct(d.cal.a) + (d.cal.note ? '　' + esc(d.cal.note) : '') + '</div>' : ''}
+      ${(!d.cal && d.cal_note) ? '<div class="lam" style="margin-top:10px">二階段校準：未提供（' + esc(d.cal_note) + '）</div>' : ''}
       ${(d.fin.risks && d.fin.risks.length) ? '<ul>' + d.fin.risks.map((r) => '<li>' + esc(r) + '</li>').join('') + '</ul>' : ''}
     </div>
     <div class="cnote">${esc(d.note || '')}</div>
