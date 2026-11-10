@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UEFA Nations League A 2026/2027 · 盃賽模擬</title>
+<style>
+:root{--bg:#0e1417;--card:#151d21;--card2:#1b252a;--line:#26333a;--txt:#e6edf0;--dim:#93a7b0;--accent:#4c9ba1;--green:#4fbf87;--yellow:#e5b454}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 60px}
+.hero{padding:32px 26px 24px;border-radius:16px;margin-bottom:16px;background:linear-gradient(150deg,#16323a 0%,#12242a 55%,#101a1f 100%);border:1px solid var(--line);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(76,155,161,.22),transparent 68%)}
+.hero h1{margin:0 0 8px;font-size:26px;letter-spacing:.04em;font-weight:650}
+.hero .sub{color:var(--dim);font-size:13.5px}
+.hero .gen{color:#6f858d;font-size:12px;margin-top:10px}
+.method{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px;margin-bottom:12px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.mcard b{display:block;font-size:13.5px;margin-bottom:6px;color:#cfe3e8}
+.mcard span{color:var(--dim);font-size:12.5px;line-height:1.65}
+.warn{margin:0 0 18px;padding:12px 16px;border-radius:10px;font-size:12.8px;background:rgba(229,180,84,.1);border:1px solid rgba(229,180,84,.35);color:#f0cf8d}
+.sect-title{font-size:15px;font-weight:600;margin:26px 0 12px;padding-left:10px;border-left:3px solid var(--accent)}
+.cbwrap{display:grid;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cb{display:grid;grid-template-columns:96px 1fr 62px;gap:10px;align-items:center;font-size:13px}
+.cn{color:#d7e6ea}
+.cbar{height:9px;background:#1d282e;border-radius:5px;overflow:hidden}
+.cbar i{display:block;height:100%;background:linear-gradient(90deg,#4c9ba1,#7fd3c6)}
+.cv{text-align:right;color:#bfe6ea;font-variant-numeric:tabular-nums}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.ghead{padding:10px 14px;background:var(--card2);font-size:13.5px;font-weight:600;border-bottom:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--dim);font-weight:500;font-size:12.5px}
+.gt tbody tr:last-child td,.gt tbody tr:last-child th{border-bottom:0}
+.tm{font-weight:550}
+.elo{color:#6f858d;font-size:11.5px;margin-left:6px;font-variant-numeric:tabular-nums}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.ch{color:#7fd3c6;font-weight:600}
+.qf{color:#bfe6ea}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;min-width:240px}
+.px{display:flex;flex-direction:column;gap:2px}
+.pk{color:#6f858d;font-size:10.5px}
+.pv{font-size:12px;font-variant-numeric:tabular-nums}
+.fixt{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+.mono{font-variant-numeric:tabular-nums;color:var(--dim)}
+.vs{color:#6f858d;padding:0 2px}
+.sc{display:inline-block;margin-right:8px;padding:2px 8px;border-radius:6px;background:#1d282e;font-variant-numeric:tabular-nums;font-size:12.5px}
+.sc b{color:#7fd3c6;font-weight:600}
+.sc.big{font-size:13.5px;padding:5px 11px}
+.fsbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.sensbox{display:grid;gap:10px}
+.scard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;font-size:13px}
+.scard b{color:#cfe3e8;display:block;margin-bottom:4px}
+.scard em{color:#7fd3c6;font-style:normal;font-weight:600}
+.assump{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 14px 34px;color:var(--dim);font-size:12.8px}
+.assump li{margin:5px 0}
+footer{margin-top:30px;color:#6f858d;font-size:12px;text-align:center;line-height:1.8}
+</style>
+</head>
+<body><div class="wrap">
+<div class="hero">
+  <h1>UEFA Nations League A 2026/2027 · 盃賽模擬</h1>
+  <div class="sub">Monte Carlo 10,000 次（seed 20261110）· 強度池 725 場 / 191 隊 · 主場係數 ×1.455 · 每隊基準 1.097 球</div>
+  <div class="gen">產生時間 2026-11-10T15:49:38.699Z · 已完場分組賽用真實賽果，未踢場次由模型抽樣</div>
+</div>
+
+<div class="method">
+  <div class="mcard"><b>① 隊力合成</b><span>Elo 0.60（時序 K=25）＋攻防擬合 0.25＋近況 0.10（近 365 日場均積分）＋年齡 0.05（偏離 26.5 歲高峰）。教練／戰術與定性殘差冇可靠數據源，設 0。</span></div>
+  <div class="mcard"><b>② 逐場模擬</b><span>Step 1 的 Dixon-Coles 泊松（ρ=−0.08）抽樣入球；合成強度以 λ 比值 exp(0.08×Δ) 微調，總入球水平不變。</span></div>
+  <div class="mcard"><b>③ 賽制</b><span>分組前 2 出線八強；種子（首名）對非種子（次名），同組回避，兩回合、種子隊次回合主場；四強與決賽中立場。</span></div>
+  <div class="mcard"><b>④ 限制</b><span>和局以十二碼 50/50 決勝；分組同分比淨勝球再比入球，最後隨機；模型難以穩定贏市場。</span></div>
+</div>
+<div class="warn">本頁是統計模擬，<b>不構成任何投注建議</b>。機率只反映模型假設下的相對強弱，唔代表真實結果；市場賠率從未參與運算。</div>
+
+<div class="sect-title">奪冠機率（前十）</div>
+<div class="cbwrap"><div class="cb">
+  <span class="cn">Spain</span>
+  <span class="cbar"><i style="width:100%"></i></span>
+  <span class="cv">39.8%</span>
+</div><div class="cb">
+  <span class="cn">France</span>
+  <span class="cbar"><i style="width:44.402610441767074%"></i></span>
+  <span class="cv">17.7%</span>
+</div><div class="cb">
+  <span class="cn">Portugal</span>
+  <span class="cbar"><i style="width:38.704819277108435%"></i></span>
+  <span class="cv">15.4%</span>
+</div><div class="cb">
+  <span class="cn">England</span>
+  <span class="cbar"><i style="width:24.59839357429719%"></i></span>
+  <span class="cv">9.8%</span>
+</div><div class="cb">
+  <span class="cn">Belgium</span>
+  <span class="cbar"><i style="width:13.077309236947793%"></i></span>
+  <span class="cv">5.2%</span>
+</div><div class="cb">
+  <span class="cn">Germany</span>
+  <span class="cbar"><i style="width:10.491967871485944%"></i></span>
+  <span class="cv">4.2%</span>
+</div><div class="cb">
+  <span class="cn">Italy</span>
+  <span class="cbar"><i style="width:8.308232931726907%"></i></span>
+  <span class="cv">3.3%</span>
+</div><div class="cb">
+  <span class="cn">Greece</span>
+  <span class="cbar"><i style="width:4.518072289156627%"></i></span>
+  <span class="cv">1.8%</span>
+</div><div class="cb">
+  <span class="cn">Netherlands</span>
+  <span class="cbar"><i style="width:3.7399598393574296%"></i></span>
+  <span class="cv">1.5%</span>
+</div><div class="cb">
+  <span class="cn">Norway</span>
+  <span class="cbar"><i style="width:1.6064257028112452%"></i></span>
+  <span class="cv">0.6%</span>
+</div></div>
+
+<div class="sect-title">分組形勢（名次機率 · 出線 · 晉級 · 奪冠）</div>
+<div class="gcard">
+    <div class="ghead">第 1 組</div>
+    <table class="gt">
+      <thead><tr><th>球隊</th><th>分組名次機率</th><th class="num">出線</th><th class="num">四強</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+      <tbody><tr>
+    <td class="tm">France<span class="elo">1638</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">91%</span></div><div class="px"><span class="pk">次名</span><span class="pv">9%</span></div><div class="px"><span class="pk">第三</span><span class="pv">1%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">99.5%</td>
+    <td class="num">69.4%</td>
+    <td class="num">43.4%</td>
+    <td class="num ch">17.7%</td>
+  </tr><tr>
+    <td class="tm">Italy<span class="elo">1573</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">7%</span></div><div class="px"><span class="pk">次名</span><span class="pv">37%</span></div><div class="px"><span class="pk">第三</span><span class="pv">56%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">44.0%</td>
+    <td class="num">20.9%</td>
+    <td class="num">9.0%</td>
+    <td class="num ch">3.3%</td>
+  </tr><tr>
+    <td class="tm">Belgium<span class="elo">1543</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">2%</span></div><div class="px"><span class="pk">次名</span><span class="pv">54%</span></div><div class="px"><span class="pk">第三</span><span class="pv">44%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">56.5%</td>
+    <td class="num">27.8%</td>
+    <td class="num">12.6%</td>
+    <td class="num ch">5.2%</td>
+  </tr><tr>
+    <td class="tm">Turkiye<span class="elo">1478</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">0%</span></div><div class="px"><span class="pk">第三</span><span class="pv">0%</span></div><div class="px"><span class="pk">第四</span><span class="pv">100%</span></div></div></td>
+    <td class="num qf">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody>
+    </table>
+  </div><div class="gcard">
+    <div class="ghead">第 2 組</div>
+    <table class="gt">
+      <thead><tr><th>球隊</th><th>分組名次機率</th><th class="num">出線</th><th class="num">四強</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+      <tbody><tr>
+    <td class="tm">Greece<span class="elo">1510</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">42%</span></div><div class="px"><span class="pk">次名</span><span class="pv">38%</span></div><div class="px"><span class="pk">第三</span><span class="pv">20%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">79.6%</td>
+    <td class="num">22.9%</td>
+    <td class="num">6.6%</td>
+    <td class="num ch">1.8%</td>
+  </tr><tr>
+    <td class="tm">Netherlands<span class="elo">1584</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">33%</span></div><div class="px"><span class="pk">次名</span><span class="pv">28%</span></div><div class="px"><span class="pk">第三</span><span class="pv">39%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">61.0%</td>
+    <td class="num">21.3%</td>
+    <td class="num">6.3%</td>
+    <td class="num ch">1.5%</td>
+  </tr><tr>
+    <td class="tm">Germany<span class="elo">1576</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">25%</span></div><div class="px"><span class="pk">次名</span><span class="pv">35%</span></div><div class="px"><span class="pk">第三</span><span class="pv">40%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">59.4%</td>
+    <td class="num">28.7%</td>
+    <td class="num">11.6%</td>
+    <td class="num ch">4.2%</td>
+  </tr><tr>
+    <td class="tm">Serbia<span class="elo">1421</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">0%</span></div><div class="px"><span class="pk">第三</span><span class="pv">0%</span></div><div class="px"><span class="pk">第四</span><span class="pv">100%</span></div></div></td>
+    <td class="num qf">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody>
+    </table>
+  </div><div class="gcard">
+    <div class="ghead">第 3 組</div>
+    <table class="gt">
+      <thead><tr><th>球隊</th><th>分組名次機率</th><th class="num">出線</th><th class="num">四強</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+      <tbody><tr>
+    <td class="tm">Spain<span class="elo">1727</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">88%</span></div><div class="px"><span class="pk">次名</span><span class="pv">12%</span></div><div class="px"><span class="pk">第三</span><span class="pv">0%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">100.0%</td>
+    <td class="num">80.1%</td>
+    <td class="num">55.2%</td>
+    <td class="num ch">39.8%</td>
+  </tr><tr>
+    <td class="tm">England<span class="elo">1601</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">12%</span></div><div class="px"><span class="pk">次名</span><span class="pv">88%</span></div><div class="px"><span class="pk">第三</span><span class="pv">0%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">100.0%</td>
+    <td class="num">50.7%</td>
+    <td class="num">21.8%</td>
+    <td class="num ch">9.8%</td>
+  </tr><tr>
+    <td class="tm">Croatia<span class="elo">1513</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">0%</span></div><div class="px"><span class="pk">第三</span><span class="pv">91%</span></div><div class="px"><span class="pk">第四</span><span class="pv">9%</span></div></div></td>
+    <td class="num qf">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr><tr>
+    <td class="tm">Czechia<span class="elo">1419</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">0%</span></div><div class="px"><span class="pk">第三</span><span class="pv">9%</span></div><div class="px"><span class="pk">第四</span><span class="pv">91%</span></div></div></td>
+    <td class="num qf">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody>
+    </table>
+  </div><div class="gcard">
+    <div class="ghead">第 4 組</div>
+    <table class="gt">
+      <thead><tr><th>球隊</th><th>分組名次機率</th><th class="num">出線</th><th class="num">四強</th><th class="num">決賽</th><th class="num">奪冠</th></tr></thead>
+      <tbody><tr>
+    <td class="tm">Portugal<span class="elo">1632</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">100%</span></div><div class="px"><span class="pk">次名</span><span class="pv">0%</span></div><div class="px"><span class="pk">第三</span><span class="pv">0%</span></div><div class="px"><span class="pk">第四</span><span class="pv">0%</span></div></div></td>
+    <td class="num qf">100.0%</td>
+    <td class="num">58.2%</td>
+    <td class="num">27.5%</td>
+    <td class="num ch">15.4%</td>
+  </tr><tr>
+    <td class="tm">Denmark<span class="elo">1509</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">60%</span></div><div class="px"><span class="pk">第三</span><span class="pv">38%</span></div><div class="px"><span class="pk">第四</span><span class="pv">2%</span></div></div></td>
+    <td class="num qf">60.2%</td>
+    <td class="num">11.4%</td>
+    <td class="num">3.5%</td>
+    <td class="num ch">0.6%</td>
+  </tr><tr>
+    <td class="tm">Norway<span class="elo">1509</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">38%</span></div><div class="px"><span class="pk">第三</span><span class="pv">51%</span></div><div class="px"><span class="pk">第四</span><span class="pv">10%</span></div></div></td>
+    <td class="num qf">38.4%</td>
+    <td class="num">8.4%</td>
+    <td class="num">2.5%</td>
+    <td class="num ch">0.6%</td>
+  </tr><tr>
+    <td class="tm">Wales<span class="elo">1405</span></td>
+    <td><div class="mini"><div class="px"><span class="pk">首名</span><span class="pv">0%</span></div><div class="px"><span class="pk">次名</span><span class="pv">1%</span></div><div class="px"><span class="pk">第三</span><span class="pv">11%</span></div><div class="px"><span class="pk">第四</span><span class="pv">88%</span></div></div></td>
+    <td class="num qf">1.4%</td>
+    <td class="num">0.1%</td>
+    <td class="num">0.0%</td>
+    <td class="num ch">0.0%</td>
+  </tr></tbody>
+    </table>
+  </div>
+
+<div class="sect-title">未踢場次 · 最可能比分（前 3）</div>
+<div class="fixt"><table><thead><tr><th>開賽（北京時間）</th><th>組</th><th>對賽</th><th>典型比分</th></tr></thead><tbody><tr>
+  <td class="mono">11-13 01:00</td>
+  <td class="mono">G1</td>
+  <td>Turkiye <span class="vs">v</span> Belgium</td>
+  <td class="scores"><span class="sc">0 – 2 <b>10%</b></span><span class="sc">1 – 1 <b>10%</b></span><span class="sc">1 – 2 <b>9%</b></span></td>
+</tr><tr>
+  <td class="mono">11-13 03:45</td>
+  <td class="mono">G3</td>
+  <td>Czechia <span class="vs">v</span> Spain</td>
+  <td class="scores"><span class="sc">0 – 3 <b>14%</b></span><span class="sc">0 – 2 <b>13%</b></span><span class="sc">0 – 4 <b>10%</b></span></td>
+</tr><tr>
+  <td class="mono">11-13 03:45</td>
+  <td class="mono">G3</td>
+  <td>England <span class="vs">v</span> Croatia</td>
+  <td class="scores"><span class="sc">2 – 0 <b>10%</b></span><span class="sc">3 – 0 <b>10%</b></span><span class="sc">3 – 1 <b>8%</b></span></td>
+</tr><tr>
+  <td class="mono">11-13 03:45</td>
+  <td class="mono">G1</td>
+  <td>Italy <span class="vs">v</span> France</td>
+  <td class="scores"><span class="sc">1 – 1 <b>14%</b></span><span class="sc">0 – 0 <b>8%</b></span><span class="sc">2 – 1 <b>8%</b></span></td>
+</tr><tr>
+  <td class="mono">11-14 03:45</td>
+  <td class="mono">G2</td>
+  <td>Netherlands <span class="vs">v</span> Greece</td>
+  <td class="scores"><span class="sc">1 – 0 <b>15%</b></span><span class="sc">0 – 0 <b>12%</b></span><span class="sc">1 – 1 <b>12%</b></span></td>
+</tr><tr>
+  <td class="mono">11-14 03:45</td>
+  <td class="mono">G2</td>
+  <td>Serbia <span class="vs">v</span> Germany</td>
+  <td class="scores"><span class="sc">0 – 2 <b>12%</b></span><span class="sc">0 – 1 <b>10%</b></span><span class="sc">0 – 3 <b>10%</b></span></td>
+</tr><tr>
+  <td class="mono">11-15 01:00</td>
+  <td class="mono">G4</td>
+  <td>Norway <span class="vs">v</span> Wales</td>
+  <td class="scores"><span class="sc">2 – 0 <b>13%</b></span><span class="sc">3 – 0 <b>12%</b></span><span class="sc">1 – 0 <b>11%</b></span></td>
+</tr><tr>
+  <td class="mono">11-15 03:45</td>
+  <td class="mono">G4</td>
+  <td>Portugal <span class="vs">v</span> Denmark</td>
+  <td class="scores"><span class="sc">2 – 0 <b>14%</b></span><span class="sc">1 – 0 <b>13%</b></span><span class="sc">3 – 0 <b>10%</b></span></td>
+</tr><tr>
+  <td class="mono">11-16 03:45</td>
+  <td class="mono">G1</td>
+  <td>Belgium <span class="vs">v</span> Italy</td>
+  <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>10%</b></span></td>
+</tr><tr>
+  <td class="mono">11-16 03:45</td>
+  <td class="mono">G3</td>
+  <td>Croatia <span class="vs">v</span> Czechia</td>
+  <td class="scores"><span class="sc">2 – 1 <b>10%</b></span><span class="sc">2 – 0 <b>10%</b></span><span class="sc">3 – 0 <b>9%</b></span></td>
+</tr><tr>
+  <td class="mono">11-16 03:45</td>
+  <td class="mono">G1</td>
+  <td>France <span class="vs">v</span> Turkiye</td>
+  <td class="scores"><span class="sc">3 – 0 <b>13%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">4 – 0 <b>9%</b></span></td>
+</tr><tr>
+  <td class="mono">11-16 03:45</td>
+  <td class="mono">G3</td>
+  <td>Spain <span class="vs">v</span> England</td>
+  <td class="scores"><span class="sc">2 – 0 <b>11%</b></span><span class="sc">1 – 0 <b>11%</b></span><span class="sc">2 – 1 <b>10%</b></span></td>
+</tr><tr>
+  <td class="mono">11-17 03:45</td>
+  <td class="mono">G2</td>
+  <td>Germany <span class="vs">v</span> Netherlands</td>
+  <td class="scores"><span class="sc">2 – 1 <b>9%</b></span><span class="sc">2 – 0 <b>9%</b></span><span class="sc">1 – 1 <b>8%</b></span></td>
+</tr><tr>
+  <td class="mono">11-17 03:45</td>
+  <td class="mono">G2</td>
+  <td>Greece <span class="vs">v</span> Serbia</td>
+  <td class="scores"><span class="sc">1 – 0 <b>21%</b></span><span class="sc">2 – 0 <b>17%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+</tr><tr>
+  <td class="mono">11-18 03:45</td>
+  <td class="mono">G4</td>
+  <td>Denmark <span class="vs">v</span> Norway</td>
+  <td class="scores"><span class="sc">1 – 1 <b>12%</b></span><span class="sc">2 – 1 <b>10%</b></span><span class="sc">1 – 0 <b>7%</b></span></td>
+</tr><tr>
+  <td class="mono">11-18 03:45</td>
+  <td class="mono">G4</td>
+  <td>Wales <span class="vs">v</span> Portugal</td>
+  <td class="scores"><span class="sc">0 – 1 <b>18%</b></span><span class="sc">0 – 2 <b>16%</b></span><span class="sc">0 – 0 <b>12%</b></span></td>
+</tr></tbody></table></div>
+<div class="sect-title">決賽最常見比分（中立場）</div><div class="fsbox"><span class="sc big">1 – 0 <b>13%</b></span><span class="sc big">1 – 1 <b>12%</b></span><span class="sc big">2 – 0 <b>11%</b></span><span class="sc big">2 – 1 <b>9%</b></span><span class="sc big">0 – 0 <b>8%</b></span></div>
+<div class="sect-title">敏感度：主場優勢</div>
+  <div class="sensbox"><div class="scard"><b>全部中立場（無主場優勢）</b><div>Spain <em>31.1%</em>、France <em>20.5%</em>、Portugal <em>14.5%</em>、England <em>11.4%</em>、Belgium <em>5.7%</em>、Italy <em>4.7%</em></div></div><div class="scard"><b>主場優勢 ×1.5</b><div>Spain <em>51.4%</em>、Portugal <em>15.1%</em>、France <em>14.1%</em>、England <em>6.5%</em>、Belgium <em>5.4%</em>、Germany <em>2.5%</em></div></div></div>
+<div class="sect-title">模型假設（全部可查）</div>
+<ol class="assump"><li>已完場分組賽用真實賽果；未完場一律由 Step 1 模型抽樣（不參考任何未踢賽果）</li><li>八強＝每組前 2 名（FotMob legend 標示），種子（首名）對非種子（次名），兩回合，種子隊次回合主場</li><li>同組球隊八強回避；如無法回避則容許同組對賽</li><li>四強、決賽在中立場（無主場優勢）；和局以十二碼決勝，假設 50/50</li><li>分組同分依次比：積分 → 淨勝球 → 入球 → 隨機（無 head-to-head 數據）</li><li>隊力合成權重：Elo 0.60、攻防 0.25、近況 0.10、年齡 0.05；教練／戰術與定性殘差無可靠數據源，設 0</li></ol>
+<footer>Step 3 盃賽模擬 · 模型輸出非投注建議 · 數據源 FotMob（賽制）＋自建強度池（725 場國際賽）</footer>
+</div></body></html>
