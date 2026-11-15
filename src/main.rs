@@ -170,20 +170,49 @@ fn ahd_block(p: &Value) -> String {
     )
 }
 
-/// 覆盤 memo 區塊（hashtag 標籤 + 備註）。內容喺 runtime 由 JS 經 API 載入／儲存。
-fn memo_block(id: &str) -> String {
+/// 覆盤 memo 區塊（hashtag 標籤 + 備註）。
+/// 標籤由 build 時寫入 HTML（來源 fb/fixtures.mjs 讀 memos 表），唔靠前端 JS——
+/// 用戶 m18618 見到全站標籤消失，根因就係「只靠 runtime fetch、API 一失敗就全空」。
+/// 前端 JS（memoRender）之後仍然可以覆寫，屬 fail-open。
+fn memo_block(id: &str, tags: &[String], note: &str) -> String {
+    let has = !tags.is_empty();
+    let chips: String = tags
+        .iter()
+        .map(|t| format!("<span class=\"mt\">#{}</span>", esc(t)))
+        .collect();
+    let sum = if has {
+        let mut s = tags.join(" ");
+        if !note.is_empty() {
+            s.push_str(" · ");
+            s.push_str(&note.chars().take(40).collect::<String>());
+        }
+        s
+    } else {
+        String::from("未寫")
+    };
+    let input_val = tags
+        .iter()
+        .map(|t| format!("#{}", t))
+        .collect::<Vec<_>>()
+        .join(" ");
     format!(
-        r##"<div class="memo" data-mid="{id}">
-  <div class="memo-head"><span class="memo-dot"></span><b>覆盤 memo</b><span class="memo-sum">未寫</span></div>
-  <div class="memo-tags"></div>
+        r##"<div class="memo{cls}" data-mid="{id}">
+  <div class="memo-head"><span class="memo-dot"></span><b>Memo</b><span class="memo-sum">{sum}</span></div>
+  <div class="memo-tags">{chips}</div>
+  <div class="memo-stat"></div>
   <div class="memo-body">
-    <input class="memo-input" placeholder="#初盤合理 終盤升水（寫法：#開頭，空格分隔形容詞；整句會當成一個標籤）" autocomplete="off">
-    <textarea class="memo-note" placeholder="備註（例如：初盤 −0.5 合理，終盤退到 −0.25）"></textarea>
+    <input class="memo-input" value="{inp}" placeholder="#初盤合理 終盤升水（寫法：#開頭，空格分隔形容詞；整句會當成一個標籤）" autocomplete="off">
+    <textarea class="memo-note" placeholder="備註（例如：初盤 −0.5 合理，終盤退到 −0.25）">{note}</textarea>
     <div class="memo-acts"><button class="memo-save">儲存</button><button class="memo-clear ghost">清空</button><span class="memo-msg"></span></div>
     <div class="memo-hint">用 # 開頭加標籤（可多個，空格分隔）；標籤會正規化，例如「退盤」→「終盤退盤」。</div>
   </div>
 </div>"##,
-        id = esc(id)
+        cls = if has { " has" } else { "" },
+        id = esc(id),
+        sum = esc(&sum),
+        chips = chips,
+        inp = esc(&input_val),
+        note = esc(note)
     )
 }
 
@@ -231,11 +260,21 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
         format!("<div class=\"warnchip\">⚠ 監視：{}</div>", warn_items.join("；"))
     };
     let id = text(f, &["id"]);
-    let memo_html = memo_block(&id);
+    // 標籤由 build 寫入（fixtures.mjs 讀 memos 表）→ 就算 API 掛咗，卡上仍然見到標籤
+    let memo_tags: Vec<String> = f
+        .get("tags")
+        .and_then(|v| v.as_arr())
+        .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
+        .unwrap_or_default();
+    let memo_note = text(f, &["memoNote"]);
+    let memo_html = memo_block(&id, &memo_tags, &memo_note);
     let score_html = if (status == "live" || status == "ft") && sh >= 0.0 && sa >= 0.0 {
         format!("<div class=\"score\"><b>{:.0}</b><i>–</i><b>{:.0}</b></div>", sh, sa)
     } else if status == "ft" {
         String::from("<div class=\"score miss\" title=\"未取到最終比分（該聯賽未在數據源登記）\"><b>—</b></div>")
+    } else if status == "live" {
+        // 已開賽但數據源仲未有比分（FotMob 滯後）：顯示破折號，比分到咗由 60 秒輪詢補上
+        String::from("<div class=\"vs\">–</div>")
     } else {
         String::from("<div class=\"vs\">vs</div>")
     };
@@ -248,6 +287,11 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
     } else {
         String::from("<span class=\"pass\">未開賽</span>")
     };
+    // 關注星標：清單只存喺瀏覽器 localStorage（無帳號、無後端）
+    let star_html = format!(
+        "<button class=\"star\" type=\"button\" data-watch=\"{}\" aria-pressed=\"false\" aria-label=\"關注呢場\" title=\"關注呢場\">☆</button>",
+        esc(&id)
+    );
 
     if !has_pred {
         return format!(
@@ -256,6 +300,7 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
     <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
+    {star}
   </div>
   {warn_html}
   <div class="teams">
@@ -277,6 +322,7 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
             wd = wd,
             hm = hm,
             pulse = pulse,
+            star = star_html.clone(),
             score_html = score_html,
             ghost_note = esc(&ghost_note),
             warn_html = warn_html,
@@ -368,6 +414,7 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
     <span class="badge">{comp_label}</span>
     <span class="kick">{md} 週{wd} {hm}</span>
     {pulse}
+    {star}
   </div>
   {warn_html}
   <div class="teams">
@@ -450,6 +497,7 @@ fn card(f: &Value) -> String {    let comp = text(f, &["comp"]);
         conf_html = if SHOW_CONF { format!("<span class=\"conf\" data-cs=\"{:.0}\">{}</span>", cs, esc(&conf)) } else { String::new() },
         lineup_html = if SHOW_LINEUP { format!("<span class=\"tag {}\">首發 {}</span>", lineup_cls, esc(&lineup)) } else { String::new() },
         inj_chip = inj_chip,
+        star = star_html,
         ahd_html = ahd_html,
         mktah_html = mktah_html,
         qual_html = qual_html,
@@ -555,7 +603,14 @@ h1 .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;margin-l
 .teams{display:flex;align-items:center;gap:10px;margin:16px 0 14px;position:relative}
 .team{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
 .team.away{align-items:flex-end;text-align:right}
-.team .name{font-size:17.5px;font-weight:650;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .name{font-size:17.5px;font-weight:650;letter-spacing:.01em;display:flex;align-items:center;min-width:0;max-width:100%;overflow:hidden}
+.team .name .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crest{width:20px;height:20px;object-fit:contain;vertical-align:-4px;flex:0 0 auto}
+.crest-l{margin-right:5px}
+.crest-r{margin-left:5px}
+.wteam .crest{width:17px;height:17px;vertical-align:-3px}
+.wteam .crest-l{margin-right:4px}
+.wteam .crest-r{margin-left:4px}
 .team .elo{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .vs{color:var(--muted);font-size:12px;letter-spacing:.1em}
 
@@ -619,6 +674,7 @@ tr:last-child td{border-bottom:none}
 footer{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);
   color:var(--muted);font-size:12px;line-height:1.9}
 footer b{color:var(--ink-2);font-weight:600}
+.bver{color:var(--muted);font-size:11px;letter-spacing:.02em}
 .empty{padding:40px;text-align:center;color:var(--muted)}
 @media (max-width:520px){
   .grid{grid-template-columns:1fr}
@@ -637,14 +693,20 @@ footer b{color:var(--ink-2);font-weight:600}
 .tabbody.off{display:none}
 .dayhead{display:flex;align-items:baseline;gap:10px;margin:20px 0 12px;padding-bottom:8px;
   border-bottom:1px dashed rgba(21,48,47,.14);scroll-margin-top:120px}
-.daybar{position:sticky;top:56px;z-index:15;display:flex;gap:6px;flex-wrap:wrap;
-  margin:14px 0 0;padding:6px 0;background:var(--bg)}
+.daybar{position:sticky;top:56px;z-index:15;display:flex;gap:6px;flex-wrap:nowrap;
+  overflow-x:auto;overflow-y:hidden;margin:14px 0 0;padding:6px 0;background:var(--bg);
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none}
+.daybar::-webkit-scrollbar{display:none}
 .daynav{border:1px solid var(--line);background:rgba(255,255,255,.75);color:var(--ink-2);
-  font:inherit;font-size:12px;border-radius:999px;padding:3px 10px;cursor:pointer}
+  font:inherit;font-size:12px;border-radius:999px;padding:3px 10px;cursor:pointer;
+  flex:0 0 auto;white-space:nowrap}
 .daynav em{font-style:normal;color:var(--muted);margin-left:4px;font-size:11px}
 .daynav:hover{border-color:var(--cyan-2);color:var(--cyan-2)}
 .daynav.on{background:var(--cyan);color:#fff;border-color:var(--cyan)}
 .daynav.on em{color:rgba(255,255,255,.8)}
+.monthsel{flex:0 0 auto;position:sticky;left:0;z-index:2;font:inherit;font-size:12px;
+  border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink-2);
+  padding:3px 6px;margin-right:2px;cursor:pointer}
 .daypage.off{display:none}
 .dayhead b{font-size:15px;letter-spacing:.3px}
 .dayhead span{font-size:12px;color:var(--muted)}
@@ -655,6 +717,7 @@ footer b{color:var(--ink-2);font-weight:600}
 .pill.live em{width:6px;height:6px;border-radius:50%;background:#22a06b;display:inline-block;animation:pulse 1.6s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 .pill.ft{background:rgba(21,48,47,.05);color:var(--ink-2);border:1px solid var(--line)}
+.pill.soon{background:rgba(76,155,161,.08);color:var(--cyan-2);border:1px solid rgba(76,155,161,.28)}
 .card.ghost{background:rgba(255,255,255,.45);border-style:dashed}
 .card.ghost .ghost-note{margin-top:12px;font-size:12px;color:var(--muted)}
 .card.ghost .team .name{font-weight:600}
@@ -666,6 +729,9 @@ footer b{color:var(--ink-2);font-weight:600}
 .memo-head .memo-dot{width:7px;height:7px;border-radius:50%;background:transparent;border:1px solid var(--line)}
 .memo.has .memo-dot{background:var(--cyan);border-color:var(--cyan)}
 .memo-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.memo-stat{margin-top:6px}
+.memo-stat-line{font-size:10.5px;color:var(--muted);line-height:1.7}
+.memo-stat-line b{color:var(--cyan-2);font-weight:700}
 .memo-tags .mt{font-size:11px;font-weight:700;color:var(--cyan-2);background:rgba(76,155,161,.12);
   border:1px solid rgba(76,155,161,.35);border-radius:999px;padding:2px 9px}
 .memo-body{margin-top:8px;display:none}
@@ -679,6 +745,78 @@ footer b{color:var(--ink-2);font-weight:600}
 .memo-acts button.ghost{background:transparent;color:var(--ink-2);border-color:var(--line)}
 .memo-acts .memo-msg{font-size:11px;color:var(--muted)}
 .memo-hint{font-size:11px;color:var(--muted);margin-top:4px}
+/* ── 關注（本機清單，無帳號） ── */
+.star{margin-left:auto;appearance:none;background:transparent;border:1px solid var(--line);color:var(--muted);
+  border-radius:999px;font:inherit;font-size:12px;line-height:1;padding:3px 8px;cursor:pointer;flex:0 0 auto}
+.star:hover{border-color:var(--cyan-2);color:var(--cyan)}
+.star.on{color:#9a6b00;border-color:rgba(184,134,11,.45);background:rgba(240,198,116,.18)}
+.watchbtn{appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.6);color:var(--ink-2);
+  border-radius:12px;padding:9px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.watchbtn:hover{border-color:var(--cyan-2)}
+.watchbtn b{background:var(--cyan);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}
+.wmodal{position:fixed;inset:0;z-index:80;display:none;background:rgba(10,26,28,.55);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);padding:20px 12px 40px;overflow:auto}
+.wmodal.show{display:block}
+.wnav{max-width:880px;margin:0 auto;background:var(--mist-0);border:1px solid var(--line);border-radius:18px;
+  box-shadow:0 18px 50px rgba(10,26,28,.28);padding:16px 16px 18px}
+.wnav-head{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink);
+  border-bottom:1px solid var(--line);padding-bottom:10px}
+.wnav-head .wsum{font-size:12px;color:var(--muted);font-weight:400}
+.wnav-head .wclose{margin-left:auto;appearance:none;border:1px solid var(--line);background:transparent;
+  color:var(--ink-2);border-radius:10px;width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1}
+.wlist{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+/* 關注頁每一場＝一張卡，四行由上至下：時間／賽事 → 隊名＋比數 → 標籤 → 同類統計 */
+.wcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px 11px;cursor:pointer;
+  transition:border-color .15s ease,box-shadow .15s ease}
+.wcard:hover{border-color:var(--cyan-2);box-shadow:0 3px 14px rgba(10,26,28,.07)}
+.wcard:focus-visible{outline:2px solid var(--cyan-2);outline-offset:2px}
+.wcard-top{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);line-height:1.4}
+.wcard-top .wt{white-space:nowrap;font-variant-numeric:tabular-nums}
+.wcard-top .wcomp{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--muted);border-left:1px solid var(--line);padding-left:8px}
+.wcard-top .pill{margin-left:auto;flex:0 0 auto}
+.wcard-top .wdel{flex:0 0 auto;border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;
+  line-height:1;padding:3px 5px;border-radius:8px;cursor:pointer}
+.wcard-top .wdel:hover{background:rgba(206,74,68,.12);color:#c0392b}
+.wcard-mid{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;gap:6px 10px;margin-top:8px}
+.wteam{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.35;
+  display:flex;align-items:center;min-width:0;max-width:100%;overflow:hidden}
+.wteam .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wteam.away{text-align:right;justify-content:flex-end}
+.wsc{font-size:14px;font-weight:800;color:var(--cyan);white-space:nowrap;font-variant-numeric:tabular-nums}
+.wsc i{font-style:normal;font-weight:400;font-size:11px;color:var(--muted)}
+.wcard-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.wcard-tags span{font-size:10.5px;line-height:1.6;color:var(--cyan-2);background:rgba(76,155,161,.10);
+  border:1px solid rgba(76,155,161,.3);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.wcard-tags .pig{color:#9a6b00;border-color:rgba(184,134,11,.4);background:rgba(240,198,116,.16)}
+.wcard-stat{margin-top:7px;padding-top:7px;border-top:1px dashed rgba(21,48,47,.12);
+  font-size:10.5px;color:var(--muted);line-height:1.55;letter-spacing:.2px}
+.wcard-stat b{color:var(--ink-2)}
+.wempty{font-size:13px;color:var(--muted);padding:18px 4px;line-height:1.9}
+.wnotify{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(21,48,47,.16)}
+.wpushbtn{font:inherit;font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.66);color:var(--ink-2);cursor:pointer}
+.wpushbtn:disabled{opacity:.55;cursor:not-allowed}
+.wpushbtn.on{background:rgba(58,208,200,.16);border-color:var(--cyan);color:#0c3f3d}
+.wpushmsg{font-size:11px;color:var(--muted);line-height:1.6;flex:1 1 180px}
+"#;
+
+const WATCH_HTML: &str = r#"
+  <div id="wmodal" class="wmodal" role="dialog" aria-modal="true" aria-labelledby="wtitle">
+    <div class="wnav">
+      <div class="wnav-head">
+        <b id="wtitle">我關注嘅賽事</b>
+        <span id="wsum" class="wsum"></span>
+        <button id="wclose" class="wclose" type="button" aria-label="關閉">✕</button>
+      </div>
+      <div id="wbody" class="wlist"></div>
+      <div class="wnotify">
+        <button id="wpush" class="wpushbtn" type="button">🔔 開啟通知</button>
+        <span id="wpushmsg" class="wpushmsg"></span>
+      </div>
+      <div class="wempty" style="padding:10px 4px 0;font-size:11px">清單只存喺你呢部機嘅瀏覽器（localStorage），冇帳號、唔會上傳。</div>
+    </div>
+  </div>
 "#;
 
 const JS: &str = r#"
@@ -688,30 +826,56 @@ const JS: &str = r#"
   const MEMO_API='https://oddsapi.2828666.xyz/fbW8FCX0tNblXanTXGyTUB/memos';
   const memoBoxes=[...document.querySelectorAll('.memo')];
   const memoCache={};
+  const MEMO_ALL={};  // 全部 memo（唔止頁面上有卡嘅），關注頁要用
+  const memoStats={tag:{},dim:{}};
+  // 完整標籤的歷史勝率（已結算場次）：一行、只顯示勝率 + 場數
+  function memoStatLine(tags){
+    const s=memoStats.tag[tags];
+    if(!s||!s.n) return '';
+    const nn=(s.cl_n!=null?s.cl_n:s.n);
+    if(!nn||s.up_hit==null) return '';
+    const up=Math.round(s.up_hit*100), dn=(s.down_hit==null?'—':Math.round(s.down_hit*100)+'%');
+    // 走水（終盤讓球開和）既唔屬上盤亦唔屬下盤，唔寫出嚟就會出現「50%+25%=75%」嘅疑問（用戶 m01115）。
+    const pu=(s.push_rate==null?null:Math.round(s.push_rate*100));
+    const puTxt=(pu==null?'':' · 走水 <b>'+pu+'%</b>');
+    return '<div class="memo-stat-line">同類標籤（'+nn+' 場）：上盤 <b>'+up+'%</b> · 下盤 <b>'+dn+'</b>'+puTxt+'</div>';
+  }
   function memoRender(box, memo){
     const tags=box.querySelector('.memo-tags');
     const sum=box.querySelector('.memo-sum');
     const inp=box.querySelector('.memo-input');
     const note=box.querySelector('.memo-note');
+    const stat=box.querySelector('.memo-stat');
     if(memo){
       box.classList.add('has');
       sum.textContent=(memo.tags&&memo.tags.length?memo.tags.join(' '):'')+(memo.note?((memo.tags&&memo.tags.length)?' · ':'')+memo.note.slice(0,40):'')||'已寫';
       tags.innerHTML=(memo.tags||[]).map(t=>'<span class="mt">#'+t.replace(/[<>&]/g,'')+'</span>').join('');
+      if(stat) stat.innerHTML=memoStatLine((memo.tags||[]).join('·'));
       if(document.activeElement!==inp) inp.value=(memo.tags||[]).map(t=>'#'+t).join(' ');
       if(document.activeElement!==note) note.value=memo.note||'';
     } else {
       box.classList.remove('has');
       sum.textContent='未寫';
       tags.innerHTML='';
+      if(stat) stat.innerHTML='';
     }
   }
   async function memoLoad(){
     try{
+      // 標籤歷史勝率（已結算樣本）
+      try{
+        const sr=await fetch(MEMO_API+'/stats',{cache:'no-store'});
+        if(sr.ok){
+          const sj=await sr.json();
+          (sj.stats||[]).forEach(s=>{memoStats.tag[s.tag]=s;});
+          (sj.dims||[]).forEach(d=>{memoStats.dim[d.tag]=d;});
+        }
+      }catch(e){/* 靜靜失敗 */}
       const r=await fetch(MEMO_API+'?all=1',{cache:'no-store'});
       if(!r.ok) return;
       const j=await r.json();
       const map={};
-      (j.memos||[]).forEach(m=>{map[m.mid]=m;});
+      (j.memos||[]).forEach(m=>{map[m.mid]=m;MEMO_ALL[m.mid]=m;});
       memoBoxes.forEach(box=>{
         const mid=box.dataset.mid;
         if(map[mid]){memoCache[mid]=map[mid];memoRender(box,map[mid]);}
@@ -791,11 +955,50 @@ const JS: &str = r#"
   const dnav=[...document.querySelectorAll('.daynav')];
   const dpages=[...document.querySelectorAll('.daypage')];
   let curDay=dnav.length?dnav[0].dataset.day:null;
+  // 日子 bar 只有一行、橫向滑動：選中嘅日子自動捲到中間，唔會睇唔到
+  function dayScroll(b){
+    const bar=b&&b.parentElement;
+    if(!bar||typeof bar.scrollTo!=="function"||typeof b.offsetLeft!=="number") return;
+    const left=Math.max(0, b.offsetLeft-bar.clientWidth/2+(b.offsetWidth||0)/2);
+    try{ bar.scrollTo({left:left,behavior:"smooth"}); }catch(e){ bar.scrollLeft=left; }
+  }
   function showDay(id){
     curDay=id;
-    dnav.forEach(x=>x.classList.toggle('on', x.dataset.day===id));
+    dnav.forEach(x=>{
+      const on=x.dataset.day===id;
+      x.classList.toggle('on', on);
+      if(on) dayScroll(x);
+    });
     dpages.forEach(p=>p.classList.toggle('off', p.dataset.day!==id));
   }
+  // 月份多過一個 → 日子 bar 左邊加「月份」選擇（chips 只顯示該月）：將來存到幾個月都唔會失控
+  function initMonthSel(){
+    const bar=document.querySelector('.daybar');
+    if(!bar||!dnav.length) return null;
+    const mon=[];
+    dnav.forEach(x=>{const mm=String(x.dataset.day||'').replace('day-','').slice(0,2); if(mm&&mon.indexOf(mm)<0) mon.push(mm);});
+    if(mon.length<2) return null;
+    const sel=document.createElement('select');
+    sel.className='monthsel';
+    sel.setAttribute('aria-label','選月份');
+    mon.forEach(mm=>{const o=document.createElement('option');o.value=mm;o.textContent=Number(mm)+'月';sel.appendChild(o);});
+    function pick(mm){
+      dnav.forEach(x=>{
+        const m=String(x.dataset.day||'').replace('day-','').slice(0,2);
+        x.style.display=(m===mm)?'':'none';
+      });
+      const first=dnav.filter(x=>x.style.display!=='none')[0];
+      if(first) showDay(first.dataset.day);
+      if(typeof bar.scrollTo==='function'){try{bar.scrollTo({left:0});}catch(e){bar.scrollLeft=0;}}
+      else bar.scrollLeft=0;
+    }
+    sel.addEventListener('change',function(){pick(sel.value);});
+    bar.insertBefore(sel, bar.firstChild);
+    pick(mon[0]);
+    return sel;
+  }
+  const MSEL=initMonthSel();
+  globalThis.__mdms=initMonthSel;
   dnav.forEach(b=>b.addEventListener('click',()=>{
     if(q) q.value='';
     comp='all';
@@ -819,6 +1022,43 @@ const JS: &str = r#"
     snap[c.dataset.id]={status:c.dataset.status, minute:pill?pill.textContent.replace('比賽中',''):'' , sh:sb[0], sa:sb[1]};
   });
   const ftBody=document.querySelector('[data-body="ft"]');
+  const liveBody=document.querySelector('[data-body="live"]');
+  const WD=['日','一','二','三','四','五','六'];
+  function mdOf(kick){const s=String(kick||'');return s.length>10?s.slice(5,7)+'/'+s.slice(8,10):'';}
+  function labelOf(kick,md){const y=Number(String(kick||'').slice(0,4))||new Date().getFullYear();const m=Number(md.slice(0,2)),d=Number(md.slice(3));return md+' 週'+WD[new Date(y,m-1,d).getDay()];}
+  // 分頁係靜態 HTML：狀態變咗而唔搬卡，張卡就會一直留喺舊分頁（用戶 m17055 報嘅就係呢個）。
+  function ensureGroup(host,md,kick){
+    const id='day-'+md.replace('/','-');
+    const head=host.querySelector('#'+id);
+    if(head){const g=head.nextElementSibling;if(g&&g.classList.contains('grid')){return {head:head,grid:g};}}
+    const tpl=document.createElement('div');
+    tpl.innerHTML='<div class="dayhead" id="'+id+'"><b>'+labelOf(kick,md)+'</b><span>0 場</span></div><div class="grid"></div>';
+    const nh=tpl.firstElementChild, ng=nh.nextElementSibling;
+    let before=null;
+    for(const h of host.querySelectorAll('.dayhead')){
+      const hm=(h.id||'').replace('day-','').replace('-','/');
+      if(hm>md){before=h;break;}
+    }
+    if(before){host.insertBefore(nh,before);host.insertBefore(ng,before);}
+    else{host.appendChild(nh);host.appendChild(ng);}
+    return {head:nh,grid:ng};
+  }
+  function placeCard(body,card,kick){
+    if(!body||!card) return;
+    body.querySelectorAll('.panel.empty').forEach(function(p){p.remove();});
+    const md=mdOf(kick)||mdOf(new Date().toISOString());
+    let host=body;
+    if(body.querySelector('.daypage')){
+      let pg=body.querySelector('.daypage[data-day="day-'+md.replace('/','-')+'"]');
+      if(!pg){pg=document.createElement('div');pg.className='daypage';pg.dataset.day='day-'+md.replace('/','-');body.appendChild(pg);}
+      host=pg;
+    }
+    const g=ensureGroup(host,md,kick);
+    g.grid.appendChild(card);
+    const n=g.grid.querySelectorAll('.card').length;
+    const sp=g.head.querySelector('span');
+    if(sp) sp.textContent=n+' 場';
+  }
   function toast(txt){
     let t=document.getElementById('utoast');
     if(!t){t=document.createElement('div');t.id='utoast';document.body.appendChild(t);
@@ -837,22 +1077,34 @@ const JS: &str = r#"
       }
     }
   }
+  function ensureScore(c,d){
+    if(!c||d.sh==null||d.sh<0) return;
+    if(c.querySelector('.score')) return;
+    const vs=c.querySelector('.vs');
+    if(vs) vs.outerHTML='<div class="score"><b>'+d.sh+'</b><i>–</i><b>'+d.sa+'</b></div>';
+  }
   async function poll(){
     try{
       const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
       if(!r.ok) return;
       const rows=await r.json();
-      let nScore=0,nMove=0;
+      rows.forEach(d=>DATA.set(d.id,d));
+      let nScore=0,nMove=0,nLive=0;
       for(const d of rows){
         const c=document.querySelector('.card[data-id="'+d.id+'"]');
         if(!c) continue;
         const s=snap[d.id]||{status:c.dataset.status};
-        if(d.status===s.status){ setCard(c,d); if(d.status==='live') snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; continue; }
+        if(d.status===s.status){ if(d.status==='live'){ensureScore(c,d);} setCard(c,d); if(d.status==='live') snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; continue; }
         // 狀態變咗：pre→live→ft/post（或延賽 pre→post）
         if(d.status==='live'&&s.status==='pre'){
           c.dataset.status='live';
-          const pl=c.querySelector('.pass'); if(pl){pl.className='pill live';pl.innerHTML='<em></em>比賽中';}
-          setCard(c,d); snap[d.id]={status:'live',minute:d.minute,sh:d.sh,sa:d.sa}; nScore++;
+          ensureScore(c,d);
+          setCard(c,d);
+          const pl=c.querySelector('.pill,.pass');
+          if(pl){pl.className='pill live';pl.innerHTML='<em></em>'+String(d.minute||'比賽中').replace(/[<>]/g,'');}
+          // 搬去「比賽中」分頁（之前只換 pill，卡仍然留喺未開賽 → 分頁永遠見唔到）
+          placeCard(liveBody,c,d.kickoff||'');
+          snap[d.id]={status:'live',minute:d.minute,sh:d.sh,sa:d.sa}; nLive++;
         } else if(d.status==='ft'||d.status==='post'){
           c.dataset.status=d.status;
           const pl=c.querySelector('.pill,.pass');
@@ -863,10 +1115,7 @@ const JS: &str = r#"
           }
           // 搬去已完場分頁：優先入對應日子，否則加喺尾
           if(ftBody){
-            const md=(d.kickoff||'').slice(5,10).replace('-','/');
-            let pg=ftBody.querySelector('.daypage[data-day="day-'+md.replace('/','-')+'"]');
-            if(!pg){pg=ftBody.querySelector('.daypage:last-child')||ftBody;}
-            pg.appendChild(c);
+            placeCard(ftBody,c,d.kickoff||'');
             dpages.forEach(p=>p.classList.toggle('off',!searchingNow()&&p.dataset.day!==(curDay||p.dataset.day)));
           }
           snap[d.id]={status:d.status,minute:d.minute,sh:d.sh,sa:d.sa}; nMove++;
@@ -878,10 +1127,293 @@ const JS: &str = r#"
       tabs.forEach(t=>{const b=t.querySelector('b');if(b&&cnt[t.dataset.tab]!=null)b.textContent=cnt[t.dataset.tab];});
       tidy();
       if(nScore) toast('更新咗 '+nScore+' 場比分');
+      if(nLive) toast(nLive+' 場開賽，搬咗去「比賽中」分頁');
       if(nMove) toast(nMove+' 場已完場，搬咗去「已完場」分頁');
+      if(wOpen) wRender();
     }catch(e){/* 靜默：下一輪再試 */}
   }
   function searchingNow(){const qq=document.getElementById('q');return !!((qq&&qq.value&&qq.value.trim())||comp!=='all');}
+  // ── 關注清單（localStorage，無帳號；清單只喺本機）──────────────────────
+  const WKEY='md_watch_v1';
+  const WSET=new Set();
+  try{(JSON.parse(localStorage.getItem(WKEY)||'[]')||[]).forEach(x=>{if(typeof x==='string')WSET.add(x);});}catch(e){}
+  const DATA=new Map();
+  const wmodal=document.getElementById('wmodal');
+  const wbody=document.getElementById('wbody');
+  const wsum=document.getElementById('wsum');
+  let wOpen=false;
+  function wSave(){try{localStorage.setItem(WKEY,JSON.stringify([...WSET]));}catch(e){} try{pushSync();}catch(e){}}
+  function esc2(s){return String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+  function markStars(){
+    document.querySelectorAll('.star').forEach(b=>{
+      const on=WSET.has(b.dataset.watch);
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-pressed',on?'true':'false');
+      b.title=on?'取消關注':'關注呢場';
+      b.textContent=on?'★':'☆';
+    });
+    const c=document.getElementById('wcount'); if(c) c.textContent=WSET.size;
+  }
+  function wStatusText(d){
+    if(!d) return '';
+    if(d.status==='live') return '比賽中'+(d.minute?' '+String(d.minute):'');
+    if(d.status==='ft') return '完場';
+    if(d.status==='post') return String(d.minute||'延賽');
+    return '未開賽';
+  }
+  function wScoreText(d){
+    if(!d) return '';
+    if((d.status==='ft'||d.status==='live')&&d.sh!=null&&d.sh>=0) return '<b>'+d.sh+'</b> – '+d.sa;
+    return '';
+  }
+  function wStatLine(tags){
+    const html=memoStatLine(tags);
+    return html?html.replace(/^<div class="memo-stat-line">/,'').replace(/<\/div>\s*$/,''):'';
+  }
+  /* ── 通知（Web Push）：清單喺瀏覽器，訂閱送後端 push_subs ── */
+  const PKEY="md_push_end_v1";
+  const wpush=document.getElementById("wpush");
+  const wpushmsg=document.getElementById("wpushmsg");
+  function wPushMsg(t){ if(wpushmsg) wpushmsg.textContent=t||""; }
+  function b64ToU8(b){ const s=atob(String(b).replace(/-/g,"+").replace(/_/g,"/")); const a=new Uint8Array(s.length); for(let i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a; }
+  const isiOS=/iP(hone|ad|od)/.test(navigator.userAgent||"");
+  const standalone=(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+  function pushSupported(){ return ("serviceWorker" in navigator)&&("PushManager" in window)&&("Notification" in window); }
+  function pushUI(on){
+    if(!wpush) return;
+    wpush.classList.toggle("on",!!on);
+    wpush.textContent=on?"🔔 已開啟通知":"🔔 開啟通知";
+  }
+  async function pushState(){
+    if(!pushSupported()){ if(wpush) wpush.disabled=true; wPushMsg("呢個瀏覽器唔支援網頁通知。"); return; }
+    if(isiOS&&!standalone){ if(wpush) wpush.disabled=true; wPushMsg("iPhone／iPad 要先「分享 → 加入主畫面」，再由主畫面個圖示開啟，先收得到通知。"); return; }
+    try{
+      const reg=await navigator.serviceWorker.getRegistration();
+      const sub=reg&&await reg.pushManager.getSubscription();
+      if(wpush) wpush.disabled=false;
+      pushUI(!!sub);
+      wPushMsg(sub?"已開啟：關注嘅場開賽／入球／完場／標籤變會通知你。":"");
+    }catch(e){ wPushMsg("狀態讀取失敗："+(e&&e.message||e)); }
+  }
+  async function pushEnable(){
+    try{
+      if(!pushSupported()){ wPushMsg("呢個瀏覽器唔支援網頁通知。"); return; }
+      if(isiOS&&!standalone){ wPushMsg("請先「分享 → 加入主畫面」，再由主畫面開啟。"); return; }
+      if(Notification.permission==="denied"){ wPushMsg("你已封鎖通知，要去瀏覽器設定重新允許。"); return; }
+      const perm=await Notification.requestPermission();
+      if(perm!=="granted"){ wPushMsg("未允許通知。"); return; }
+      const reg=await navigator.serviceWorker.register("sw.js");
+      await navigator.serviceWorker.ready;
+      const k=await (await fetch(MEMO_API+"/watch?a=key",{cache:"no-store"})).json();
+      if(!k||!k.key){ wPushMsg("伺服器未設定推送金鑰。"); return; }
+      const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(k.key)});
+      const j=sub.toJSON();
+      await fetch(MEMO_API+"/watch?a=sub",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subscription:{endpoint:j.endpoint,keys:j.keys},ids:[...WSET]})});
+      try{ localStorage.setItem(PKEY,j.endpoint); }catch(e){}
+      await pushState();
+    }catch(e){ wPushMsg("開啟失敗："+(e&&e.message||e)); }
+  }
+  async function pushSync(){
+    try{
+      const ep=localStorage.getItem(PKEY)||"";
+      if(!ep) return;
+      await fetch(MEMO_API+"/watch?a=sync",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:ep,ids:[...WSET]})});
+    }catch(e){}
+  }
+  async function pushDisable(){
+    try{
+      const ep=localStorage.getItem(PKEY)||"";
+      const reg=await navigator.serviceWorker.getRegistration();
+      const sub=reg&&await reg.pushManager.getSubscription();
+      if(sub) await sub.unsubscribe();
+      if(ep) await fetch(MEMO_API+"/watch?a=del",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({endpoint:ep})});
+      try{ localStorage.removeItem(PKEY); }catch(e){}
+      await pushState();
+    }catch(e){ wPushMsg("關閉失敗："+(e&&e.message||e)); }
+  }
+  if(wpush) wpush.addEventListener("click",()=>{ const on=wpush.classList.contains("on"); if(on) pushDisable(); else pushEnable(); });
+  // ── 隊徽（熱鏈 FotMob，本機唔存圖）：crests.json 只有「隊名→team id」 ──
+  const CREST={}; let crestReady=false;
+  function crestUrl(id){ return "https://images.fotmob.com/image_resources/logo/teamlogo/"+id+".png"; }
+  function crestDecorate(root){
+    if(!crestReady||!root||!root.querySelectorAll) return;
+    root.querySelectorAll(".team .name, .wteam").forEach(sp=>{
+      if(sp.dataset.crest) return;
+      const name=String(sp.textContent||"").trim();
+      // 文字包一層 .nm：長隊名在自己的框內 ellipsis，隊徽用 flex:0 0 auto 唔會被壓
+      if(sp.appendChild && !(sp.firstChild && sp.firstChild.className==="nm")){
+        const nm=document.createElement("span");
+        nm.className="nm"; nm.textContent=name;
+        sp.textContent=""; sp.appendChild(nm);
+      }
+      const id=CREST[name];
+      if(!id){ sp.dataset.crest="0"; return; }
+      const cl=sp.classList, pn=sp.parentNode;
+      const isAway=!!(cl&&cl.contains&&cl.contains("away")||(pn&&pn.classList&&pn.classList.contains&&pn.classList.contains("away")));
+      const img=document.createElement("img");
+      img.className=isAway?"crest crest-l":"crest crest-r";
+      img.src=crestUrl(id); img.alt="";
+      img.loading="lazy"; img.decoding="async"; img.width=20; img.height=20;
+      try{ img.referrerPolicy="no-referrer"; }catch(e){}
+      img.onerror=function(){ try{ this.remove(); }catch(e2){ this.style.display="none"; } };
+      sp.dataset.crest="1";
+      fitName(sp);
+      // 主隊（左邊那格）：徽章放隊名右邊，貼住中間；客隊：放隊名左邊，一樣貼住中間
+      if(!sp.insertBefore) return;
+      if(isAway) sp.insertBefore(img, sp.firstChild);
+      else if(sp.appendChild) sp.appendChild(img);
+    });
+  }
+  // 長隊名：先縮字級（17.5→13.5），縮到盡都放唔落才 ellipsis，避免撞到比分
+  function fitName(sp){
+    const nm=sp.querySelector && sp.querySelector(".nm");
+    if(!nm||typeof nm.scrollWidth!=="number"||!nm.clientWidth) return;
+    const base=(sp.classList&&sp.classList.contains&&sp.classList.contains("wteam"))?13.5:17.5;
+    let size=base;
+    const min=base-4;
+    for(let k=0;k<5 && nm.scrollWidth>nm.clientWidth+1 && size>min;k++){
+      size=Math.max(min,size-1);
+      sp.style.fontSize=size+"px";
+    }
+  }
+  const COMP={};
+  async function compLoad(){
+    try{
+      const r=await fetch("comps.json",{cache:"no-cache"});
+      if(!r.ok) return;
+      const j=await r.json(); const m=(j&&j.map)||{};
+      Object.keys(m).forEach(k=>{ COMP[k]=String(m[k]); });
+      if(wOpen) wRender();
+    }catch(e){}
+  }
+  async function crestLoad(){
+    try{
+      const r=await fetch("crests.json",{cache:"no-cache"});
+      if(!r.ok) return;
+      const j=await r.json();
+      const m=(j&&j.map)||{};
+      Object.keys(m).forEach(k=>{ CREST[k]=String(m[k]); });
+      crestReady=true;
+      crestDecorate(document);
+      if(wOpen) wRender();
+    }catch(e){}
+  }
+  function wRender(){
+    if(!wbody) return;
+    const rows=[...WSET].map(id=>({id:id,d:DATA.get(id)})).filter(r=>r.d);
+    const rank=s=>s==='live'?0:(s==='pre'?1:2);
+    rows.sort((a,b)=>rank(a.d.status)-rank(b.d.status)||String(a.d.kickoff||'').localeCompare(String(b.d.kickoff||'')));
+    if(wsum) wsum.textContent=WSET.size?('共 '+WSET.size+' 場'):'';
+    if(!rows.length){
+      wbody.innerHTML='<div class="wempty">未關注任何賽事。<br>喺每張卡右上角按 <b>☆</b> 就會加入呢個清單；再按一次 <b>★</b> 取消；或喺關注頁每張卡右上角按 <b>✕</b>。</div>';
+      return;
+    }
+    wbody.innerHTML=rows.map(r=>{
+      const d=r.d, m=(MEMO_ALL[r.id]||memoCache[r.id]), tags=(m&&m.tags&&m.tags.length)?m.tags:null;
+      const line=tags?wStatLine(tags.join("·")):"";
+      const kd=String(d.kickoff||""), md=mdOf(kd), hm=kd.slice(11,16);
+      const st=d.status;
+      const pill=st==="live"?"pill live":(st==="ft"?"pill ft":"pill soon");
+      const sc=wScoreText(d);
+      const tagHtml=tags
+        ? tags.map(t=>"<span>#"+String(t).replace(/[<>&]/g,"")+"</span>").join("")
+        : "<span>未有 memo 標籤</span>";
+      return "<div class=\"wcard\" data-jump=\""+r.id+"\" tabindex=\"0\">"
+        + "<div class=\"wcard-top\">"
+        + "<span class=\"wt\">"+labelOf(kd,md)+" "+hm+"</span>"
+        + (d.comp?"<span class=\"wcomp\">"+esc2(COMP[d.comp]||d.comp)+"</span>":"")
+        + "<span class=\""+pill+"\">"+(st==="live"?"<em></em>":"")+esc2(wStatusText(d))+"</span>"
+        + "<button class=\"wdel\" type=\"button\" data-del=\""+r.id+"\" aria-label=\"取消關注\" title=\"取消關注\">✕</button>"
+        + "</div>"
+        + "<div class=\"wcard-mid\">"
+        + "<span class=\"wteam\">"+esc2(d.home)+"</span>"
+        + "<span class=\"wsc\">"+(sc||"<i>vs</i>")+"</span>"
+        + "<span class=\"wteam away\">"+esc2(d.away)+"</span>"
+        + "</div>"
+        + "<div class=\"wcard-tags\">"+tagHtml+"</div>"
+        + (line?"<div class=\"wcard-stat\">"+line+"</div>":"")
+        + "</div>";
+    }).join("");
+    crestDecorate(wbody);
+  }
+  async function wLoadData(){
+    try{
+      const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});
+      if(!r.ok) return;
+      const rows=await r.json();
+      rows.forEach(d=>DATA.set(d.id,d));
+    }catch(e){}
+  }
+  async function wOpenPanel(){
+    wOpen=true;
+    if(wmodal) wmodal.classList.add('show');
+    document.documentElement.style.overflow='hidden';
+    markStars(); wRender();
+    if(!DATA.size){ await wLoadData(); wRender(); }
+  }
+  function wClosePanel(){
+    wOpen=false;
+    if(wmodal) wmodal.classList.remove('show');
+    document.documentElement.style.overflow='';
+  }
+  function wJump(id){
+    const d=DATA.get(id), c=document.querySelector('.card[data-id="'+id+'"]');
+    wClosePanel();
+    if(!c) return;
+    const st=c.dataset.status;
+    showTab(st==='live'?'live':(st==='pre'?'pre':'ft'));
+    const qq=document.getElementById('q'); if(qq) qq.value='';
+    comp='all'; chips.forEach(x=>x.classList.remove('on')); if(chips[0]) chips[0].classList.add('on');
+    if(d&&dpages.length){ const md=mdOf(d.kickoff||''); if(md) showDay('day-'+md.replace('/','-')); }
+    apply();
+    c.style.display='';
+    c.scrollIntoView({behavior:'smooth',block:'center'});
+    c.classList.remove('uflash'); void c.offsetWidth; c.classList.add('uflash');
+  }
+  const wbtn=document.getElementById('watchbtn');
+  if(wbtn) wbtn.addEventListener('click',()=>{ if(wOpen) wClosePanel(); else wOpenPanel(); });
+  const wcloseBtn=document.getElementById('wclose');
+  if(wcloseBtn) wcloseBtn.addEventListener('click',wClosePanel);
+  if(wmodal) wmodal.addEventListener('click',ev=>{ if(ev.target===wmodal) wClosePanel(); });
+  document.addEventListener('keydown',ev=>{
+    if(ev.key==='Escape'&&wOpen){ wClosePanel(); return; }
+    if(ev.key==='Enter'||ev.key===' '){
+      if(ev.target&&ev.target.closest&&ev.target.closest('.wdel')) return;
+      const card=ev.target&&ev.target.closest?ev.target.closest('.wcard'):null;
+      if(card&&card.dataset.jump){ ev.preventDefault(); wJump(card.dataset.jump); }
+    }
+  });
+  document.addEventListener('click',ev=>{
+    const st=ev.target.closest?ev.target.closest('.star'):null;
+    if(st){ ev.preventDefault(); ev.stopPropagation();
+      const id=st.dataset.watch;
+      if(WSET.has(id)) WSET.delete(id); else WSET.add(id);
+      wSave(); markStars();
+      toast(WSET.has(id)?'已加入關注':'已取消關注');
+      if(wOpen) wRender();
+      return;
+    }
+    const del=ev.target.closest?ev.target.closest('.wdel'):null;
+    if(del){ ev.preventDefault(); ev.stopPropagation();
+      const did=del.dataset.del;
+      WSET.delete(did); wSave(); markStars();
+      toast('已取消關注');
+      if(wOpen) wRender();
+      return;
+    }
+    const row=ev.target.closest?ev.target.closest('.wcard'):null;
+    if(row&&row.dataset.jump) wJump(row.dataset.jump);
+  });
+  markStars();
+  if(location.hash==='#watch') wOpenPanel();
+  else if(/^#m-\d+/.test(location.hash)){ const _mid=location.hash.slice(3); (async()=>{ await wOpenPanel(); const el=document.querySelector('.wcard[data-jump="'+_mid+'"]'); if(el) el.scrollIntoView({block:'center'}); })(); }
+  setTimeout(pushState,600);
+  crestLoad();
+  compLoad();
+  // 頁腳版本：一眼睇得出載入咗邊個版本（分辨舊快取）
+  fetch("build.txt",{cache:"no-store"}).then(r=>r.ok?r.text():"").then(t=>{
+    const el=document.getElementById("bver"); if(el&&t) el.textContent="v "+t.trim().slice(0,16).replace("T"," ");
+  }).catch(()=>{});
   setInterval(poll,60000);
 })();
 "#;
@@ -933,7 +1465,7 @@ fn tab_body(rows: &[Value], status: &str, empty_msg: &str) -> String {
             out.push_str(&format!(
                 "<button class=\"daynav\" data-day=\"day-{}\">{}<em>{}</em></button>",
                 md.replace('/', "-"),
-                esc(key),
+                esc(&key.replace('週', "")),
                 g.len()
             ));
         }
@@ -998,8 +1530,9 @@ fn main() {
     let gen_at = text(&fx, &["generated"]);
 
     if !keep_all {
-        // 已完場保留 168 小時（7 日）：用戶要求已完場紀錄唔好咁快消失（對帳用）
-        let cut = now_secs() - 168 * 3600;
+        // 已完場保留 336 小時（14 日）：用戶要求已完場紀錄唔好咁快消失（對帳用）；
+        // 7 日窗曾喺週日令 27 場上週六嘅賽事一夜消失，改 14 日避免週期性缺口
+        let cut = now_secs() - 336 * 3600;
         rows.retain(|r| {
             let s = text(r, &["status"]);
             if s != "ft" && s != "post" {
@@ -1089,6 +1622,7 @@ fn main() {
         ("Step 1 定量基線", "時序 Elo（K=20、主場 +60）＋時間衰減攻防擬合（半衰期 180 天、先驗 K=2）", "done"),
         ("Step 1b 賽果數據", "FotMob 賽果 2023–2026，跨年制聯賽自動處理 2023/2024 編碼", "done"),
         ("Step 1c 傷停／首發", "FotMob squad.injury ＋ matchDetails.lineup（T-60 取預測、T-25 取官方）", "done"),
+        ("Step 1d 國際賽先驗", "成年國家隊改用 eloratings.net 歷史 Elo 時間序列（247 隊，取開賽前一日評分，零 look-ahead）直接定 λ；青年隊同對唔到嘅隊回落到模型", "done"),
         ("Step 2 多智能體共識", "統計／戰術／情境／風險四代理，權重 0.15/0.05/0.20/0.60；控球取向已接入，但 3,975 場回測顯示增益 ≈ 0，故壓至 0.05；出 λ 對數調整＋和局偏移（±3pp）", "done"),
         ("Step 3 盃賽 Monte Carlo", "聯賽場景不需要；盃賽待補", "todo"),
         ("Step 4 置信度", "已停用：星級依樣本量與首發狀態，屬非量化欄位，前後台計算保留但唔顯示", "todo"),
@@ -1146,7 +1680,7 @@ fn main() {
     };
     let body_pre = tab_body(&rows, "pre", "48 小時內暫無未開賽場次。");
     let body_live = tab_body(&rows, "live", "目前沒有進行中的賽事。");
-    let body_ft = tab_body(&rows, "ft", "最近 7 日沒有完場紀錄。");
+    let body_ft = tab_body(&rows, "ft", "最近 14 日沒有完場紀錄。");
 
     let now = time_now();
     let gen_note = if gen_at.is_empty() { now.clone() } else { gen_at.clone() };
@@ -1186,7 +1720,7 @@ fn main() {
         format!(
             r#"<footer>
     <b>資料時間</b>　{gen_note}　·　頁面生成 {now}<br>
-    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 7 日（分日子顯示）。<br>
+    <b>範圍</b>　未開賽只列 48 小時內；已完場保留 14 日（分日子顯示）。<br>
     <b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。<br>
     <b>資料來源</b>　香港賽馬會公開賠率（僅用作選場與賽後對比）· FotMob 賽果／傷停／陣容／即時比分。
   </footer>"#,
@@ -1194,7 +1728,7 @@ fn main() {
             now = now,
         )
     } else {
-        String::from("<footer><b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。　·　<a href=\"memo.html\">覆盤 memo 標籤勝率</a></footer>")
+        String::from("<footer><b>免責</b>　本頁為概率模型輸出與數據整理，不構成任何投注建議或誘因。概率為估計值，非保證。　·　<a href=\"memo.html\">覆盤 memo 標籤勝率</a>　·　<span class=\"bver\" id=\"bver\">v—</span></footer>")
     };
 
     // 頁頂 tagline 與統計五格：用戶要求收埋；代碼保留，一行開返
@@ -1223,13 +1757,21 @@ fn main() {
     };
 
     let html = format!(
-        r#"<!doctype html>
+        r##"<!doctype html>
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>賽前預測台 · 霧青</title>
 <meta name="description" content="香港賽馬會賽程 × FotMob 數據 × Elo／泊松模型的賽前預測看板">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="doge.svg">
+<link rel="apple-touch-icon" href="doge-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MatchDeck">
 <style>{css}</style>
 </head>
 <body>
@@ -1242,6 +1784,7 @@ fn main() {
 
   <div class="toolbar">
     <input id="q" class="search" placeholder="搜尋球隊或聯賽…" autocomplete="off">
+    <button id="watchbtn" class="watchbtn" type="button" aria-haspopup="dialog">★ 關注 <b id="wcount">0</b></button>
     <div class="chips" style="display:none">{chips}</div>   <!-- 聯賽過濾列：用戶要求收埋；要恢復刪 style 即可 -->
   </div>
 
@@ -1255,12 +1798,13 @@ fn main() {
   <section class="tabbody off" data-body="live">{body_live}</section>
   <section class="tabbody off" data-body="ft">{body_ft}</section>
 
+  {watch_html}
   {meta_html}
   {footer_html}
 </div>
 <script>{js}</script>
 </body>
-</html>"#,
+</html>"##,
         css = CSS,
         js = JS,
         chips = chips,
@@ -1273,6 +1817,7 @@ fn main() {
         // n_pred / n_comps 已移入 stats_html 的 format!（統計五格收埋時不再需要）
         tagline_html = tagline_html,
         stats_html = stats_html,
+        watch_html = WATCH_HTML,
         meta_html = meta_html,
         footer_html = footer_html,
     );
