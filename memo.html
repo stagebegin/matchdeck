@@ -55,8 +55,8 @@ footer{margin-top:34px;font-size:12px;color:var(--muted);line-height:1.8}
   <h2>標籤統計（已結算場次 · 亞盤）<small>讓球方 = 模型主盤嘅讓球方（上盤）</small></h2>
   <div id="tags"></div>
 
-  <h2>逐場 memo（亞盤對帳）</h2>
-  <div id="rows"></div>
+  <div class="note" style="margin-top:14px">逐場明細唔喺呢頁顯示（場數多咗會變得非常長）。想睇單場對帳，喺
+    <a href="./index.html">賽前預測台</a> 對應卡片睇。</div>
 
   <footer>
     贏盤率＝讓球方全贏或半贏嘅比例（走水唔算贏）。<br>
@@ -100,20 +100,7 @@ async function main(){
         '<td class="num">'+(r.win||0)+' / '+(r.halfwin||0)+' / '+(r.push||0)+' / '+(r.halflose||0)+' / '+(r.lose||0)+'</td></tr>';
     }).join('')+'</tbody></table>') : '<div class="empty">仲未有標籤統計。</div>';
   const rows=(j.rows||[]);
-  document.getElementById('rows').innerHTML= rows.length? (
-    '<table><thead><tr><th>聯賽</th><th>對賽</th><th>比分</th><th class="num">盤口</th><th>讓球方</th><th>模型贏盤率</th><th>實際結果</th><th class="num">實際/模型 每注</th><th>標籤</th><th>備註</th></tr></thead><tbody>'+
-    rows.map(r=>{
-      const res=r.ah_result?RES[r.ah_result]:null;
-      const resHtml=res?'<span class="'+res[1]+'">'+res[0]+'</span>':'—';
-      const line=r.line==null?'—':(r.fav==='a'?('客 '+r.line):('主 '+r.line));
-      return '<tr><td>'+esc(r.comp_name||r.comp)+'</td><td>'+esc(r.home)+' vs '+esc(r.away)+'</td>'+
-        '<td>'+(r.sh==null?'—':r.sh+'–'+r.sa)+'</td><td class="num">'+esc(line)+'</td>'+
-        '<td>'+(r.fav==='h'?'主隊':'客隊')+'</td>'+
-        '<td>'+pct(r.exp_win)+'</td><td>'+resHtml+'</td>'+
-        '<td class="num">'+fe(r.ah_e)+' / '+fe(r.exp_e)+'</td>'+
-        '<td>'+(r.tags||[]).map(t=>'<span class="tag">#'+esc(t)+'</span>').join(' ')+'</td>'+
-        '<td class="note">'+esc(r.note||'')+'</td></tr>';
-    }).join('')+'</tbody></table>') : '<div class="empty">仲未有逐場 memo。</div>';
+  void rows; // 逐場明細唔喺頁面顯示
 }
 main();
 </script>
