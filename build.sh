@@ -25,4 +25,8 @@ cargo build --release --target "$TARGET" >/dev/null
 "$BIN" --fixtures "$FIXTURES" --registry "$REGISTRY" --out dist/index.html
 cp dist/data.json ./data.json
 cp dist/index.html ./index.html
+STAMP="$(date -u +%Y-%m-%dT%H:%MZ)"
+printf "%s\n" "$STAMP" > dist/build.txt
+cp dist/build.txt ./build.txt
+echo "版本：$STAMP"
 echo "生成完成：index.html ($(wc -c < index.html) bytes)"

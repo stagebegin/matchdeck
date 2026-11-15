@@ -1,0 +1,17 @@
+{
+  "name": "MatchDeck",
+  "short_name": "MatchDeck",
+  "description": "香港賽馬會賽程 × FotMob 數據 × Elo／泊松模型的賽前預測看板",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "zh-Hant",
+  "icons": [
+    { "src": "doge.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "doge-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "doge-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "doge-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

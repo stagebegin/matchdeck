@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>覆盤 memo · 亞盤標籤統計</title>
+<title>Memo · 亞盤標籤統計</title>
 <style>
 :root{--bg:#eef3f4;--ink:#12232b;--muted:#6b838b;--line:#d3e0e2;--cyan:#4c9ba1;--cyan-2:#2f7d83;--card:#ffffff}
 *{box-sizing:border-box}
@@ -41,27 +41,48 @@ footer{margin-top:34px;font-size:12px;color:var(--muted);line-height:1.8}
 <body>
 <div class="wrap">
   <header class="hero">
-    <h1>覆盤 memo · 亞盤標籤統計</h1>
-    <p>逐場手動睇盤口後寫低嘅 hashtag 標籤（#初盤合理 終盤升水、#上盤…）。每場只當成<b>一個</b>標籤：
-      寫「#初盤合理 終盤升水」會儲存成單一標籤「初盤合理 終盤升水」，唔會拆開。<br>
+    <h1>Memo · 亞盤標籤統計</h1>
+    <p>每場 memo 都用<b>固定六格</b>描述，位置同詞彙有限，唔會亂：
+      <b>①讓球方</b>（主讓／客讓／平手）·
+      <b>②初盤判斷</b>（初盤合理／初盤深一至五格以上／初盤淺一至五格以上／模型方向錯）·
+      <b>③初盤水位</b>（初盤高水／初盤中水／初盤低水）·
+      <b>④終盤變化</b>（終盤升盤／終盤退盤／終盤維持／終盤變讓球方）·
+      <b>⑤終盤水位</b>（終盤升水／終盤降水／終盤水位不變）·
+      <b>⑥方向</b>（上盤／下盤）。<br>
+      六格用「·」連成一條<b>完整標籤</b>（例如「主讓·初盤深兩格·初盤低水·終盤升盤·終盤升水·上盤」），
+      一場只當成一個標籤，唔會拆開。統計以完整標籤為單位；
+      下面「維度參考」再把每一格拆開單獨睇（樣本較大，但已失咗組合語意）。<br>
+      「一格」＝<b>0.25 球</b>（亞盤最小一格係四分一球）：初盤深兩格＝初盤比模型公平盤深 0.50 球。<br>
       呢頁統計嘅全部係<b>亞盤（讓球盤）</b>：以模型主盤（讓球方上盤）為準，
-      對比你標註嗰類盤口觀察下，讓球方實際贏盤率同模型預期差幾多。
+      對比你標註嗰類盤口觀察下，讓球方實際贏盤率同模型預期差幾多。<br>
       寫 memo 喺 <a href="./index.html">賽前預測台</a> 每張卡片上。
     </p>
   </header>
 
   <div class="kpis" id="kpis"></div>
 
-  <h2>標籤統計（已結算場次 · 亞盤）<small>讓球方 = 模型主盤嘅讓球方（上盤）</small></h2>
+  <h2>標籤統計（已結算場次 · 亞盤 · 可落注口徑）<small>方向＝模型公平盤 vs 市場盤；結算＝市場盤口＋市場賠率</small></h2>
   <div id="tags"></div>
+
+  <h2>維度參考（拆成六格）<small>讓球方 / 初盤判斷 / 初盤水位 / 終盤變化 / 終盤水位 / 上·下盤 —— 樣本較大，但已失咗組合語意</small></h2>
+  <div id="dims"></div>
+
+  <h2>覆蓋率<small>所有有預測嘅場，睇下係咪寫到 memo，同埋點解冇</small></h2>
+  <div id="cov"></div>
 
   <div class="note" style="margin-top:14px">逐場明細唔喺呢頁顯示（場數多咗會變得非常長）。想睇單場對帳，喺
     <a href="./index.html">賽前預測台</a> 對應卡片睇。</div>
 
   <footer>
-    贏盤率＝讓球方全贏或半贏嘅比例（走水唔算贏）。<br>
-    「實際 vs 模型」差值＝實際贏盤率 − 模型預期贏盤率；負值代表模型高估咗讓球方（盤偏深）。<br>
-    每注期望＝實盤每注平均回報（贏 +1、輸 −1、走水 0，四分一盤兩注各半）；模型期望係同一條線嘅 E。<br>
+    <b>統計口徑（2026-11-16 定稿，用戶 m18486 指正）：</b>hashtag 只描述「初終盤形態」，唔會預先判斷買上盤定下盤。
+    每個標籤下面嘅數字係：<b>在呢個形態之下，已完場比賽中馬會終盤「上盤」（讓球方）開出幾多次、下盤（受讓方）開出幾多次</b>。<br>
+    「開出」＝該邊喺<b>終盤市場盤口</b>贏盤（全贏或半贏；四分一盤拆兩注）。走水唔計入任何一邊，所以上盤＋下盤＋走水＝100%（約數，四分一盤有時兩邊都半贏）。<br>
+    ROI 用馬會十進制賠率計：贏 +(賠率−1)、走水 0、輸 −1，四分一盤兩注各半 → 就係「如果每次都買呢一邊」嘅每注平均盈虧。<br>
+    <b>上盤／下盤係統計結果，唔係我們嘅選擇</b>——標籤裡面已經冇「上盤／下盤」嗰一格（舊版有，2026-11-16 移除，因為嗰陣會出現「標籤寫上盤、統計其實買咗受讓方」嘅矛盾）。<br>
+    <b>「終盤未定」：</b>如果最後一個馬會盤口係<b>開賽前 6 個鐘之前</b>就冇再見過新盤，我哋根本冇見過真正收盤，
+    唔會寫「終盤維持／升盤／退盤」（2026-11-19 法林明高就係咁錯過一次：存到開賽前 10 小時，實際開賽前 4 小時由 1.75 升到 2.0）。
+    呢類場次唔計入「上／下盤開出率」，所以總場次會少過 memo 總數。<br>
+    「模型校準差」已移去維度表以外，唔再混入主統計；模型自己條公平盤嘅校準只作內部診斷。<br>
     樣本少時（n &lt; 5）數字唔穩定，唔好當結論。
   </footer>
 </div>
@@ -73,6 +94,7 @@ const pp=x=>x==null?'—':((x>0?'+':'')+(x*100).toFixed(1)+'pp');
 const fe=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(3);
 function bar(v,neg){const p=Math.max(0,Math.min(1,v||0));return '<div class="bar'+(neg?' neg':'')+'"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>';}
 const RES={win:['全贏','win'],halfwin:['半贏','half'],push:['走水','push'],halflose:['半輸','half'],lose:['全輸','lose']};
+const roi=x=>x==null?'—':((x>=0?'+':'')+(x*100).toFixed(1)+'%');
 async function main(){
   let j;
   try{
@@ -82,27 +104,62 @@ async function main(){
     document.getElementById('tags').innerHTML='<div class="empty">讀唔到 API（'+esc(e.message)+'）</div>';
     return;
   }
+  const ov=j.overall||{};
   document.getElementById('kpis').innerHTML=
     '<div class="kpi"><b>'+(j.count||0)+'</b><span>已寫 memo</span></div>'+
     '<div class="kpi"><b>'+(j.settled_with_memo||0)+'</b><span>已結算（有賽果）</span></div>'+
-    '<div class="kpi"><b>'+((j.stats||[]).length)+'</b><span>標籤數</span></div>';
+    '<div class="kpi"><b>'+((j.stats||[]).length)+'</b><span>完整標籤數</span></div>'+
+    '<div class="kpi"><b>'+(j.coverage?j.coverage.with_memo:0)+' / '+(j.coverage?j.coverage.total_with_line:0)+'</b><span>有盤 → 已寫 memo</span></div>'+
+    '<div class="kpi"><b>'+(ov.cl_n||0)+'</b><span>有終盤盤口場次</span></div>'+
+    '<div class="kpi"><b>'+pct(ov.up_hit)+'</b><span>上盤（讓球方）開出</span></div>'+
+    '<div class="kpi"><b>'+pct(ov.down_hit)+'</b><span>下盤（受讓方）開出</span></div>'+
+    '<div class="kpi"><b>'+pct(ov.push_rate)+'</b><span>走水</span></div>'+
+    '<div class="kpi"><b id="asof">--:--</b><span>更新時間（每分鐘自動）</span></div>';
+  {const _t=new Date();const _a=document.getElementById('asof');if(_a)_a.textContent=String(_t.getHours()).padStart(2,'0')+':'+String(_t.getMinutes()).padStart(2,'0');}
   const st=j.stats||[];
   document.getElementById('tags').innerHTML= st.length? (
-    '<table><thead><tr><th>標籤</th><th class="num">場數</th><th class="num">實際贏盤率</th><th class="num">模型預期</th><th>差</th>'+
-    '<th class="num">實際每注</th><th class="num">模型每注</th><th class="num">全贏/半贏/走水/半輸/全輸</th></tr></thead><tbody>'+
+    '<table><thead><tr><th>標籤（初終盤形態）</th><th class="num">場數</th>'+
+    '<th class="num">上盤開出</th><th class="num">上盤 ROI</th>'+
+    '<th class="num">下盤開出</th><th class="num">下盤 ROI</th>'+
+    '<th class="num">走水</th></tr></thead><tbody>'+
     st.map(s=>{
-      const dev=s.cover_dev;
-      const r=s.results||{};
+      const cls=v=>(v==null?'':(v>=0?'pos':'neg'));
       return '<tr><td><span class="tag">#'+esc(s.tag)+'</span></td><td class="num">'+s.n+'</td>'+
-        '<td class="num">'+pct(s.cover_rate)+'</td><td class="num">'+pct(s.exp_cover)+'</td>'+
-        '<td class="'+(dev==null?'':(dev>=0?'pos':'neg'))+'">'+bar(s.cover_rate,dev!=null&&dev<0)+'<br>'+pp(dev)+'</td>'+
-        '<td class="num">'+fe(s.actual_e)+'</td><td class="num">'+fe(s.exp_e)+'</td>'+
-        '<td class="num">'+(r.win||0)+' / '+(r.halfwin||0)+' / '+(r.push||0)+' / '+(r.halflose||0)+' / '+(r.lose||0)+'</td></tr>';
+        '<td class="num">'+pct(s.up_hit)+' <small>('+(s.cl_n||0)+')</small></td>'+
+        '<td class="num '+cls(s.up_roi)+'">'+roi(s.up_roi)+'</td>'+
+        '<td class="num">'+pct(s.down_hit)+'</td>'+
+        '<td class="num '+cls(s.down_roi)+'">'+roi(s.down_roi)+'</td>'+
+        '<td class="num">'+pct(s.push_rate)+'</td></tr>';
     }).join('')+'</tbody></table>') : '<div class="empty">仲未有標籤統計。</div>';
+  const dims=j.dims||[];
+  document.getElementById('dims').innerHTML= dims.length? (
+    '<table><thead><tr><th>層</th><th>標籤</th><th class="num">場數</th>'+
+    '<th class="num">上盤開出</th><th class="num">下盤開出</th><th class="num">走水</th></tr></thead><tbody>'+
+    dims.map(d=>{ const dimName=(d.dim_label||({giver:'讓球方',open:'初盤判斷',openWater:'初盤水位',close:'終盤變化',closeWater:'終盤水位'}[d.dim]))||d.dim;
+      return '<tr><td>'+dimName+'</td><td><span class="tag">#'+esc(d.tag)+'</span></td><td class="num">'+d.n+'</td>'+
+        '<td class="num">'+pct(d.up_hit)+'</td>'+
+        '<td class="num">'+pct(d.down_hit)+'</td>'+
+        '<td class="num">'+pct(d.push_rate)+'</td></tr>';
+    }).join('')+'</tbody></table>') : '<div class="empty">未有維度統計。</div>';
+  const cv=j.coverage;
+  document.getElementById('cov').innerHTML= cv? (
+    '<div class="note" style="margin-bottom:8px">馬會有 HDC 盤口嘅場共 <b>'+cv.hk_matches+'</b> 場（g10 公開頁時間線＋馬會官方快照），其中 <b>'+cv.total_with_line+'</b> 場，其中 <b>'+cv.with_memo+'</b> 場已寫 memo，'+
+    '<b>'+cv.without+'</b> 場冇 memo（原因如下，唔係漏做，係冇足夠條件）。</div>'+
+    ((cv.no_model||[]).length? '<h2 style="font-size:14px">冇 memo：未出模型預測</h2><div class="note">'+
+      cv.no_model.map(x=>esc(x.id+' · '+x.home+' vs '+x.away+'（'+(x.src||'馬會')+' '+x.history+' 個快照）')).join('<br>')+'</div>':'')+
+    ((cv.too_few_history||[]).length? '<h2 style="font-size:14px">冇 memo：只有 1 個盤口快照（分唔到初盤／終盤）</h2><div class="note">'+
+      cv.too_few_history.map(x=>esc(x.id+' · '+x.home+' vs '+x.away)).join('<br>')+'</div>':'')+
+    ((cv.no_line||[]).length? '<h2 style="font-size:14px">冇 memo：馬會無讓球盤口（'+cv.no_line.length+' 場）</h2><div class="note">'+
+      cv.no_line.slice(0,40).map(x=>esc(x.id+' · '+x.league+' · '+x.home+' vs '+x.away+'（'+(x.reason||'')+'）')).join('<br>')+
+      (cv.no_line.length>40?'<br>…（只列頭 40 場）':'')+'</div>':'')
+  ) : '<div class="empty">未有覆蓋率資料。</div>';
   const rows=(j.rows||[]);
   void rows; // 逐場明細唔喺頁面顯示
 }
 main();
+// 用戶 m19522 方案 1：開住頁面就每分鐘自動重新抓統計（唔會影響後台，只係 GET /stats）
+setInterval(()=>{ if(document.visibilityState==='visible') main(); },60000);
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') main(); });
 </script>
 </body>
 </html>

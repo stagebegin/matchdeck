@@ -51,6 +51,39 @@ const nCards = cards.length;
 console.log(`卡片：${nCards} 張（全部有 data-id／data-status／data-comp）`);
 console.log(`data.json：${list.length} 場 → 頁面有卡 ${list.length - hidden} 場，已完場冇預測而收埋 ${hidden} 場`);
 
+// ④ 分頁正確性（用戶 m17055：進行中嘅場次唔喺「比賽中」分頁）
+//    直接驗成品：每一張卡必須出現喺同 status 相符嘅 tabbody 裏面。
+//    呢個係「卡住喺舊分頁」嘅回歸閘——前端搬卡邏輯（placeCard）壞咗就會即刻紅。
+const secs = {};
+const chunks = html.split('<section class="tabbody');
+for (let i = 1; i < chunks.length; i++) {
+  const m = chunks[i].match(/data-body="(\w+)"/);
+  if (!m) continue;
+  const body = chunks[i].split('</section>')[0];
+  secs[m[1]] = [...body.matchAll(/data-id="(\d+)"/g)].map((x) => x[1]);
+}
+for (const k of ['pre', 'live', 'ft']) if (!secs[k]) problems.push(`頁面缺少分頁 ${k}（tabbody）`);
+const bucket = (st) => (st === 'live' ? 'live' : st === 'pre' ? 'pre' : 'ft');
+const want = { pre: new Set(), live: new Set(), ft: new Set() };
+for (const r of list) want[bucket(String(r.status))].add(String(r.id));
+for (const k of ['pre', 'live', 'ft']) {
+  for (const id of secs[k] || []) {
+    const others = ['pre', 'live', 'ft'].filter((x) => x !== k && want[x].has(id));
+    if (others.length) problems.push(`卡 ${id} 喺「${k}」分頁，但 data.json 狀態屬「${others[0]}」`);
+  }
+}
+
+// ⑤ 過時未開賽：開賽超過 10 分鐘仍然係 pre → 數據源狀態冇翻（遲早又會出現「比賽中分頁冇呢場」）
+{
+  const nowMs = Date.now();
+  for (const r of list) {
+    if (String(r.status) !== 'pre') continue;
+    const t = Date.parse(r.kickoff || r.kick || '');
+    if (!Number.isFinite(t)) continue;
+    if (nowMs - t > 10 * 60000) problems.push(`場次 ${r.id} 已開賽 ${Math.round((nowMs - t) / 60000)} 分鐘但狀態仍係 pre（狀態推算失效）`);
+  }
+}
+
 for (const p of problems.slice(0, 20)) console.log('✗ ' + p);
 if (problems.length) {
   console.log(`\n✗ 頁面層有 ${problems.length} 個問題`);
